@@ -286,13 +286,29 @@
             </select>
           </div>
         </div>
-        <div>
+        <div style="margin-bottom:6px">
           <label>Phase Protection Relay (PPR1)</label>
           <select id="selPpr" onchange="renderAll()">
             <option value="Selec 900VPR-BL-U">Selec 900VPR-BL-U (Wide 160-520V)</option>
             <option value="WIP W-OP4">WIP W-OP4 Phase Protection</option>
           </select>
         </div>
+        <div style="margin-bottom:6px">
+          <label>Option 1: Digital Power Meter (PM1 + CT 3x)</label>
+          <div class="seg-group" style="margin-bottom:4px">
+            <button class="seg-btn active" id="pm_off" onclick="setPmOpt(false)">ไม่ติด Power Meter</button>
+            <button class="seg-btn" id="pm_on" onclick="setPmOpt(true)">ติด Power Meter (PM1)</button>
+          </div>
+        </div>
+        <div id="rs485Box" style="margin-bottom:6px;display:none">
+          <label>Option 2: วงจรเชื่อมต่อ RS485 (A+ / B- / SHLD)</label>
+          <div class="seg-group" style="margin-bottom:4px">
+            <button class="seg-btn active" id="rs_off" onclick="setRs485Opt(false)">ไม่ใช้ RS485 (เฉพาะที่ตู้)</button>
+            <button class="seg-btn" id="rs_on" onclick="setRs485Opt(true)">ใช้ RS485 (เชื่อม Smart Pig)</button>
+          </div>
+          <div id="rs485Note" style="font-size:10.5px;color:#93c5fd;line-height:1.35;margin-top:2px;"></div>
+        </div>
+        <div id="bomImpactNote" style="font-size:10.5px;color:#94a3b8;background:#0f172a;border:1px solid #334155;border-radius:6px;padding:5px 7px;margin-bottom:4px;"></div>
         <div id="cabWarn" class="warn-box"></div>
       </div>
     </div>
@@ -359,6 +375,8 @@ let state = {
   bkey: 'master',
   nEc: 8,
   nAc: 0,
+  hasPm: false,
+  useRs485: false,
   activeSheet: 0,
   showAll: false
 };
@@ -600,6 +618,40 @@ function computeSpec() {
   const contMod = ctrlV === '24VDC' ? bm.cont_24 : bm.cont_220;
   const mainMod = mainBrk >= 50 ? `${bm.mccb} 3P ${mainBrk}AT` : `${bm.mcb} 3P ${mainBrk}AT`;
   const pprMod = document.getElementById('selPpr').value;
+  const hasPm = !!state.hasPm;
+  const hasRs485 = hasPm && !!state.useRs485 && nEc > 0;
+  const pmMod = { master:'Schneider PM2120', th:'Mitsubishi ME96SS', vn:'Selec MFM384-C', cn:'Chint DTSU666' }[state.bkey];
+  const ctRatio = mainBrk <= 50 ? '50/5A' : (mainBrk <= 100 ? '100/5A' : (mainBrk <= 160 ? '150/5A' : '250/5A'));
+
+  // Sync Power Meter & RS485 UI buttons & BOM impact note
+  document.getElementById('pm_off').classList.toggle('active', !hasPm);
+  document.getElementById('pm_on').classList.toggle('active', hasPm);
+  const rsBox = document.getElementById('rs485Box');
+  rsBox.style.display = hasPm ? 'block' : 'none';
+  const rsOnBtn = document.getElementById('rs_on');
+  const rsOffBtn = document.getElementById('rs_off');
+  const rsNote = document.getElementById('rs485Note');
+  if (nEc === 0) {
+    rsOnBtn.disabled = true;
+    rsOnBtn.style.opacity = '0.4';
+    rsOnBtn.style.cursor = 'not-allowed';
+    rsOffBtn.classList.add('active');
+    rsOnBtn.classList.remove('active');
+    rsNote.textContent = 'โหมด All-AC: ติดตั้ง Power Meter อ่านค่าเฉพาะหน้าตู้ (ไม่เดินวงจร RS485)';
+  } else {
+    rsOnBtn.disabled = false;
+    rsOnBtn.style.opacity = '1';
+    rsOnBtn.style.cursor = 'pointer';
+    rsOffBtn.classList.toggle('active', !hasRs485);
+    rsOnBtn.classList.toggle('active', hasRs485);
+    rsNote.textContent = hasRs485
+      ? 'เปิดใช้ RS485: เพิ่มขั้ว A+/B-/SHLD บน XR3 + Surge เพื่อเชื่อม Smart Pig (Modbus RTU)'
+      : 'ไม่ใช้ RS485: Power Meter อ่านค่าเฉพาะหน้าตู้เท่านั้น (ประหยัดค่า Surge & สาย RS485)';
+  }
+  const bomNote = document.getElementById('bomImpactNote');
+  if (!hasPm) bomNote.innerHTML = '📋 <b>BOM:</b> มาตรฐาน (ไม่มี Power Meter / ไม่มี RS485)';
+  else if (!hasRs485) bomNote.innerHTML = `📋 <b>BOM เพิ่ม:</b> ${pmMod} (1) + CT ${ctRatio} (3) — <i>เฉพาะที่ตู้</i>`;
+  else bomNote.innerHTML = `📋 <b>BOM เพิ่ม:</b> ${pmMod} (1) + CT ${ctRatio} (3) + RS485 Surge &amp; XR3 (A+/B-/SHLD)`;
 
   const autoCab = n <= 4 ? '570x690x250' : (n <= 10 ? '800x1200x250' : (n <= 16 ? '800x1500x400' : (n <= 20 ? '1000x1800x450' : (n <= 28 ? '1200x1800x450' : '1200x2000x500'))));
   const selCab = document.getElementById('selCab').value;
@@ -636,7 +688,7 @@ function computeSpec() {
 
   return {
     n, nEc, nAc, mode, ecFan, acFan, bm, totalKw, totalAmp, totalCfm, iDesign,
-    mainBrk, grpCnt, isoCnt, hasIso, ctrlV, contMod, mainMod, pprMod, cabSz,
+    mainBrk, grpCnt, isoCnt, hasIso, ctrlV, contMod, mainMod, pprMod, hasPm, hasRs485, pmMod, ctRatio, cabSz,
     totalSheets, codeNo, sheetList,
     customer: document.getElementById('inCustomer').value.trim(),
     dateStr: document.getElementById('inDate').value.trim() || '2026-11',
@@ -870,7 +922,14 @@ function buildBom(sp) {
     ['5','Wireduct Slotted 40x60 mm','5','BAR','KSP STD'],
     ['6',`Cabinet ${sp.cabSz} IP55`,'1','UNIT','KSP / KJL']
   ];
-  mRows.forEach((r,idx)=>{ const ry=84+idx*18.5; s+=L(286,ry+18.5,526,ry+18.5,C.GRY,0.35); r.forEach((v,ci)=>s+=Txt(mCols[ci]+3,ry+12,v.slice(0,22),5.2)); });
+  if (sp.hasPm) {
+    mRows.push(['7', `PM1: ${sp.pmMod}`, '1', 'PCS', sp.pmMod.split(' ')[0].toUpperCase()]);
+    mRows.push(['8', `CT 3-Ph ${sp.ctRatio}`, '3', 'PCS', 'KSP STD']);
+  }
+  if (sp.hasRs485) {
+    mRows.push(['9', 'RS485 Surge + 3P Term', '1', 'SET', 'KSP STD']);
+  }
+  mRows.forEach((r,idx)=>{ const ry=84+idx*18.5; s+=L(286,ry+18.5,526,ry+18.5,C.GRY,0.35); r.forEach((v,ci)=>s+=Txt(mCols[ci]+3,ry+12,v.slice(0,26),5.0)); });
 
   // 3. Control Equipment
   s += R(530,54,270,258,C.BLK,'none',0.8)+R(530,54,270,16,C.BLK,C.BG,0.7)+Txt(620,65,'CONTROL EQUIPMENT',7,C.BLK,true);
@@ -943,6 +1002,11 @@ function buildLayout(sp) {
   }
   s += drawQuarterLamp(fx0+fw*0.40, fy0+fh*0.30, C.OYL, 'PH.FLT', 'Y', rLamp);
   if (sp.nEc > 0) s += drawQuarterLamp(fx0+fw*0.62, fy0+fh*0.30, C.OYL, 'P24FLT', 'Y', rLamp);
+  if (sp.hasPm) {
+    const pmx = fx0 + fw * 0.74, pmy = fy0 + fh * 0.19;
+    s += R(pmx, pmy, fw*0.18, 16, C.BLK, '#1e293b', 0.7) + Txt(pmx+fw*0.09, pmy+10.5, 'PM1', 4.5, '#38bdf8', true, 'middle');
+    s += Txt(pmx+fw*0.09, pmy-2, sp.hasRs485 ? 'PM1+RS485' : 'PM1 LOCAL', 3.4, sp.hasRs485 ? C.BLU : C.GRY, true, 'middle');
+  }
 
   // Fan Matrix (dynamic 1..4 rows cleanly fitted inside fw x fh up to 32 fans!)
   const colsD = sp.n <= 8 ? 4 : (sp.n <= 12 ? 6 : (sp.n <= 20 ? 10 : 8));
@@ -1079,7 +1143,12 @@ function buildLoadCalc(sp) {
    ['Internal Motor (KMR->XR2)','VSF 1x2.5 + PE 2.5','U:Br V:Bk W:Gy PE:G/Y','3.1 - 4.9 A','24 A','XR2 (4P/Fan)','450/750V Flex Copper'],
    ['Field Motor (XR2->Fans)','VCT 4x2.5 sq.mm','4C (U, V, W, PE)','3.1 - 4.9 A','24 A','XR2 -> MR1..n','Includes PE Earth Wire!'],
    ['AC Control & Phase Relay','VSF 1x1.0 sq.mm','Br/Bk/Gy/Bu (220V)','< 1.0 A','12 A','FUR1/PPR1/VF1','Protected by FUR1/2'],
-   ['DC Control & 0-10V Signal','VSF 1.0 + LIY-CY 2x0.75','Rd(+24V)/Bu(0V)+Shld','< 2.0 A','12 A','SPS1/ISO->XR3','Shielded Twisted Analog']
+   [sp.hasRs485 ? 'DC Control, 0-10V & RS485' : (sp.hasPm ? 'Control, Signal & CT Wire' : 'DC Control & 0-10V Signal'),
+    sp.hasRs485 ? 'VSF 1.0 + LIY-CY + Belden' : (sp.hasPm ? (sp.nEc>0 ? 'VSF 1.0 + LIY-CY + CT 2.5' : 'VSF 1.0 + CT 2.5 sq.mm') : 'VSF 1.0 + LIY-CY 2x0.75'),
+    sp.hasRs485 ? '24V + 0-10V + RS485(A/B/S)' : (sp.hasPm ? 'Ctrl + CT(S1/S2) Local' : 'Rd(+24V)/Bu(0V)+Shld'),
+    '< 2.0 A', '12 A',
+    sp.hasRs485 ? 'SPS1/ISO/PM1->XR3' : (sp.hasPm ? 'PM1 (Local Panel)' : 'SPS1/ISO->XR3'),
+    sp.hasRs485 ? 'Shielded 0-10V & Modbus' : (sp.hasPm ? 'Local Meter (No RS485)' : 'Shielded Twisted Analog')]
   ].forEach((row,idx)=>{
     const ry=292+idx*25.0; s+=L(42,ry+25,800,ry+25,C.GRY,0.35);
     row.forEach((v,ci)=>s+=Txt(cCols[ci]+4,ry+16,v.slice(0,26),5.8,(idx===1||idx===5)&&[0,1,2,6].includes(ci)?C.GRN:C.BLK,ci<2));
@@ -1104,13 +1173,17 @@ function buildSld(sp) {
   s += Txt(100,68,'3~ 380V 50Hz + N + PE (XR1 5P)',7.5,C.BLK,true)+L(150,74,150,96,C.BLK,1.6)+sldSlash(150,84,4,'VSF Main');
   s += sldCb(150,110,`MCB1: ${sp.mainMod}`,`Icu: ${sp.bm.icu} | ${sp.totalKw}kW (${sp.totalAmp}A)`,`Airflow @50Pa: ${sp.totalCfm.toLocaleString()} CFM`);
   s += L(150,126,150,200,C.BLK,1.6)+Dot(150,158,C.BLK,2.2)+L(150,158,sp.nEc>0?650:460,158,C.BLK,1.1);
+  if (sp.hasPm) {
+    s += Cir(150, 178, 5, C.BLU, 'none', 0.9) + L(155, 178, 250, 178, C.BLU, 0.8) + R(250, 165, 162, 23, C.BLU, '#f0f7ff', 0.8);
+    s += Txt(256, 175, `PM1: ${sp.pmMod}`, 5.8, C.BLU, true) + Txt(256, 184, sp.hasRs485 ? `CT 3x ${sp.ctRatio} | RS485 (XR3)` : `CT 3x ${sp.ctRatio} | Local Panel Only`, 5.1, C.GRY);
+  }
   s += Dot(460,158,C.BLK,2.0)+L(460,158,460,116,C.BLK,0.9)+R(455,130,10,16,C.BLK,'#fff',0.9)+Txt(469,141,'FUR1 3P 6A',5.5);
   s += R(435,82,160,34,C.RED,'none',0.9)+Txt(442,95,`PPR1: ${sp.pprMod}`,7,C.RED,true)+Txt(442,107,'VF1 + TS1 (35C) + HLR1-3',5.8,C.GRY);
   if (sp.nEc>0) {
     s += Dot(650,158,C.BLK,2.0)+L(650,158,650,116,C.BLK,0.9)+sldCb(650,138,'MCB4','2P 6AT');
     s += R(620,82,170,34,C.BLU,'none',0.9)+Txt(627,95,`SPS1: ${sp.bm.sps}`,7,C.BLU,true)+Txt(627,107,`ISO1..${sp.isoCnt} (0-10V) + SS1 + RY`,5.8,C.GRY);
   }
-  s += Dot(150,200,C.BLK,2.5)+L(75,200,775,200,C.BLK,2.2)+Txt(255,193,`MAIN DISTRIBUTION BUSBAR (${sp.grpCnt} GROUPS x 4 FANS)`,7,C.BLK,true);
+  s += Dot(150,200,C.BLK,2.5)+L(75,200,775,200,C.BLK,2.2)+Txt(sp.hasPm ? 465 : 255,193,`MAIN DISTRIBUTION BUSBAR (${sp.grpCnt} GROUPS x 4 FANS)`,7,C.BLK,true);
   const gw = Math.min(145, 680.0 / Math.max(1, sp.grpCnt));
   for (let g=0;g<sp.grpCnt;g++) {
     const gx = 95 + g * gw, fs = g*4+1, fe = Math.min((g+1)*4, sp.n), cg = fe-fs+1, isEcG = g*4 < sp.nEc;
@@ -1125,7 +1198,7 @@ function buildSld(sp) {
   s += R(45,425,750,70,C.BLK,C.BG,0.9)+Txt(55,440,`PRODUCT & ENCLOSURE SCHEDULE (${sp.bm.label})`,8,C.BLU,true);
   s += Txt(55,455,`- Cabinet: ${sp.cabSz} mm (IP55 RAL 7035 1.5mm) | Main: ${sp.mainMod} | Branch: ${sp.grpCnt}x ${sp.bm.mcb}`,7);
   s += Txt(55,469,`- EC Starters (${sp.nEc}x): ${sp.bm.mpcb_ec} + ${sp.contMod} | AC Starters (${sp.nAc}x): ${sp.bm.mpcb_ac} + ${sp.contMod}`,7);
-  s += Txt(55,483,`- Control: ${sp.ctrlV} | Isolators: ${sp.isoCnt}x 4-Ch | Phase Relay: ${sp.pprMod} | See R06 BOM & R08 Load Calc`,7,C.RED,true);
+  s += Txt(55,483,`- Control: ${sp.ctrlV} | Isolators: ${sp.isoCnt}x 4-Ch | Phase Relay: ${sp.pprMod}${sp.hasPm ? ` | PM1: ${sp.pmMod} (${sp.hasRs485 ? 'RS485' : 'Local'})` : ''}`,7,C.RED,true);
   return s;
 }
 
@@ -1301,10 +1374,11 @@ function buildTerminals(sp, sheetNo) {
     xr3Y0 = 264;
   }
 
-  if (sp.nEc > 0) {
+  if (sp.nEc > 0 || sp.hasRs485) {
     const xr3Top=[], xr3Bot=[];
     for(let i=1;i<=sp.nEc;i++){ xr3Top.push(`ISO-O${i}+`,`ISO-O${i}-`); xr3Bot.push(`EC${i}(+)`,`EC${i}(-)`); }
-    xr3Top.push('CTRL1+','CTRL1-'); xr3Bot.push('EXT-0-10+','EXT-0-10-');
+    if (sp.nEc > 0) { xr3Top.push('CTRL1+','CTRL1-'); xr3Bot.push('EXT-0-10+','EXT-0-10-'); }
+    if (sp.hasRs485) { xr3Top.push('PM1-A+','PM1-B-','PM1-SHLD'); xr3Bot.push('RS485-A+','RS485-B-','RS485-SHLD'); }
     if (xr3Top.length <= 30) {
       s += drawTerminalStrip(195, xr3Y0, 'XR3', xr3Top, xr3Bot, Math.min(12.0, 380.0 / xr3Top.length));
     } else {
@@ -1323,11 +1397,17 @@ function buildTerminals(sp, sheetNo) {
   s += Txt(58,294,'N-BAR: Copper',6,C.BLU,true)+Txt(58,306,'Neutral Busbar',5.6)+Txt(58,326,'All F1..Fn VCT 4C',5.5,C.GRY)+Txt(58,336,'include PE wire!',5.5,C.GRN,true);
 
   s += R(610,48,192,432,C.BLK,C.BG,0.8)+Txt(620,66,'LEGEND & PRODUCT SPECS',8,C.BLU,true);
-  [`MCB = ${sp.bm.mcb} / ${sp.bm.mccb}`,`QFR_EC = ${sp.bm.mpcb_ec} (2.5-4.0A)`,`QFR_AC = ${sp.bm.mpcb_ac} (4.0-6.3A)`,`KMR = ${sp.contMod}`,
-   `PPR = ${sp.pprMod}`,`SPS = ${sp.bm.sps}`,'ISO = 4-Ch 0-10V Isolator','RY  = Control Relay 24V/220V','SAR = Selector MAN-0-AUT',
-   'SS1 = Master Selector','SIG = 0-10V Speed Volume','HLR = Pilot Light Dia 22mm','VF  = Ventilation Fan','TS  = Thermostat (35C)',
-   'XR1 = Main Power + PE (5P)','XR2 = Motor Power + PE (4P/Fan)','XR3 = 0-10VDC Terminal','XR4 = Ext Control & Fault',
-   `CAB = ${sp.cabSz} mm (IP55)`,'CALC = See Sheet R08'].forEach((li,idx)=> s += Txt(620, 86+idx*18, li, 6.4));
+  const legItems = [
+    `MCB = ${sp.bm.mcb} / ${sp.bm.mccb}`,`QFR_EC = ${sp.bm.mpcb_ec} (2.5-4.0A)`,`QFR_AC = ${sp.bm.mpcb_ac} (4.0-6.3A)`,`KMR = ${sp.contMod}`,
+    `PPR = ${sp.pprMod}`,`SPS = ${sp.bm.sps}`,'ISO = 4-Ch 0-10V Isolator','RY  = Control Relay 24V/220V','SAR = Selector MAN-0-AUT',
+    'SS1 = Master Selector','SIG = 0-10V Speed Volume','HLR = Pilot Light Dia 22mm','VF  = Ventilation Fan','TS  = Thermostat (35C)',
+    'XR1 = Main Power + PE (5P)','XR2 = Motor Power + PE (4P/Fan)',
+    sp.hasRs485 ? 'XR3 = 0-10V + RS485 (A+/B-/S)' : 'XR3 = 0-10VDC Terminal',
+    'XR4 = Ext Control & Fault',
+    ...(sp.hasPm ? [`PM1 = ${sp.pmMod} (${sp.hasRs485 ? 'RS485' : 'Local'})`] : []),
+    `CAB = ${sp.cabSz} mm (IP55)`,'CALC = See Sheet R08'
+  ];
+  legItems.forEach((li,idx)=> s += Txt(620, 84+idx*17.5, li, 6.2));
   return s;
 }
 
@@ -1353,6 +1433,7 @@ function renderAll() {
     <div class="metric-pill">โหลด: <b>${sp.totalKw} kW</b> / <b>${sp.totalAmp} A</b> (125%: ${sp.iDesign}A)</div>
     <div class="metric-pill">เมน: <b>${sp.mainBrk}AT</b> | ตู้: <b>${sp.cabSz}</b></div>
     <div class="metric-pill">ลมรวม: <b>${sp.totalCfm.toLocaleString()} CFM</b></div>
+    ${sp.hasPm ? `<div class="metric-pill">มิเตอร์: <b>PM1 (${sp.hasRs485 ? 'RS485' : 'Local'})</b></div>` : ''}
   `;
 
   // Render Sheet Tabs
@@ -1425,6 +1506,18 @@ function setSource(bk) {
   renderAll();
 }
 
+function setPmOpt(on) {
+  state.hasPm = !!on;
+  if (!state.hasPm) state.useRs485 = false;
+  renderAll();
+}
+
+function setRs485Opt(on) {
+  state.useRs485 = !!on;
+  if (state.useRs485) state.hasPm = true;
+  renderAll();
+}
+
 function onModelSelect(which) {
   if (which === 'EC') document.getElementById('customEcFields').style.display = document.getElementById('selEcModel').value==='custom_ec'?'grid':'none';
   else document.getElementById('customAcFields').style.display = document.getElementById('selAcModel').value==='custom_ac'?'grid':'none';
@@ -1444,6 +1537,7 @@ function savePreset() {
     ec: document.getElementById('inEcCount').value, ac: document.getElementById('inAcCount').value,
     bkey: state.bkey, cab: document.getElementById('selCab').value,
     ctrlV: document.getElementById('selCtrlV').value, ppr: document.getElementById('selPpr').value,
+    hasPm: state.hasPm, useRs485: state.useRs485,
     ecMod: document.getElementById('selEcModel').value, acMod: document.getElementById('selAcModel').value,
     customer: document.getElementById('inCustomer').value, code: document.getElementById('inCode').value,
     draftman: document.getElementById('inDraftman').value, approved: document.getElementById('inApproved').value
@@ -1465,6 +1559,10 @@ function loadSavedPreset() {
       if (p.get('ecMod')) document.getElementById('selEcModel').value = p.get('ecMod');
       if (p.get('acMod')) document.getElementById('selAcModel').value = p.get('acMod');
       if (p.get('bkey') && BRAND_MODELS[p.get('bkey')]) setSource(p.get('bkey'));
+      if (p.get('pm') === '1' || p.get('pm') === 'true') state.hasPm = true;
+      if (p.get('rs485') === 'pm_rs485' || p.get('rs485') === '1' || p.get('rs485') === 'true') { state.hasPm = true; state.useRs485 = true; }
+      else if (p.get('rs485') === 'pm_only') { state.hasPm = true; state.useRs485 = false; }
+      else if (p.get('rs485') === 'none' || p.get('rs485') === '0') { state.useRs485 = false; }
       onManualFanChange();
       return;
     }
@@ -1476,6 +1574,9 @@ function loadSavedPreset() {
     if (d.cab) document.getElementById('selCab').value = d.cab;
     if (d.ctrlV) document.getElementById('selCtrlV').value = d.ctrlV;
     if (d.ppr) document.getElementById('selPpr').value = d.ppr;
+    if (d.hasPm !== undefined) state.hasPm = !!d.hasPm;
+    if (d.useRs485 !== undefined) state.useRs485 = !!d.useRs485;
+    if (d.rs485 === 'pm_rs485') { state.hasPm = true; state.useRs485 = true; }
     if (d.ecMod) document.getElementById('selEcModel').value = d.ecMod;
     if (d.acMod) document.getElementById('selAcModel').value = d.acMod;
     if (d.customer !== undefined) document.getElementById('inCustomer').value = d.customer;
@@ -1506,6 +1607,8 @@ function exportCsvBom() {
     ['QFR_AC', 'AC MPCB + Link', sp.nAc, `${sp.bm.mpcb_ac} + ${sp.bm.link}`],
     ['KMR', 'Contactor + Aux', sp.n, sp.contMod],
     ['PPR1', 'Phase Relay', 1, sp.pprMod],
+    ...(sp.hasPm ? [['PM1', `Digital Power Meter (${sp.hasRs485 ? 'Modbus RS485' : 'Local Panel Only'})`, 1, sp.pmMod], ['CT', `Current Transformer ${sp.ctRatio}`, 3, 'CT 5A']] : []),
+    ...(sp.hasRs485 ? [['RS485', 'RS485 Surge + 3P Terminal (A+/B-/SHLD)', 1, 'XR3']] : []),
     ['SPS1', '24VDC 5A Supply', sp.nEc>0?1:0, sp.bm.sps],
     ['ISO', '0-10V 4-Ch Isolator', sp.isoCnt, '4-Ch Isolated'],
     ['XR1-4', 'Terminals (L1,L2,L3,N,PE / U,V,W,PE)', 1, `XR1(5P)+XR2(${sp.n*4}P)`],
