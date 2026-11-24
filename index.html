@@ -1,0 +1,1530 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KSP Offline Panel Report & IEC 60617 Schematic Studio</title>
+<style>
+  :root {
+    --bg: #0b1120;
+    --panel: #111827;
+    --panel2: #1e293b;
+    --border: #2d3b4e;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --accent: #38bdf8;
+    --green: #22c55e;
+    --amber: #f59e0b;
+    --red: #ef4444;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg); color: var(--text);
+    font-family: "Sarabun", "Noto Sans Thai", "Tahoma", "Leelawadee UI", "Segoe UI", sans-serif;
+    height: 100%; overflow: hidden;
+  }
+  .app-shell { display: flex; height: 100vh; width: 100vw; }
+  /* Sidebar */
+  .sidebar {
+    width: 390px; min-width: 360px; max-width: 420px;
+    background: var(--panel); border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; height: 100vh;
+  }
+  .sb-head {
+    padding: 12px 16px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px; background: #0f172a;
+  }
+  .sb-head img { width: 46px; height: auto; }
+  .sb-title { font-size: 14px; font-weight: 700; color: #fff; line-height: 1.25; }
+  .sb-sub { font-size: 11px; color: var(--accent); margin-top: 2px; }
+  .sb-body { flex: 1; overflow-y: auto; padding: 12px 14px; display: flex; flex-direction: column; gap: 12px; }
+  .sb-foot { padding: 10px 14px; border-top: 1px solid var(--border); background: #0f172a; display: flex; flex-direction: column; gap: 6px; }
+
+  .card {
+    background: #0f172a; border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px;
+  }
+  .card-title {
+    font-size: 11.5px; font-weight: 700; color: var(--accent);
+    text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 8px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 3px; }
+  input[type="text"], input[type="number"], select {
+    width: 100%; background: var(--panel2); border: 1px solid #334155; color: #f8fafc;
+    border-radius: 5px; padding: 6px 8px; font-size: 12px; outline: none;
+    font-family: inherit;
+  }
+  input:focus, select:focus { border-color: var(--accent); }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+  .seg-group { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-bottom: 8px; }
+  .seg-btn {
+    padding: 6px 4px; border: 1px solid #334155; background: var(--panel2); color: var(--muted);
+    border-radius: 5px; cursor: pointer; font-size: 11.5px; font-weight: 600; text-align: center;
+  }
+  .seg-btn.active { background: #0284c7; border-color: #38bdf8; color: #fff; }
+  .brand-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .brand-btn {
+    padding: 7px 8px; border: 1px solid #334155; background: var(--panel2); color: #cbd5e1;
+    border-radius: 6px; cursor: pointer; font-size: 11px; text-align: left; line-height: 1.3;
+  }
+  .brand-btn b { display: block; font-size: 11.5px; color: #fff; }
+  .brand-btn.active { border-color: var(--green); background: rgba(34, 197, 94, 0.14); }
+  .chip-row { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+  .chip {
+    padding: 3px 7px; border-radius: 4px; border: 1px solid #334155; background: var(--panel2);
+    color: #cbd5e1; font-size: 11px; cursor: pointer;
+  }
+  .chip:hover { border-color: var(--accent); color: #fff; }
+  .chip.active { background: #0369a1; border-color: #38bdf8; color: #fff; }
+  .btn {
+    border: none; border-radius: 6px; padding: 8px 12px; font-size: 12px; font-weight: 700;
+    cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    font-family: inherit;
+  }
+  .btn-primary { background: #0284c7; color: #fff; width: 100%; }
+  .btn-primary:hover { background: #0369a1; }
+  .btn-sec { background: var(--panel2); color: #e2e8f0; border: 1px solid #334155; font-size: 11px; padding: 6px 8px; }
+  .btn-sec:hover { border-color: var(--accent); }
+  .warn-box {
+    background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.5);
+    color: #fbbf24; font-size: 11px; padding: 6px 8px; border-radius: 5px; margin-top: 6px; display: none;
+  }
+
+  /* Main Preview Area */
+  .main { flex: 1; display: flex; flex-direction: column; height: 100vh; overflow: hidden; background: #1e293b; }
+  .toolbar {
+    background: #0f172a; border-bottom: 1px solid var(--border); padding: 8px 14px;
+    display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+  }
+  .metrics { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .metric-pill {
+    background: var(--panel2); border: 1px solid #334155; border-radius: 5px;
+    padding: 4px 8px; font-size: 11px; color: #cbd5e1;
+  }
+  .metric-pill b { color: #38bdf8; }
+  .nav-bar {
+    background: #111827; border-bottom: 1px solid var(--border); padding: 6px 14px;
+    display: flex; align-items: center; gap: 6px; overflow-x: auto;
+  }
+  .sheet-tab {
+    padding: 4px 9px; border-radius: 4px; border: 1px solid #334155; background: #1e293b;
+    color: #94a3b8; font-size: 11px; cursor: pointer; white-space: nowrap;
+  }
+  .sheet-tab.active { background: #0284c7; border-color: #38bdf8; color: #fff; font-weight: 700; }
+
+  .canvas-scroll {
+    flex: 1; overflow: auto; padding: 18px; display: flex; flex-direction: column; align-items: center; gap: 18px;
+    background: #334155;
+  }
+  .pdf-sheet {
+    background: #ffffff; color: #000000;
+    box-shadow: 0 10px 28px rgba(0,0,0,0.45);
+    flex-shrink: 0;
+    transform-origin: top center;
+  }
+  .pdf-sheet.hidden-preview { display: none; }
+  .pdf-sheet svg { display: block; width: 100%; height: 100%; }
+
+  /* Offline A4 Landscape Print Engine */
+  @page { size: A4 landscape; margin: 0; }
+  @media print {
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    html, body {
+      width: 297mm; height: auto !important; overflow: visible !important;
+      background: #ffffff !important; margin: 0 !important; padding: 0 !important;
+    }
+    .sidebar, .toolbar, .nav-bar, .no-print { display: none !important; }
+    .app-shell, .main, .canvas-scroll {
+      display: block !important; width: 100% !important; height: auto !important;
+      overflow: visible !important; background: #ffffff !important; padding: 0 !important; margin: 0 !important;
+    }
+    .pdf-sheet {
+      display: block !important;
+      width: 297mm !important; height: 210mm !important;
+      box-shadow: none !important; margin: 0 !important; padding: 0 !important;
+      page-break-after: always !important; break-after: page !important;
+      overflow: hidden !important;
+    }
+    .pdf-sheet.hidden-preview { display: block !important; }
+    .pdf-sheet:last-child { page-break-after: auto !important; break-after: auto !important; }
+  }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <!-- LEFT SIDEBAR -->
+  <aside class="sidebar no-print">
+    <div class="sb-head">
+      <img id="uiLogo" alt="KSP Logo">
+      <div>
+        <div class="sb-title">KSP Panel Report Studio (Offline)</div>
+        <div class="sb-sub">IEC 60617 Multi-Sheet Schematic &amp; PDF Generator</div>
+      </div>
+    </div>
+
+    <div class="sb-body">
+      <!-- Project Metadata -->
+      <div class="card">
+        <div class="card-title">1. ข้อมูลโครงการ &amp; เอกสาร</div>
+        <div style="margin-bottom:6px">
+          <label>ชื่อลูกค้า / ฟาร์ม (Customer)</label>
+          <input type="text" id="inCustomer" value="............................................................">
+        </div>
+        <div class="grid-2" style="margin-bottom:6px">
+          <div>
+            <label>รหัสแบบ (Code No.)</label>
+            <input type="text" id="inCode" placeholder="Auto">
+          </div>
+          <div>
+            <label>Revise / Date</label>
+            <input type="text" id="inDate" value="2026-11">
+          </div>
+        </div>
+        <div class="grid-2">
+          <div>
+            <label>Draftman / ผู้เขียนแบบ</label>
+            <input type="text" id="inDraftman" value="KSP ENG">
+          </div>
+          <div>
+            <label>Approved / ผู้อนุมัติ</label>
+            <input type="text" id="inApproved" value="">
+          </div>
+        </div>
+      </div>
+
+      <!-- Mode & Fans -->
+      <div class="card">
+        <div class="card-title">
+          <span>2. โหมดระบบ &amp; จำนวนพัดลม</span>
+          <button class="chip" onclick="applyHybrid30()" title="ตั้งค่า EC ประมาณ 30% ของจำนวนรวม">Auto 30% EC</button>
+        </div>
+        <div class="seg-group">
+          <button class="seg-btn active" id="mode_all_ec" onclick="setMode('All-EC')">All-EC</button>
+          <button class="seg-btn" id="mode_all_ac" onclick="setMode('All-AC')">All-AC</button>
+          <button class="seg-btn" id="mode_hybrid" onclick="setMode('Hybrid_30EC')">Hybrid 30%</button>
+          <button class="seg-btn" id="mode_manual" onclick="setMode('Manual')">Manual</button>
+        </div>
+        <label>เลือกจำนวนพัดลมรวมด่วน (1 โรงเรือน)</label>
+        <div class="chip-row" id="fanPresets"></div>
+
+        <div class="grid-2" style="margin-top:8px">
+          <div>
+            <label>จำนวนพัดลม EC (กรอกเอง 0–32)</label>
+            <input type="number" id="inEcCount" min="0" max="32" value="8" oninput="onManualFanChange()" onchange="onManualFanChange()">
+          </div>
+          <div>
+            <label>จำนวนพัดลม AC (กรอกเอง 0–32)</label>
+            <input type="number" id="inAcCount" min="0" max="32" value="0" oninput="onManualFanChange()" onchange="onManualFanChange()">
+          </div>
+        </div>
+
+        <div id="ecModelBox" style="margin-top:8px">
+          <label>รุ่นพัดลม EC (BESS Lab / Custom)</label>
+          <select id="selEcModel" onchange="onModelSelect('EC')">
+            <option value="24611">#24611 Agrifan ZP-50 EC (1.5kW | 3.07A | 30,500 CFM)</option>
+            <option value="26238">#26238 Agrifan ZMD50 EC (1.5kW | 3.23A | 27,400 CFM)</option>
+            <option value="20285">#20285 Agrifan 56" Var (1.5kW | 2.46A | 26,800 CFM)</option>
+            <option value="custom_ec">Custom EC Motor (กำหนด kW / A / CFM เอง)</option>
+          </select>
+          <div id="customEcFields" class="grid-3" style="margin-top:6px;display:none">
+            <div><label>kW</label><input type="number" step="0.1" id="custEcKw" value="1.5" onchange="renderAll()"></div>
+            <div><label>Amps</label><input type="number" step="0.01" id="custEcAmp" value="3.07" onchange="renderAll()"></div>
+            <div><label>CFM</label><input type="number" step="100" id="custEcCfm" value="30500" onchange="renderAll()"></div>
+          </div>
+        </div>
+
+        <div id="acModelBox" style="margin-top:8px">
+          <label>รุ่นพัดลม AC (BESS Lab / Custom)</label>
+          <select id="selAcModel" onchange="onModelSelect('AC')">
+            <option value="24579">#24579 Agrifan ZP50 AC (1.8kW | 4.90A | 30,100 CFM)</option>
+            <option value="26237">#26237 Agrifan ZMD50 AC (1.5kW | 4.60A | 26,700 CFM)</option>
+            <option value="custom_ac">Custom AC Motor (กำหนด kW / A / CFM เอง)</option>
+          </select>
+          <div id="customAcFields" class="grid-3" style="margin-top:6px;display:none">
+            <div><label>kW</label><input type="number" step="0.1" id="custAcKw" value="1.8" onchange="renderAll()"></div>
+            <div><label>Amps</label><input type="number" step="0.01" id="custAcAmp" value="4.90" onchange="renderAll()"></div>
+            <div><label>CFM</label><input type="number" step="100" id="custAcCfm" value="30100" onchange="renderAll()"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4 Sources -->
+      <div class="card">
+        <div class="card-title">3. แหล่งผลิตและยี่ห้ออุปกรณ์ (4 รูปแบบ)</div>
+        <div class="brand-grid">
+          <button class="brand-btn active" id="src_master" onclick="setSource('master')"><b>🇹🇭 ไทย: Schneider</b>iK60N / CVS / GV2-ME / LC1D</button>
+          <button class="brand-btn" id="src_th" onclick="setSource('th')"><b>🇹🇭 ไทย: Mitsubishi</b>BH-D6 / NF-CV / MMP-T32 / S-T10</button>
+          <button class="brand-btn" id="src_vn" onclick="setSource('vn')"><b>🇻🇳 เวียดนาม: LS</b>LA63N / ABE / MMS-32S / GMC-9M</button>
+          <button class="brand-btn" id="src_cn" onclick="setSource('cn')"><b>🇨🇳 จีน: Chint</b>NXB-63 / NM1 / NS2-25 / NC1</button>
+        </div>
+      </div>
+
+      <!-- Cabinet & Controls -->
+      <div class="card">
+        <div class="card-title">4. ตู้ควบคุม &amp; ระบบป้องกัน</div>
+        <div class="grid-2" style="margin-bottom:6px">
+          <div>
+            <label>ขนาดตู้ (mm IP55)</label>
+            <select id="selCab" onchange="renderAll()">
+              <option value="auto">อัตโนมัติ (แนะนำตามจำนวน)</option>
+              <option value="570x690x250">570×690×250 (ไม่เกิน 4 ตัว)</option>
+              <option value="800x1200x250">800×1200×250 (ไม่เกิน 10 ตัว)</option>
+              <option value="800x1500x400">800×1500×400 (ไม่เกิน 16 ตัว)</option>
+              <option value="1000x1800x450">1000×1800×450 (ไม่เกิน 20 ตัว)</option>
+              <option value="1200x1800x450">1200×1800×450 (21–28 ตัว / 2 ประตู)</option>
+              <option value="1200x2000x500">1200×2000×500 (29–32 ตัว / 2 ประตู)</option>
+            </select>
+          </div>
+          <div>
+            <label>แรงดันคอยล์ควบคุม</label>
+            <select id="selCtrlV" onchange="renderAll()">
+              <option value="auto">อัตโนมัติ (EC=24VDC / AC=220V)</option>
+              <option value="24VDC">24VDC Wide-Range</option>
+              <option value="220VAC">220VAC Standard</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label>Phase Protection Relay (PPR1)</label>
+          <select id="selPpr" onchange="renderAll()">
+            <option value="Selec 900VPR-BL-U">Selec 900VPR-BL-U (Wide 160-520V)</option>
+            <option value="WIP W-OP4">WIP W-OP4 Phase Protection</option>
+          </select>
+        </div>
+        <div id="cabWarn" class="warn-box"></div>
+      </div>
+    </div>
+
+    <div class="sb-foot">
+      <button class="btn btn-primary" onclick="printFullReport()">🖨️ พิมพ์ / Save Report PDF (A4 แนวนอน ครบทุกหน้า)</button>
+      <div class="grid-3">
+        <button class="btn btn-sec" onclick="savePreset()">💾 Save</button>
+        <button class="btn btn-sec" onclick="exportJsonConfig()">📄 JSON</button>
+        <button class="btn btn-sec" onclick="exportCsvBom()">📊 BOM CSV</button>
+      </div>
+      <div style="text-align:center;margin-top:2px;">
+        <button class="chip" onclick="resetPreset()" style="font-size:10px;border:none;background:transparent;color:var(--muted);">↺ รีเซ็ตค่าเริ่มต้น (8 EC All-EC)</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- RIGHT MAIN PREVIEW -->
+  <main class="main">
+    <div class="toolbar no-print">
+      <div class="metrics" id="topMetrics"></div>
+      <div style="display:flex; gap:6px; align-items:center;">
+        <button class="btn btn-sec" onclick="stepSheet(-1)">◀ ก่อนหน้า</button>
+        <span id="lblSheetPos" style="font-size:12px; font-weight:700; min-width:75px; text-align:center;">R01 / R16</span>
+        <button class="btn btn-sec" onclick="stepSheet(1)">ถัดไป ▶</button>
+        <select id="selZoom" style="width:95px" onchange="applyZoom()">
+          <option value="fit">Fit Page</option>
+          <option value="1">100%</option>
+          <option value="1.25" selected>125%</option>
+          <option value="1.5">150%</option>
+        </select>
+        <button class="btn btn-sec" id="btnAllView" onclick="toggleAllView()">ดูทุกหน้า</button>
+      </div>
+    </div>
+    <div class="nav-bar no-print" id="sheetTabs"></div>
+    <div class="canvas-scroll" id="canvasScroll"></div>
+  </main>
+</div>
+
+<script>
+// Cropped KSP TH.png embedded Base64 (Aspect W/H = 340/200 = 1.700)
+const KSP_LOGO_B64 = "data:image/png;base64,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";
+const LOGO_ASPECT = 800.0 / 470.0;
+
+const FANS_DB = {
+  '24611': { id:'24611', type:'EC', name:'Agrifan ZP-50 EC', kw:1.5, amp:3.07, cfm:30500 },
+  '26238': { id:'26238', type:'EC', name:'Agrifan ZMD50 EC', kw:1.5, amp:3.23, cfm:27400 },
+  '20285': { id:'20285', type:'EC', name:'Agrifan 56" Var', kw:1.5, amp:2.46, cfm:26800 },
+  '24579': { id:'24579', type:'AC', name:'Agrifan ZP50 AC', kw:1.8, amp:4.90, cfm:30100 },
+  '26237': { id:'26237', type:'AC', name:'Agrifan ZMD50 AC', kw:1.5, amp:4.60, cfm:26700 },
+};
+
+const BRAND_MODELS = {
+  master: { folder:'01_KSP_TH_Schneider', label:'KSP THAILAND (SCHNEIDER)', codeTag:'MASTER', mcb:'Schneider iK60N', mccb:'Schneider CVS', mpcb_ec:'GV2-ME08', mpcb_ac:'GV2-ME10', link:'GV2-AF3', bus:'GV2-G454', cont_24:'LC1-D09BD', cont_220:'LC1-D09M7', sps:'MeanWell NDR-120-24', icu:'6kA/25kA' },
+  th:     { folder:'02_KSP_TH_Mitsubishi', label:'KSP THAILAND (MITSUBISHI)', codeTag:'TH', mcb:'Mitsubishi BH-D6', mccb:'Mitsubishi NF-CV', mpcb_ec:'MMP-T32 4A', mpcb_ac:'MMP-T32 6.3A', link:'MITS-LINK', bus:'COMB-4P', cont_24:'S-T10 DC24V', cont_220:'S-T10 AC220V', sps:'MeanWell / Omron', icu:'6kA/25kA' },
+  vn:     { folder:'03_KSPVN_Vietnam_LS', label:'KSPVN VIETNAM (LS / HANYOUNG)', codeTag:'VN', mcb:'LS LA63N', mccb:'LS ABE', mpcb_ec:'LS MMS-32S 4A', mpcb_ac:'LS MMS-32S 6.3A', link:'LS-LINK', bus:'LS-BUS4P', cont_24:'LS GMC-9M 24V', cont_220:'LS MC-9b 220V', sps:'24VDC 5A VN', icu:'6kA/18kA' },
+  cn:     { folder:'04_China_Chint', label:'CHINA OUTSOURCE (CHINT)', codeTag:'CN', mcb:'Chint NXB-63', mccb:'Chint NM1', mpcb_ec:'NS2-25 4A', mpcb_ac:'NS2-25 6.3A', link:'NS2-LINK', bus:'NS2-BUS4P', cont_24:'NC1-0910 24V', cont_220:'NC1-0910 220V', sps:'Chint NQ2-120/24', icu:'6kA/15kA' }
+};
+
+const CAB_MAX = { '570x690x250':4, '800x1200x250':10, '800x1500x400':16, '1000x1800x450':20, '1200x1800x450':28, '1200x2000x500':32 };
+
+let state = {
+  mode: 'All-EC',
+  bkey: 'master',
+  nEc: 8,
+  nAc: 0,
+  activeSheet: 0,
+  showAll: false
+};
+
+// SVG Builder helpers
+const C = { BLK:'#000000', GRY:'#595959', LGRY:'#c7c7c7', BLU:'#0d40a6', RED:'#bf1919', GRN:'#0d732e', YEL:'#f2d940', OYL:'#e6ad0d', TGRN:'#33a64d', BG:'#f5f7fa' };
+const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const L = (x1,y1,x2,y2,col=C.BLK,w=0.9,dash='') => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${col}" stroke-width="${w}"${dash?` stroke-dasharray="${dash}"`:''} />`;
+const R = (x,y,w,h,col=C.BLK,fill='none',width=0.9,dash='') => `<rect x="${x}" y="${y}" width="${w}" height="${h}" stroke="${col}" fill="${fill}" stroke-width="${width}"${dash?` stroke-dasharray="${dash}"`:''} />`;
+const Cir = (cx,cy,r,col=C.BLK,fill='none',w=0.8,dash='') => `<circle cx="${cx}" cy="${cy}" r="${r}" stroke="${col}" fill="${fill}" stroke-width="${w}"${dash?` stroke-dasharray="${dash}"`:''} />`;
+const Dot = (cx,cy,col=C.BLK,r=1.8) => `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${col}" />`;
+const Txt = (x,y,t,sz=7,col=C.BLK,bold=false,anchor='start',rot=0) => {
+  const tf = rot ? ` transform="rotate(${rot} ${x} ${y})"` : '';
+  return `<text x="${x}" y="${y}" font-size="${sz}" font-weight="${bold?'700':'400'}" fill="${col}" text-anchor="${anchor}"${tf}>${esc(t)}</text>`;
+};
+const Poly = (pts,col=C.BLK,fill='none',w=0.8) => `<polygon points="${pts.map(p=>p.join(',')).join(' ')}" stroke="${col}" fill="${fill}" stroke-width="${w}" />`;
+
+function drawQuarterLamp(cx, cy, col, lblTop='', tagBot='', r=5.0) {
+  let s = '';
+  if (lblTop) {
+    const bw = Math.max(9.5, r * 2.0);
+    s += R(cx - bw, cy - r - 8.5, bw * 2, 6.5, C.BLK, '#fff', 0.45);
+    s += Txt(cx - bw + 1.5, cy - r - 3.5, lblTop.slice(0, 6), 3.4, C.BLK, true);
+  }
+  s += Cir(cx, cy, r, C.BLK, '#fff', 0.65);
+  s += `<path d="M${cx},${cy} L${cx+r},${cy} A${r},${r} 0 0,0 ${cx},${cy-r} Z" fill="${col}" stroke="${C.BLK}" stroke-width="0.4"/>`;
+  s += `<path d="M${cx},${cy} L${cx-r},${cy} A${r},${r} 0 0,0 ${cx},${cy+r} Z" fill="${col}" stroke="${C.BLK}" stroke-width="0.4"/>`;
+  if (tagBot) s += Txt(cx + r + 1.2, cy + 3, tagBot, 3.8, col, true);
+  return s;
+}
+
+function drawRealisticSelector(cx, cy, lblBot='', sz=6.0) {
+  let s = R(cx - sz - 1, cy - sz - 7.5, (sz+1)*2, 6.0, C.BLK, '#fff', 0.45);
+  s += Txt(cx - sz, cy - sz - 2.8, 'M-O-A', 3.3, C.BLK, true);
+  s += R(cx - sz, cy - sz, sz*2, sz*2, C.BLK, '#fff', 0.65);
+  s += Cir(cx, cy, sz*0.75, C.BLK, 'none', 0.55);
+  s += L(cx, cy - sz*0.65, cx, cy + sz*0.65, C.BLK, 1.2);
+  if (lblBot) {
+    const bw = Math.max(10.0, sz * 1.6);
+    s += R(cx - bw, cy + sz + 1.5, bw*2, 6.0, C.BLK, '#fff', 0.45);
+    s += Txt(cx - bw + 1.5, cy + sz + 6.0, lblBot.slice(0, 6), 3.4, C.BLK, true);
+  }
+  return s;
+}
+
+function drawFrame(spec, installTitle, sheetNo, nextSheet) {
+  const W = 842, H = 595, ty = H - 84;
+  let s = R(16, 14, W-32, H-38, C.BLK, 'none', 1.2);
+  s += R(28, 26, W-56, H-110, C.BLK, 'none', 0.9);
+  const colW = (W - 56) / 20.0;
+  for (let c = 0; c < 20; c++) {
+    const x = 28 + c * colW;
+    if (c > 0) s += L(x, 14, x, 26, C.BLK, 0.5);
+    s += Txt(x + colW/2, 22, String(c).padStart(2,'0'), 6.5, C.BLK, false, 'middle');
+  }
+  const rowH = (H - 110) / 12.0;
+  'ABCDEFGHIJKL'.split('').forEach((ch, r) => {
+    const y = 26 + r * rowH;
+    if (r > 0) s += L(16, y, 28, y, C.BLK, 0.5);
+    s += Txt(22, y + rowH/2 + 2.5, ch, 6.5, C.BLK, false, 'middle');
+  });
+
+  // Title Block
+  s += R(28, ty, W-56, 60, C.BLK, '#fff', 1.0);
+  [225, 405, 635, 710, 765].forEach(x => s += L(x, ty, x, H-24, C.BLK, 0.7));
+  s += L(225, ty+30, W-28, ty+30, C.BLK, 0.7);
+  [315, 480, 555].forEach(x => s += L(x, ty+30, x, H-24, C.BLK, 0.7));
+  s += L(790, ty, 790, ty+30, C.BLK, 0.7);
+
+  // KSP Logo with exact 1.702 proportion
+  s += `<image href="${KSP_LOGO_B64}" x="33" y="${ty+15.3}" width="50" height="29.4" preserveAspectRatio="xMidYMid meet"/>`;
+  s += Txt(88, ty+18, spec.bm.label, 7.2, C.BLK, true);
+  s += Txt(88, ty+29, '51/845 M.3, Lumsai, Wangnoi', 6, C.GRY);
+  s += Txt(88, ty+39, 'Ayutthaya 13170 Thailand', 6, C.GRY);
+  s += Txt(88, ty+49, 'STD: IEC 61439-1/2 | IP55', 6, C.GRY);
+
+  s += Txt(230, ty+9, 'INSTALLATION', 5.5, C.GRY);
+  s += Txt(232, ty+22, installTitle.slice(0, 35), 6.5, C.BLK, true);
+  s += Txt(230, ty+39, 'CODE No.', 5.5, C.GRY);
+  s += Txt(235, ty+52, spec.codeNo, 7.2, C.BLK, true);
+  s += Txt(320, ty+39, 'REVISE No.', 5.5, C.GRY);
+  s += Txt(345, ty+52, 'REV.1', 7.2, C.BLK);
+
+  s += Txt(410, ty+9, 'TITLE', 5.5, C.GRY);
+  s += Txt(412, ty+18, `CONTROL PANEL 1:${spec.n} (${spec.mode}: ${spec.nEc} EC + ${spec.nAc} AC)`, 6.3, C.BLK, true);
+  s += Txt(412, ty+27, `3PH 380V 50Hz (${spec.ctrlV} Control)`, 6.0, C.GRY);
+  s += Txt(410, ty+39, 'CUSTOMER REF.:', 5.5, C.GRY);
+  if (spec.customer && !spec.customer.startsWith('...')) s += Txt(412, ty+52, spec.customer.slice(0,14), 6.5, C.BLU, true);
+  s += Txt(485, ty+39, 'APPROVED', 5.5, C.GRY);
+  if (spec.approved) s += Txt(487, ty+52, spec.approved.slice(0,14), 6.5, C.BLK);
+  s += Txt(560, ty+39, 'DRAFTMAN', 5.5, C.GRY);
+  if (spec.draftman) s += Txt(562, ty+52, spec.draftman.slice(0,14), 6.5, C.BLK);
+
+  s += Txt(640, ty+10, 'DRAW.no.', 5.5, C.GRY);
+  s += Txt(640, ty+24, 'DW-RR-04', 7, C.BLK);
+  s += Txt(640, ty+39, 'SCALE', 5.5, C.GRY);
+  s += Txt(650, ty+52, 'NTS', 7, C.BLK);
+  s += Txt(715, ty+10, 'DRAWING', 5.5, C.GRY);
+  s += Txt(715, ty+39, 'DATE', 5.5, C.GRY);
+  s += Txt(715, ty+52, spec.dateStr, 7, C.BLK);
+  s += Txt(768, ty+10, 'SHEET', 5.5, C.GRY);
+  s += Txt(770, ty+23, 'R' + String(sheetNo).padStart(2,'0'), 7.8, C.BLK, true);
+  s += Txt(793, ty+10, 'NEXT', 5.5, C.GRY);
+  s += Txt(793, ty+23, nextSheet, 7.2, C.BLK, true);
+  s += Txt(772, ty+39, 'TOTAL SHEET', 5.5, C.GRY);
+  s += Txt(795, ty+52, String(spec.totalSheets), 7.8, C.BLK, true);
+  s += Txt(28, H-12, 'DW-RR-04 rev.1 (KSP Offline Engineering Schematic & Report Studio)', 7, C.GRY);
+  return s;
+}
+
+function draw3pBreaker(x, y, tag, spec, isMpcb=false) {
+  let s = '';
+  [0, 12, 24].forEach((dx, i) => {
+    const px = x + dx;
+    s += L(px, y, px, y+8, C.BLK, 0.9);
+    s += L(px-4, y+10, px, y+24, C.BLK, 1.0);
+    s += L(px, y+24, px, y+34, C.BLK, 0.9);
+    s += L(px-2, y+6, px+2, y+10, C.BLK, 0.7) + L(px+2, y+6, px-2, y+10, C.BLK, 0.7);
+    s += Txt(px+2.5, y+6, String(1+i*2), 5.2, C.BLK);
+    s += Txt(px+3.5, y+35.5, String(2+i*2), 5.2, C.BLK);
+  });
+  s += L(x-14, y+16, x+22, y+16, C.BLK, 0.6, '2 2');
+  s += R(x-20, y+12, 6, 8, C.BLK, 'none', 0.8);
+  if (isMpcb) [0,12,24].forEach(dx => s += R(x+dx-3, y+23, 6, 6, C.BLK, 'none', 0.7));
+  s += Txt(x+32, y+11, tag, 7.5, C.BLK, true);
+  s += Txt(x+32, y+20, spec, 6, C.GRY);
+  return s;
+}
+
+function draw3pContactor(x, y, tag, spec) {
+  let s = '';
+  [0, 12, 24].forEach((dx, i) => {
+    const px = x + dx;
+    s += L(px, y, px, y+8, C.BLK, 0.9);
+    s += L(px-4, y+9, px, y+22, C.BLK, 1.0);
+    s += L(px, y+22, px, y+30, C.BLK, 0.9);
+    s += Txt(px+2.5, y+6.5, String(1+i*2), 5.2, C.BLK);
+    s += Txt(px+2.5, y+29.5, String(2+i*2), 5.2, C.BLK);
+  });
+  s += L(x-14, y+15, x+22, y+15, C.BLK, 0.6, '2 2');
+  s += R(x-24, y+10, 10, 10, C.BLK, 'none', 0.8);
+  s += Txt(x-34, y+12, 'A1', 5.5) + Txt(x-34, y+22, 'A2', 5.5);
+  s += Txt(x+32, y+11, tag, 7.5, C.BLK, true) + Txt(x+32, y+20, spec, 6, C.GRY);
+  return s;
+}
+
+function drawMotor(x, y, idx, isEc, ecFan, acFan) {
+  let s = '';
+  [0, 12, 24].forEach((dx, i) => {
+    const px = x + dx;
+    s += L(px, y-22, px, y-4, C.BLK, 0.9);
+    s += Cir(px, y-22, 2.2, C.BLK, '#fff', 0.8);
+    s += Txt(px+2.5, y-26.5, String((idx-1)*4+i+1), 5.2);
+  });
+  const peX = x + 36;
+  s += L(peX, y-38, peX, y-4, C.GRN, 0.9);
+  s += Cir(peX, y-22, 2.2, C.GRN, '#fff', 0.8);
+  s += Txt(peX+2.5, y-26.5, String((idx-1)*4+4), 5.2, C.GRN, true);
+  s += Txt(peX+4, y-36, 'PE', 5.2, C.GRN, true);
+  s += L(peX, y-4, x+28, y+8, C.GRN, 0.8);
+  s += L(peX-5, y-38, peX+5, y-38, C.GRN, 0.8);
+  s += Txt(x+45, y-20, 'XR2', 6, C.BLU, true) + Txt(x+45, y-10, 'VCT 4x2.5', 5.5, C.GRY);
+
+  const cx = x + 12, cy = y + 14;
+  s += Cir(cx, cy, 17, C.BLK, 'none', 1.1);
+  s += Txt(cx, cy+1, 'M', 9, C.BLK, true, 'middle') + Txt(cx, cy+11, '3~', 7, C.BLK, false, 'middle');
+  s += L(cx-17, cy+10, cx-28, cy+10, C.BLK, 0.7) + L(cx-28, cy+10, cx-28, cy+18, C.BLK, 0.7);
+  s += L(cx-34, cy+18, cx-22, cy+18, C.BLK, 0.8) + L(cx-32, cy+21, cx-24, cy+21, C.BLK, 0.7) + L(cx-30, cy+24, cx-26, cy+24, C.BLK, 0.6);
+  const fObj = isEc ? ecFan : acFan;
+  const col = isEc ? C.BLU : C.RED;
+  s += Txt(cx+22, cy+2, `MR${idx}`, 7.5, col, true);
+  s += Txt(cx+22, cy+11, `${isEc?'EC':'AC'} MOTOR ${fObj.kw}kW`, 6, col);
+  s += Txt(cx+22, cy+19, '3PH 380V 50Hz', 5.5, C.GRY);
+  s += Txt(cx-20, cy+38, `FAN MOTOR ${idx}`, 7, C.BLK, true);
+  return s;
+}
+
+function drawTerminalStrip(x0, y0, tag, labelsTop, labelsBot, pinW=13) {
+  const n = labelsTop.length;
+  let s = R(x0-10, y0, 10, 26, C.BLK, C.TGRN, 0.7);
+  s += Txt(x0-3, y0+20, 'STOP', 4.2, '#fff', true, 'start', -90);
+  s += Txt(x0-36, y0+16, tag, 7.5, C.BLU, true);
+  for (let i = 0; i < n; i++) {
+    const px = x0 + i * pinW;
+    s += R(px, y0, pinW, 8, C.BLK, C.YEL, 0.6);
+    s += R(px, y0+8, pinW, 10, C.BLK, '#f2f2f2', 0.6);
+    s += R(px, y0+18, pinW, 8, C.BLK, C.YEL, 0.6);
+    s += Cir(px+pinW/2, y0+4, 2.2, C.BLK, 'none', 0.6);
+    s += Cir(px+pinW/2, y0+22, 2.2, C.BLK, 'none', 0.6);
+    s += Txt(px+pinW/2, y0+15, String(i+1), 5.0, C.BLK, true, 'middle');
+    s += Txt(px+pinW/2+2, y0-3, labelsTop[i], 4.8, C.BLU, false, 'start', -90);
+    s += Txt(px+pinW/2+2, y0+30, labelsBot[i], 4.8, C.BLK, false, 'start', 90);
+  }
+  const rx = x0 + n * pinW;
+  s += R(rx, y0, 10, 26, C.BLK, C.TGRN, 0.7);
+  s += Txt(rx+7, y0+20, 'STOP', 4.2, '#fff', true, 'start', -90);
+  return s;
+}
+
+function getFanModels() {
+  const ecSel = document.getElementById('selEcModel').value;
+  const acSel = document.getElementById('selAcModel').value;
+  const ecFan = ecSel === 'custom_ec'
+    ? { id:'CUSTOM', type:'EC', name:'Custom EC', kw:parseFloat(document.getElementById('custEcKw').value)||1.5, amp:parseFloat(document.getElementById('custEcAmp').value)||3.07, cfm:parseInt(document.getElementById('custEcCfm').value)||30500 }
+    : FANS_DB[ecSel];
+  const acFan = acSel === 'custom_ac'
+    ? { id:'CUSTOM', type:'AC', name:'Custom AC', kw:parseFloat(document.getElementById('custAcKw').value)||1.8, amp:parseFloat(document.getElementById('custAcAmp').value)||4.90, cfm:parseInt(document.getElementById('custAcCfm').value)||30100 }
+    : FANS_DB[acSel];
+  return { ecFan, acFan };
+}
+
+function computeSpec() {
+  let nEc = Math.max(0, Math.min(32, parseInt(document.getElementById('inEcCount').value)||0));
+  let nAc = Math.max(0, Math.min(32, parseInt(document.getElementById('inAcCount').value)||0));
+  if (nEc + nAc === 0) { nEc = 4; document.getElementById('inEcCount').value = 4; }
+  if (nEc + nAc > 32) {
+    if (nEc > 32) nEc = 32;
+    nAc = Math.max(0, 32 - nEc);
+    document.getElementById('inEcCount').value = nEc;
+    document.getElementById('inAcCount').value = nAc;
+  }
+  const n = nEc + nAc;
+  const mode = (nEc > 0 && nAc > 0) ? 'Hybrid_30EC' : (nEc > 0 ? 'All-EC' : 'All-AC');
+  state.mode = mode; state.nEc = nEc; state.nAc = nAc;
+
+  const { ecFan, acFan } = getFanModels();
+  const bm = BRAND_MODELS[state.bkey];
+  const totalKw = +(nEc * ecFan.kw + nAc * acFan.kw).toFixed(2);
+  const totalAmp = +(nEc * ecFan.amp + nAc * acFan.amp).toFixed(1);
+  const totalCfm = nEc * ecFan.cfm + nAc * acFan.cfm;
+  const iDesign = +(totalAmp * 1.25).toFixed(1);
+  const mainBrk = [20,25,32,40,50,63,80,100,125,160,200,250].find(a => a >= totalAmp / 0.80) || 250;
+  const grpCnt = Math.ceil(n / 4);
+  const isoCnt = nEc > 0 ? Math.ceil(nEc / 4) : 0;
+  const hasIso = nEc > 0;
+
+  let ctrlV = document.getElementById('selCtrlV').value;
+  if (ctrlV === 'auto') ctrlV = nEc > 0 ? '24VDC' : '220VAC';
+  const contMod = ctrlV === '24VDC' ? bm.cont_24 : bm.cont_220;
+  const mainMod = mainBrk >= 50 ? `${bm.mccb} 3P ${mainBrk}AT` : `${bm.mcb} 3P ${mainBrk}AT`;
+  const pprMod = document.getElementById('selPpr').value;
+
+  const autoCab = n <= 4 ? '570x690x250' : (n <= 10 ? '800x1200x250' : (n <= 16 ? '800x1500x400' : (n <= 20 ? '1000x1800x450' : (n <= 28 ? '1200x1800x450' : '1200x2000x500'))));
+  const selCab = document.getElementById('selCab').value;
+  const cabSz = selCab === 'auto' ? autoCab : selCab;
+  const warnEl = document.getElementById('cabWarn');
+  if (selCab !== 'auto' && n > (CAB_MAX[cabSz] || 12)) {
+    warnEl.style.display = 'block';
+    warnEl.textContent = `⚠️ ตู้ ${cabSz} mm รองรับได้ ~${CAB_MAX[cabSz]} ตัว แต่คุณเลือก ${n} ตัว แนะนำเลือก ${autoCab} mm`;
+  } else {
+    warnEl.style.display = 'none';
+  }
+
+  const totalSheets = 8 + 1 + grpCnt + 1 + (hasIso ? 1 : 0) + grpCnt + 1;
+  const customCode = document.getElementById('inCode').value.trim();
+  const codeNo = customCode || `KSP-${bm.codeTag}-${mode.slice(0,3).toUpperCase()}-${String(n).padStart(2,'0')}`;
+
+  const sheetList = [
+    ['R01', 'COVER PAGE (GENERAL ARRANGEMENT)'],
+    ['R02', 'CONTENTS (TABLE OF CONTENTS)'],
+    ['R03', 'ELECTRICAL SYMBOLS LIST (IEC 60617)'],
+    ['R04', 'STANDARD DEVICE NUMBER & ACRONYMS'],
+    ['R05', 'CUBICAL & WIRING SPECIFICATION'],
+    ['R06', 'EQUIPMENT LIST & QUANTITY (BOM)'],
+    ['R07', 'SWITCHBOARD LAYOUT LOW VOLTAGE'],
+    ['R08', 'LOAD CALCULATION & CABLE SCHEDULE'],
+    ['R09', 'SINGLE-LINE DIAGRAM (IEC 60617)'],
+  ];
+  let sCur = 10;
+  for (let g = 0; g < grpCnt; g++) sheetList.push([`R${String(sCur++).padStart(2,'0')}`, `POWER WIRING (FANS ${g*4+1}-${Math.min((g+1)*4,n)})`]);
+  sheetList.push([`R${String(sCur++).padStart(2,'0')}`, 'PROTECTION, PHASE RELAY & FAULT LOOP']);
+  if (hasIso) sheetList.push([`R${String(sCur++).padStart(2,'0')}`, '24VDC POWER SUPPLY & 0-10V ISOLATORS']);
+  for (let g = 0; g < grpCnt; g++) sheetList.push([`R${String(sCur++).padStart(2,'0')}`, `CONTROL LADDER (FANS ${g*4+1}-${Math.min((g+1)*4,n)})`]);
+  sheetList.push([`R${String(sCur).padStart(2,'0')}`, 'COLLECTION TERMINALS (XR1-XR4) & LEGEND']);
+
+  return {
+    n, nEc, nAc, mode, ecFan, acFan, bm, totalKw, totalAmp, totalCfm, iDesign,
+    mainBrk, grpCnt, isoCnt, hasIso, ctrlV, contMod, mainMod, pprMod, cabSz,
+    totalSheets, codeNo, sheetList,
+    customer: document.getElementById('inCustomer').value.trim(),
+    dateStr: document.getElementById('inDate').value.trim() || '2026-11',
+    draftman: document.getElementById('inDraftman').value.trim(),
+    approved: document.getElementById('inApproved').value.trim()
+  };
+}
+
+// --- SHEET BUILDERS (R01..END) ---
+function buildCover(sp) {
+  let s = drawFrame(sp, 'COVER PAGE (GENERAL ARRANGEMENT)', 1, 'R02');
+  s += R(42, 42, 758, 76, C.BLK, C.BG, 0.9);
+  const lw = 76, lh = lw / LOGO_ASPECT;
+  s += `<image href="${KSP_LOGO_B64}" x="52" y="${80-lh/2}" width="${lw}" height="${lh}" preserveAspectRatio="xMidYMid meet"/>`;
+  s += Txt(142, 62, 'K.S.P. EQUIPMENT CO., LTD. / ' + sp.bm.label, 11, C.BLK, true);
+  s += Txt(142, 78, '51/845 M.3, Lumsai, Wangnoi, Ayutthaya 13170 Thailand | Tel: 035-200891-6', 7.5, C.GRY);
+  s += Txt(142, 93, 'STANDARD: IEC 61439-1/2 | IEC 60617 | IP55 WEATHERPROOF ENCLOSURE', 7.5, C.BLU, true);
+
+  s += R(42, 138, 758, 100, C.BLK, 'none', 0.9);
+  s += Txt(60, 168, 'CUSTOMER :', 11, C.BLK, true);
+  s += Txt(165, 168, sp.customer || '....................................................................................', 10.5, sp.customer && !sp.customer.startsWith('...') ? C.BLK : C.GRY, true);
+  s += Txt(60, 198, 'PROJECT   :', 11, C.BLK, true);
+  s += Txt(165, 198, `CONTROL PANEL 1:${sp.n} FANS (${sp.mode}: ${sp.nEc} EC + ${sp.nAc} AC) - 3PH 380V 50Hz`, 10.5, C.BLU, true);
+  s += Txt(165, 218, `DRAWING CODE: ${sp.codeNo} | TOTAL SHEETS: ${sp.totalSheets} | GROUNDING: TN-S (L1,L2,L3,N,PE)`, 8, C.GRY);
+
+  s += R(42, 258, 243, 230, C.BLK, 'none', 0.8);
+  s += Txt(52, 276, 'CLIENT APPROVAL:', 8.5, C.BLK, true);
+  ['[  ] APPROVED', '[  ] APPROVED AS NOTE', '[  ] RETURNED FOR CORRECTION'].forEach((lbl, idx) => s += Txt(58, 298 + idx*18, lbl, 7.5));
+  s += Txt(52, 362, 'NOTE:', 7.5, C.GRY, true);
+  for (let r = 0; r < 4; r++) s += L(52, 382 + r*18, 275, 382 + r*18, C.GRY, 0.5, '2 2');
+  s += Txt(52, 466, 'SIGNED: _____________________', 7) + Txt(52, 480, 'DATE:   _____/_____/_________', 7);
+
+  s += R(298, 258, 222, 230, C.BLK, 'none', 0.8);
+  s += Txt(308, 276, 'DOCUMENT STATUS:', 8.5, C.BLK, true);
+  ['[  ] PRELIMINARY', '[X] FOR APPROVAL', '[  ] AS MANUFACTURED', '[  ] AS BUILT'].forEach((lbl, idx) => s += Txt(314, 298 + idx*18, lbl, 7.5, lbl.includes('[X]') ? C.BLU : C.BLK, lbl.includes('[X]')));
+  s += Txt(308, 380, 'ENGINEERING NOTE:', 7.5, C.GRY, true);
+  s += Txt(308, 398, '- All wiring per IEC 60617 & IEC 61439-1/2.', 6.8);
+  s += Txt(308, 414, '- PE Grounding included for XR1 & all motors.', 6.8, C.GRN);
+  s += Txt(308, 430, '- Load Calc & Cable Schedule on Sheet R08.', 6.8, C.BLU);
+
+  s += R(533, 258, 267, 230, C.BLK, 'none', 0.8);
+  s += Txt(620, 276, 'REVISION HISTORY', 8.5, C.BLK, true);
+  s += L(533, 286, 800, 286, C.BLK, 0.7) + L(585, 286, 585, 488, C.BLK, 0.6) + L(650, 286, 650, 488, C.BLK, 0.6);
+  s += Txt(542, 300, 'REV', 7, C.BLK, true) + Txt(598, 300, 'DATE', 7, C.BLK, true) + Txt(685, 300, 'REVISION DETAILS', 7, C.BLK, true);
+  s += L(533, 308, 800, 308, C.BLK, 0.6);
+  s += Txt(542, 325, 'REV.1', 7, C.BLU, true) + Txt(592, 325, sp.dateStr, 7) + Txt(656, 325, 'FULL IEC + PE + LOAD CALC', 6.5);
+  for (let r = 1; r < 8; r++) s += L(533, 308 + r*22, 800, 308 + r*22, C.GRY, 0.4);
+  return s;
+}
+
+function buildContents(sp) {
+  let s = drawFrame(sp, 'CONTENTS (TABLE OF CONTENTS)', 2, 'R03');
+  s += Txt(375, 48, 'CONTENTS', 11, C.BLK, true);
+  [45, 430].forEach(x0 => {
+    const wS = 55, wD = 240, wR = 75;
+    s += R(x0, 58, wS+wD+wR, 430, C.BLK, 'none', 0.9);
+    s += R(x0, 58, wS+wD+wR, 22, C.BLK, C.BG, 0.8);
+    s += L(x0+wS, 58, x0+wS, 488, C.BLK, 0.7) + L(x0+wS+wD, 58, x0+wS+wD, 488, C.BLK, 0.7);
+    s += Txt(x0+8, 73, 'SHEET NO', 7, C.BLK, true) + Txt(x0+wS+70, 73, 'DESIGNATION', 7, C.BLK, true) + Txt(x0+wS+wD+10, 73, 'REV / MOD', 7, C.BLK, true);
+    for (let r = 1; r < 20; r++) s += L(x0, 80 + r*20.4, x0+wS+wD+wR, 80 + r*20.4, C.GRY, 0.4);
+  });
+  sp.sheetList.forEach(([sno, desig], idx) => {
+    const colIdx = idx < 20 ? 0 : 1, rowIdx = idx < 20 ? idx : idx - 20;
+    if (rowIdx >= 20) return;
+    const x0 = colIdx === 0 ? 45 : 430;
+    const ry = 80 + rowIdx * 20.4 + 14;
+    s += Txt(x0+14, ry, sno, 7, C.BLU, true) + Txt(x0+62, ry, desig.slice(0,42), 7) + Txt(x0+325, ry, 'REV.1', 6.5, C.GRY);
+  });
+  return s;
+}
+
+function buildSymbols(sp) {
+  let s = drawFrame(sp, 'ELECTRICAL SYMBOLS LIST (IEC 60617)', 3, 'R04');
+  s += Txt(285, 46, 'ELECTRICAL SYMBOLS LIST (IEC 60617 STANDARD)', 9.5, C.BLK, true);
+  const cols = [42, 232, 422, 612];
+  cols.forEach(cx => {
+    s += R(cx, 54, 186, 438, C.BLK, 'none', 0.8) + R(cx, 54, 186, 18, C.BLK, C.BG, 0.7) + L(cx+52, 54, cx+52, 492, C.BLK, 0.6);
+    s += Txt(cx+8, 66, 'SYMBOLS', 6.6, C.BLK, true) + Txt(cx+75, 66, 'DESIGNATION', 6.6, C.BLK, true);
+    for (let r = 1; r < 13; r++) s += L(cx, 72+r*32.3, cx+186, 72+r*32.3, C.GRY, 0.35);
+  });
+  const items = [
+    ['cb','Circuit Breaker (Fixed Type)'],['cb_draw','Circuit Breaker (Drawout Type)'],['cb_plug','Circuit Breaker (Plug-in Type)'],['cb_tm','CB Thermal-Magnetic Trip'],
+    ['mcb','Miniature Circuit Breaker (MCB)'],['mpcb','Motor Protection CB (MPCB)'],['ol','Thermal Overload Contact'],['no_nc','Contact NO / NC'],
+    ['sel','Selector Switch (MAN-0-AUT)'],['pb','Push Button Switch'],['tmr_c','Timer Contact (On/Off Delay)'],['tmr_k','Timer Coil Relay'],['ss4','4-Step Cam Selector (SS1)'],
+    ['disc','Switch Disconnector'],['fuse_sw','Isolatable Fuse Carrier'],['fuse','HRC Fuse / Fuse Box (FUR)'],['cont_c','Electromagnetic Contactor Contact'],
+    ['cont_k','Electromagnetic Contactor Coil'],['ind','Reactor / Choke / Winding'],['cap','Capacitor'],['vt','Voltage Transformer (VT)'],['ct','Current Transformer (CT)'],
+    ['nct','Neutral Current Transformer'],['gnd','Earth / Ground Connection'],['pe','Protective Earth / Ground (PE)'],['dm','Digital Meter / Power Meter'],
+    ['meter_a','Ammeter (A) / Voltmeter (V)'],['meter_wh','Watthour (Wh) / Watt (W) Meter'],['meter_hz','Frequency (Hz) / PF Meter'],['elr','Earth Leakage Relay (ELR)'],
+    ['dol','Direct On Line Starter (DOL)'],['yd','Star-Delta Starter (Y-D)'],['vsd','Variable Speed Drive (VSD)'],['soft','Soft Starter'],
+    ['rect','Rectifier / 24VDC Supply (SPS)'],['lamp','Pilot / Signal Lamp (HLR)'],['m3','Three Phase AC/EC Motor (M 3~)'],['m1','Single Phase AC Motor (M 1~)'],['iso','0-10VDC Signal Isolator (4-Ch)'],
+    ['uv','Under Voltage Relay (U<)'],['ov','Over Voltage Relay (U>)'],['ppr','Phase Protection Relay (PPR1)'],['shunt','Shunt Trip Coil Release (ST)'],
+    ['bus','Busway / Main Distribution Bus'],['slash3','Three-Phase Line Cable (3L)'],['slash4','4-Wire Line Cable (3L+PE / 3L+N)'],['junc','Junction / Connection Point'],
+    ['term','Terminal Connection Point'],['tstrip','Terminal Strip with Labels (XR)'],['fan','Cabinet Exhaust Fan (VF1)'],['ts','Thermostat Switch (TS1 35C)'],['plc','External Controller (PLC/KC)']
+  ];
+  items.forEach(([sym, lbl], idx) => {
+    const c = Math.floor(idx / 13), r = idx % 13;
+    if (c >= 4) return;
+    const x0 = cols[c], sx = x0 + 26, sy = 72 + r * 32.3 + 16;
+    if (['cb','cb_draw','cb_plug','cb_tm','mcb','mpcb'].includes(sym)) {
+      s += L(sx,sy-11,sx,sy-4,C.BLK,0.9)+L(sx-3,sy-7,sx+3,sy-1,C.BLK,0.8)+L(sx-3,sy-1,sx+3,sy-7,C.BLK,0.8)+L(sx,sy+6,sx-5,sy-4,C.BLK,1.0)+L(sx,sy+6,sx,sy+12,C.BLK,0.9);
+      if (sym==='cb_draw') s += L(sx-4,sy-11,sx,sy-14,C.BLK,0.7)+L(sx+4,sy-11,sx,sy-14,C.BLK,0.7);
+      if (sym==='cb_plug') s += Cir(sx,sy,9,C.BLK,'none',0.5,'2 1');
+      if (sym==='cb_tm') s += R(sx-9,sy-2,4,5,C.BLK,'none',0.6);
+      if (sym==='mcb') s += Txt(sx+6,sy+3,'MCB',4.5,C.BLK,true);
+      if (sym==='mpcb') s += R(sx-10,sy-3,5,8,C.BLK,'none',0.8);
+    } else if (sym==='ol') s += L(sx,sy-10,sx,sy-4,C.BLK,0.8)+L(sx-4,sy-4,sx,sy+5,C.BLK,0.9)+L(sx,sy+5,sx,sy+11,C.BLK,0.8)+R(sx-10,sy-3,4,6,C.BLK,'none',0.7);
+    else if (sym==='no_nc') s += L(sx-7,sy-9,sx-7,sy-4,C.BLK,0.8)+L(sx-11,sy-4,sx-7,sy+5,C.BLK,0.8)+L(sx-7,sy+5,sx-7,sy+10,C.BLK,0.8)+L(sx+6,sy-9,sx+6,sy-4,C.BLK,0.8)+L(sx+6,sy-4,sx+11,sy-4,C.BLK,0.8)+L(sx+10,sy-5,sx+6,sy+5,C.BLK,0.8)+L(sx+6,sy+5,sx+6,sy+10,C.BLK,0.8);
+    else if (sym==='sel') s += L(sx-10,sy-5,sx-4,sy-5,C.BLK,0.8)+L(sx+4,sy-5,sx+10,sy-5,C.BLK,0.8)+L(sx,sy+7,sx-7,sy-5,C.BLK,0.9)+L(sx-13,sy+1,sx-3,sy+1,C.BLK,0.6,'2 1');
+    else if (sym==='pb') s += L(sx,sy-9,sx,sy-4,C.BLK,0.8)+L(sx-4,sy-4,sx,sy+5,C.BLK,0.8)+L(sx,sy+5,sx,sy+10,C.BLK,0.8)+L(sx-11,sy-3,sx-11,sy+3,C.BLK,0.8)+L(sx-11,sy,sx-2,sy,C.BLK,0.6,'2 1');
+    else if (sym==='tmr_c') s += L(sx,sy-9,sx,sy-4,C.BLK,0.8)+L(sx-4,sy-4,sx,sy+5,C.BLK,0.8)+L(sx,sy+5,sx,sy+10,C.BLK,0.8)+Cir(sx-7,sy,3,C.BLK,'none',0.6);
+    else if (sym==='tmr_k') s += R(sx-12,sy-5,24,10,C.BLK,'none',0.8)+L(sx-6,sy-5,sx-6,sy+5,C.BLK,0.7)+Txt(sx-11,sy+2,'T',5,C.BLK,true);
+    else if (sym==='ss4') s += R(sx-14,sy-6,28,12,C.BLK,'none',0.8)+Txt(sx,sy+2,'1-2-3-4',5.0,C.BLK,true,'middle');
+    else if (sym==='disc'||sym==='fuse_sw') { s += L(sx,sy-10,sx,sy-4,C.BLK,0.9)+Cir(sx,sy-4,1.5,C.BLK,'#fff',0.7)+L(sx,sy+6,sx-5,sy-3,C.BLK,0.9)+L(sx,sy+6,sx,sy+11,C.BLK,0.9); if(sym==='fuse_sw') s += R(sx-4,sy-2,4,6,C.BLK,'none',0.7); }
+    else if (sym==='fuse') s += L(sx-13,sy,sx+13,sy,C.BLK,0.8)+R(sx-7,sy-3.5,14,7,C.BLK,'none',0.8);
+    else if (sym==='cont_c') s += L(sx,sy-10,sx,sy-5,C.BLK,0.9)+Cir(sx,sy-5,1.5,C.BLK,'#fff',0.7)+L(sx,sy+6,sx-5,sy-4,C.BLK,0.9)+L(sx,sy+6,sx,sy+11,C.BLK,0.9);
+    else if (sym==='cont_k') s += R(sx-11,sy-5,22,10,C.BLK,'none',0.8)+L(sx-11,sy+5,sx+11,sy-5,C.BLK,0.6);
+    else if (sym==='ind') { s += L(sx-12,sy,sx-8,sy,C.BLK,0.8)+[0,1,2].map(k=>Cir(sx-5+k*5,sy,2.5)).join('')+L(sx+8,sy,sx+12,sy,C.BLK,0.8); }
+    else if (sym==='cap') s += L(sx-11,sy,sx-2,sy,C.BLK,0.8)+L(sx-2,sy-6,sx-2,sy+6,C.BLK,0.9)+L(sx+2,sy-6,sx+2,sy+6,C.BLK,0.9)+L(sx+2,sy,sx+11,sy,C.BLK,0.8);
+    else if (sym==='vt') s += Cir(sx-4,sy,5.5)+Cir(sx+4,sy,5.5);
+    else if (sym==='ct'||sym==='nct') { s += L(sx,sy-10,sx,sy+10,C.BLK,0.8)+Cir(sx,sy,5); if(sym==='nct') s += Txt(sx+6,sy+3,'N',5,C.BLK,true); }
+    else if (sym==='gnd') s += L(sx,sy-8,sx,sy+1,C.BLK,0.8)+L(sx-8,sy+1,sx+8,sy+1,C.BLK,0.9)+L(sx-5,sy+4,sx+5,sy+4,C.BLK,0.8)+L(sx-2,sy+7,sx+2,sy+7,C.BLK,0.7);
+    else if (sym==='pe') s += Cir(sx,sy,8.5,C.GRN,'none',0.8)+L(sx,sy-6,sx,sy+1,C.GRN,0.8)+L(sx-5,sy+1,sx+5,sy+1,C.GRN,0.8)+L(sx-3,sy+3.5,sx+3,sy+3.5,C.GRN,0.7);
+    else if (['dm','meter_a','meter_wh','meter_hz','elr'].includes(sym)) {
+      const t = {dm:'DM',meter_a:'A/V',meter_wh:'Wh',meter_hz:'Hz',elr:'ELR'}[sym];
+      s += (sym==='dm'||sym==='elr') ? R(sx-9,sy-6,18,12) : Cir(sx,sy,7.5);
+      s += Txt(sx,sy+2,t,5.2,C.BLK,true,'middle');
+    } else if (['dol','yd','vsd','soft'].includes(sym)) s += R(sx-10,sy-6,20,12)+Txt(sx,sy+2,{dol:'DOL',yd:'Y-D',vsd:'VSD',soft:'SS'}[sym],5.2,C.BLK,true,'middle');
+    else if (['rect','iso','ppr','plc','uv','ov','shunt'].includes(sym)) {
+      const col = sym==='rect'?C.BLU:(sym==='iso'?C.GRN:(sym==='ppr'?C.RED:C.BLK));
+      const t = {rect:'24V',iso:'ISO',ppr:'PPR',plc:'PLC',uv:'U<',ov:'U>',shunt:'ST'}[sym];
+      s += R(sx-12,sy-6,24,12,col,'none',0.8,sym==='plc'?'2 1':'')+Txt(sx,sy+2,t,5.2,col,true,'middle');
+    } else if (sym==='lamp') s += Cir(sx,sy,7,C.GRN,'none',0.9)+L(sx-5,sy-5,sx+5,sy+5,C.GRN,0.7)+L(sx+5,sy-5,sx-5,sy+5,C.GRN,0.7);
+    else if (sym==='m3'||sym==='m1') s += Cir(sx,sy,8.5,C.BLK,'none',0.9)+Txt(sx,sy+1.5,'M',6.5,C.BLK,true,'middle')+Txt(sx,sy+7.5,sym==='m3'?'3~':'1~',4.5,C.BLK,false,'middle');
+    else if (sym==='bus') s += L(sx-14,sy,sx+14,sy,C.BLK,2.2);
+    else if (sym==='slash3'||sym==='slash4') s += L(sx,sy-10,sx,sy+10,C.BLK,0.9)+(sym==='slash3'?[-3,0,3]:[-4,-1.5,1.5,4]).map(o=>L(sx-4+o,sy+3,sx+4+o,sy-3,C.BLK,0.7)).join('');
+    else if (sym==='junc') s += L(sx-12,sy,sx+12,sy,C.BLK,0.9)+L(sx,sy,sx,sy+9,C.BLK,0.9)+Dot(sx,sy,C.BLK,2.2);
+    else if (sym==='term') s += L(sx,sy-9,sx,sy+9,C.BLK,0.8)+Cir(sx,sy,2.3,C.BLK,'#fff',0.8);
+    else if (sym==='tstrip') s += [0,1,2].map(k=>R(sx-12+k*8,sy-5,8,10,C.BLK,C.YEL,0.6)+Txt(sx-8+k*8,sy+2,String(k+1),4.8,C.BLK,true,'middle')).join('');
+    else if (sym==='fan') s += Cir(sx,sy,7.5)+Txt(sx,sy+2.5,'VF',6,C.BLK,true,'middle');
+    else if (sym==='ts') s += L(sx-10,sy,sx-3,sy)+L(sx-3,sy,sx+5,sy-4)+L(sx+5,sy,sx+11,sy)+Txt(sx-6,sy+8,'35C',4.8);
+    s += Txt(x0+57, sy+2.5, lbl.slice(0,30), 6.0);
+  });
+  return s;
+}
+
+function buildAcronyms(sp) {
+  let s = drawFrame(sp, 'DEVICE NUMBERS & COMMON ACRONYMS', 4, 'R05');
+  s += Txt(260, 46, 'STANDARD DEVICE NUMBER & COMMON ACRONYMS', 9.5, C.BLK, true);
+  const acrs = [
+    ['L1,L2,L3,N,PE','3-Phase Power, Neutral & Earth (PE)'],['MCCB','Molded Case Circuit Breaker'],['MCB','Miniature Circuit Breaker'],
+    ['QFR','Motor Protection Circuit Breaker'],['KMR','Magnetic Contactor'],['FUR','Control Fuse Holder (1P / 3P)'],
+    ['PPR','Phase Protection Relay'],['SPS','Switching Power Supply (24VDC)'],['ISO','0-10VDC Signal Isolator (4-Ch)'],
+    ['RY','Control / Interlock Relay'],['SAR','Selector Switch (MAN-0-AUT)'],['SS1','Master 4-Step Cam Selector'],
+    ['SIG1','Manual 0-10VDC Speed Volume'],['KC','External PLC Dry Contact'],['HLR','LED Pilot Lamp (22mm)'],
+    ['VF / TS','Cabinet Exhaust Fan / Thermostat'],['XR1','Main Power + Ground Terminal (L1-L3,N,PE)'],['XR2','Motor Power + Ground Terminal (U,V,W,PE)'],
+    ['XR3','0-10VDC Analog Signal Terminal'],['XR4','External Control & Fault Terminal'],['PE-BAR / N-BAR','Copper Earth Ground & Neutral Busbars'],['IP55','Dust & Water Jet Protection Rating']
+  ];
+  s += R(42, 54, 373, 438, C.BLK, 'none', 0.8)+R(42, 54, 373, 18, C.BLK, C.BG, 0.7)+L(135, 54, 135, 492, C.BLK, 0.6);
+  s += Txt(55, 66, 'ACRONYM', 6.8, C.BLK, true)+Txt(195, 66, 'DESIGNATION', 6.8, C.BLK, true);
+  acrs.forEach(([a,d], i) => { const ry = 72+i*19; s += L(42,ry+19,415,ry+19,C.GRY,0.35)+Txt(50,ry+13,a,6.2,C.BLU,true)+Txt(142,ry+13,d,6.3); });
+
+  const devs = [
+    ['1','Master Element'],['2','Time-Delay Starting / Closing Relay'],['3','Checking / Interlocking Relay'],['4','Master Contactor'],['5','Stopping Device'],
+    ['8','Control Power Disconnecting Device'],['23','Temperature Control Device (TS1)'],['27','Undervoltage Relay (PPR1)'],['30','Annunciator / Fault Relay'],
+    ['37','Undercurrent / Underpower Relay'],['43','Manual / Auto Transfer Selector'],['47','Phase Sequence / Phase Balance Relay'],['48','Incomplete Sequence Relay'],
+    ['49','Machine Thermal Overload (QFR)'],['50','Instantaneous Overcurrent Relay'],['51','AC Inverse Time Overcurrent Relay'],['52','AC Circuit Breaker (MCB / MCCB)'],
+    ['59','Overvoltage Relay (PPR1)'],['62','Time-Delay Stopping / Opening Relay'],['74','Alarm Relay (Fault Loop)'],['86','Lockout Relay'],['94','Tripping or Trip-Free Relay']
+  ];
+  s += R(428, 54, 372, 438, C.BLK, 'none', 0.8)+R(428, 54, 372, 18, C.BLK, C.BG, 0.7)+L(495, 54, 495, 492, C.BLK, 0.6);
+  s += Txt(438, 66, 'DEV NO.', 6.8, C.BLK, true)+Txt(560, 66, 'ANSI / IEEE DEVICE FUNCTION', 6.8, C.BLK, true);
+  devs.forEach(([n,d], i) => { const ry = 72+i*19; s += L(428,ry+19,800,ry+19,C.GRY,0.35)+Txt(452,ry+13,n,6.5,C.RED,true)+Txt(505,ry+13,d,6.5); });
+  return s;
+}
+
+function buildCubicleSpec(sp) {
+  let s = drawFrame(sp, 'CUBICAL SPECIFICATION (IEC 61439)', 5, 'R06');
+  s += Txt(285, 46, 'CUBICAL & WIRING SPECIFICATION (IEC 61439-1/2)', 9.5, C.BLK, true);
+  s += R(42, 56, 353, 434, C.BLK, 'none', 0.8)+R(42, 56, 353, 20, C.BLK, C.BG, 0.7)+Txt(52, 70, 'TYPE OF CABINET: WALL / FLOOR STANDING PANEL', 7.5, C.BLK, true);
+  s += R(75, 92, 90, 123, C.BLK, 'none', 1.1)+R(83, 100, 74, 107, C.BLK, 'none', 0.7)+R(195, 92, 50, 123, C.BLK, 'none', 1.0)+Cir(220, 125, 14)+Txt(212, 128, 'VF1', 7, C.BLK, true);
+  s += Txt(95, 228, 'FRONT DOOR (IP55)', 6.5, C.BLU, true)+Txt(192, 228, 'SIDE LOUVER + FAN', 6.5, C.BLU, true);
+  s += Txt(260, 130, `SIZE: ${sp.cabSz} mm`, 7.5, C.RED, true)+Txt(260, 146, 'THICKNESS: 1.5 mm', 6.8)+Txt(260, 162, 'GROUND BOLT: M8 Cu (100%)', 6.8, C.GRN);
+  [['CONSTRUCTION','[X] BEND & WELD METAL FRAME  (FORM 1)'],['MATERIAL','[X] COLD ROLLED / GALVANIZED STEEL 1.5mm'],
+   ['PROTECTION','[X] IP55 (DUST & WATERPROOF GASKET)'],['COLOR / FINISH','[X] RAL 7035 LIGHT GREY (TEXTURE POWDER)'],
+   ['COOLING','[X] EXHAUST FAN 4" + INSECT SCREEN + TS1 35C'],['WIREDUCT','[X] SLOTTED PVC WIREDUCT 40x60 mm']].forEach(([k,v],i)=>{
+     const sy = 252 + i*36; s += L(42,sy-10,395,sy-10,C.GRY,0.4)+Txt(52,sy+4,k+':',7,C.BLK,true)+Txt(145,sy+4,v,6.8,C.BLU);
+  });
+
+  s += R(408, 56, 392, 434, C.BLK, 'none', 0.8)+R(408, 56, 392, 20, C.BLK, C.BG, 0.7)+Txt(420, 70, 'BUSBAR, CABLE & WIRE COLOR SPECIFICATION', 7.5, C.BLK, true);
+  [['PHASE MARKING','L1: BROWN | L2: BLACK | L3: GREY | N: BLUE | PE: G/Y'],
+   ['STANDARD','IEC 60227-01 / 06 (THW / VSF) & SHIELDED LIY-CY'],
+   ['MAIN POWER','VSF 1x10 / 1x16 / 1x25 sq.mm (See Load Calc R08)'],
+   ['BRANCH MOTOR','VSF 1x2.5 sq.mm + PE | Field VCT 4x2.5 (U,V,W,PE)'],
+   ['AC CONTROL (220V)','VSF 1x1.0 sq.mm (BROWN: LINE / SKY BLUE: NEUTRAL)'],
+   ['DC CONTROL (24V)',`VSF 1x1.0 sq.mm (RED: +24VDC / BLUE: 0VDC) [${sp.ctrlV}]`],
+   ['0-10VDC SIGNAL','SHIELDED LIY-CY 2x0.75 sq.mm (NOISE IMMUNITY)'],
+   ['GROUNDING (PE)','PE-BAR 15x3mm Cu + VSF 1x6/2.5 GREEN/YELLOW TO MOTORS'],
+   ['FERRULE MARKER','PVC SLEEVE MARKERS AT EVERY TERMINAL & DEVICE'],
+   ['AMBIENT RATING','40C AMBIENT / 90C MAX BUSBAR / TEMP RISE 50K']].forEach(([k,v],i)=>{
+     const sy = 94 + i*38; s += L(408,sy+24,800,sy+24,C.GRY,0.4)+Txt(418,sy+8,k,7,C.BLK,true)+Txt(528,sy+8,v,6.4,k.includes('PE')?C.GRN:C.BLK);
+  });
+  return s;
+}
+
+function buildBom(sp) {
+  let s = drawFrame(sp, 'EQUIPMENT LIST & QUANTITY (BOM)', 6, 'R07');
+  s += Txt(315, 45, 'EQUIPMENT LIST & QUANTITY', 10, C.BLK, true);
+  const bm = sp.bm;
+
+  // 1. Breaker Equipment
+  s += R(42,54,240,258,C.BLK,'none',0.8)+R(42,54,240,16,C.BLK,C.BG,0.7)+Txt(112,65,'BREAKER EQUIPMENT',7,C.BLK,true);
+  const bCols = [42, 66, 152, 178, 232, 282];
+  s += R(42,70,240,14,C.BLK,C.BG,0.6);
+  for(let i=1;i<bCols.length-1;i++) s += L(bCols[i],70,bCols[i],312,C.BLK,0.5);
+  ['IT','CIRCUIT BREAKER','Ic','MODEL','NAME PLATE'].forEach((h,i)=>s+=Txt(bCols[i]+3,80,h,5.5,C.BLK,true));
+  const bRows = [['M', `MCCB 3P ${sp.mainBrk}AT`, bm.icu.split('/')[0], bm.mccb.split(' ').pop(), 'MAIN CB']];
+  for (let g=0;g<sp.grpCnt;g++) bRows.push([`F${g+1}`,`MCB 3P ${sp.nAc>0?'25AT':'20AT'}`,'6kA',bm.mcb.split(' ').pop(),`FAN ${g*4+1}-${Math.min((g+1)*4,sp.n)}`]);
+  bRows.push(['C1','MCB 2P 6AT','6kA',bm.mcb.split(' ').pop(),`CONTROL ${sp.ctrlV}`]);
+  bRows.slice(0,12).forEach((r,idx)=>{ const ry=84+idx*18.5; s+=L(42,ry+18.5,282,ry+18.5,C.GRY,0.35); r.forEach((v,ci)=>s+=Txt(bCols[ci]+3,ry+12,v.slice(0,16),5.2)); });
+
+  // 2. Metering & Protection
+  s += R(286,54,240,258,C.BLK,'none',0.8)+R(286,54,240,16,C.BLK,C.BG,0.7)+Txt(348,65,'METERING & PROTECTION',7,C.BLK,true);
+  const mCols = [286, 306, 424, 446, 470, 526];
+  s += R(286,70,240,14,C.BLK,C.BG,0.6);
+  for(let i=1;i<mCols.length-1;i++) s += L(mCols[i],70,mCols[i],312,C.BLK,0.5);
+  ['IT','DESCRIPTION','QTY','UNIT','MAKER'].forEach((h,i)=>s+=Txt(mCols[i]+3,80,h,5.5,C.BLK,true));
+  const mRows = [
+    ['1','Phase Pilot Lamp 22mm R/Y/B','3','PCS','SCHNEIDER/STD'],
+    ['2','Control Fuse 6A + Base (FUR)',String(sp.grpCnt+2),'SET','KSP STD'],
+    ['3',`Phase Relay ${sp.pprMod}`,'1','PCS',sp.pprMod.split(' ')[0].toUpperCase()],
+    ['4','P24 Fault Lamp 22mm Red',sp.nEc>0?'1':'0','PCS','KSP STD'],
+    ['5','Wireduct Slotted 40x60 mm','5','BAR','KSP STD'],
+    ['6',`Cabinet ${sp.cabSz} IP55`,'1','UNIT','KSP / KJL']
+  ];
+  mRows.forEach((r,idx)=>{ const ry=84+idx*18.5; s+=L(286,ry+18.5,526,ry+18.5,C.GRY,0.35); r.forEach((v,ci)=>s+=Txt(mCols[ci]+3,ry+12,v.slice(0,22),5.2)); });
+
+  // 3. Control Equipment
+  s += R(530,54,270,258,C.BLK,'none',0.8)+R(530,54,270,16,C.BLK,C.BG,0.7)+Txt(620,65,'CONTROL EQUIPMENT',7,C.BLK,true);
+  const cCols = [530, 548, 692, 716, 742, 800];
+  s += R(530,70,270,14,C.BLK,C.BG,0.6);
+  for(let i=1;i<cCols.length-1;i++) s += L(cCols[i],70,cCols[i],312,C.BLK,0.5);
+  ['IT','DESCRIPTION','QTY','UNIT','MAKER'].forEach((h,i)=>s+=Txt(cCols[i]+3,80,h,5.5,C.BLK,true));
+  const cRows = [
+    ['Run/Fault Lamp 22mm G/R', String(sp.n*2), 'PCS', 'KSP STD'],
+    ['Selector M-0-A 22mm (SAR)', String(sp.n), 'PCS', 'KSP STD'],
+    [`Contactor ${sp.contMod}`, String(sp.n), 'SET', sp.contMod.split(' ')[0]],
+  ];
+  if (sp.nEc>0) cRows.push([`MPCB EC ${bm.mpcb_ec} + Link`, String(sp.nEc), 'SET', bm.mpcb_ec.split(' ')[0]]);
+  if (sp.nAc>0) cRows.push([`MPCB AC ${bm.mpcb_ac} + Link`, String(sp.nAc), 'SET', bm.mpcb_ac.split(' ')[0]]);
+  cRows.push([`Relay ${sp.ctrlV} + Socket`, String(sp.nEc>0 ? Math.ceil(sp.n/2)+1 : 1), 'SET', 'OMRON/IDEC']);
+  if (sp.nEc>0) {
+    cRows.push([`Power Supply ${bm.sps}`, '1', 'PCS', bm.sps.split(' ')[0]]);
+    cRows.push(['4-Ch 0-10V Isolator (ISO)', String(sp.isoCnt), 'PCS', 'KSP STD']);
+    cRows.push(['4-Step SS1 + Speed Vol SIG1', '1', 'SET', 'KSP STD']);
+  }
+  cRows.push(['Exhaust Fan 4" + TS1 Thermo', '1', 'SET', 'KSP STD']);
+  cRows.push([`Terminals XR1(5P)+XR2(${sp.n*4}P)`, '1', 'LOT', 'KSP STD']);
+  cRows.push(['Cu Earth (PE-BAR) & N-BAR', '2', 'BAR', 'COPPER']);
+  cRows.slice(0,12).forEach((r,idx)=>{ const ry=84+idx*18.5; s+=L(530,ry+18.5,800,ry+18.5,C.GRY,0.35); s+=Txt(cCols[0]+3,ry+12,String(idx+1),5.2); r.forEach((v,ci)=>s+=Txt(cCols[ci+1]+3,ry+12,v.slice(0,26),5.2)); });
+
+  // Bottom Busbar Equipment & Rating
+  s += R(42,320,273,172,C.BLK,'none',0.8)+R(42,320,273,16,C.BLK,C.BG,0.7)+Txt(115,331,'BUSBAR EQUIPMENT',7,C.BLK,true);
+  [['1','MAIN L1/L2/L3 BUS',`${sp.mainBrk}A`,'Comb / Cable'],['2','NEUTRAL BUSBAR (N-BAR)','100%','15x3 mm Cu'],
+   ['3','GROUND BUSBAR (PE-BAR)','100%','15x3 mm Cu'],['4',`BRANCH BUS (${bm.bus})`,`${sp.grpCnt} PCS`,'4-Slot Comb'],
+   ['5','DOOR EARTH STRAP','1 PCS','Braided Cu']].forEach(([bi,bn,ba,bs],idx)=>{
+     const ry=344+idx*24; s+=L(42,ry+20,315,ry+20,C.GRY,0.35)+Txt(48,ry+13,bi,5.8)+Txt(65,ry+13,bn,5.8,bn.includes('GROUND')?C.GRN:C.BLK,true)+Txt(185,ry+13,ba,5.8,C.BLU,true)+Txt(235,ry+13,bs,5.8);
+  });
+
+  s += R(320,320,480,172,C.BLK,'none',0.8)+R(320,320,480,16,C.BLK,C.BG,0.7)+Txt(365,331,'BUSBAR RATING IEC 61439-2 (AMBIENT 40C, MAX 90C, 50Hz)',7,C.BLK,true);
+  const rCols=[320,355,435,515,595,680,800];
+  s += R(320,336,480,16,C.BLK,C.BG,0.6);
+  for(let i=1;i<rCols.length-1;i++) s += L(rCols[i],336,rCols[i],492,C.BLK,0.5);
+  ['ITEM','RATED (A)','SIZE WxT (mm)','AREA (mm2)','1-BAR (A)','REMARK'].forEach((h,i)=>s+=Txt(rCols[i]+5,347,h,5.5,C.BLK,true));
+  [['1','100 - 160 A','15 x 3 mm','45','210 A','PE-BAR & N-BAR STD'],['2','160 - 250 A','20 x 5 mm','100','355 A','Main Copper Bus'],
+   ['3','250 - 400 A','30 x 5 mm','150','491 A','Heavy Feeder Bus'],['4','400 - 630 A','40 x 5 mm','200','626 A','High Load Bus'],['5','630 - 800 A','40 x 10 mm','400','909 A','Industrial Switchboard']]
+  .forEach((rr,idx)=>{ const ry=352+idx*24; s+=L(320,ry+24,800,ry+24,C.GRY,0.35); rr.forEach((v,ci)=>s+=Txt(rCols[ci]+6,ry+15,v,5.8,idx===0?C.BLU:C.BLK,idx===0)); });
+  return s;
+}
+
+function buildLayout(sp) {
+  let s = drawFrame(sp, 'SWITCHBOARD LAYOUT LOW VOLTAGE', 7, 'R08');
+  const [wV, hV, dV] = sp.cabSz.split('x').map(Number);
+  const sc = Math.min(290.0 / hV, 540.0 / (2.0 * wV + dV));
+  const fw = wV * sc, fh = hV * sc, iw = fw, ih = fh, sw = dV * sc, sh = fh, tdh = Math.min(65.0, dV * sc);
+  const scaleDenom = (1.0 / (sc * 25.4 / 72.0)).toFixed(1);
+  s += Txt(235, 44, `SWITCHBOARD LAYOUT (${wV}x${hV}x${dV} mm IP55 | TRUE SCALE 1:${scaleDenom})`, 9.2, C.BLK, true);
+
+  const fx0 = 62, fy0 = 66, ix0 = fx0 + fw + 32, iy0 = 66, sx0 = ix0 + iw + 24;
+  // Front View
+  s += L(fx0,fy0-8,fx0+fw,fy0-8,C.GRY,0.5)+Txt(fx0+fw/2,fy0-11,String(wV),6.5,C.GRY,false,'middle');
+  s += L(fx0-9,fy0,fx0-9,fy0+fh,C.GRY,0.5)+Txt(fx0-12,fy0+fh/2+8,String(hV),6.5,C.GRY,false,'middle',-90);
+  s += R(fx0,fy0,fw,fh,C.BLK,'#f7f7f9',1.1)+R(fx0+4,fy0+4,fw-8,fh-8,C.BLK,'none',0.6);
+  [fy0+20, fy0+fh-34].forEach(ly => s += R(fx0+7, ly, 5, 15, C.BLK, '#d9d9d9', 0.55));
+  s += Poly([[fx0+10,fy0+42],[fx0+6,fy0+50],[fx0+14,fy0+50]], C.BLK, '#fad933', 0.55);
+  s += R(fx0+8,fy0+7,fw*0.66-8,11,C.BLK,'#fff',0.55)+Txt(fx0+11,fy0+14.8,`FAN CTRL 1:${sp.n}`,5.2,C.BLK,true);
+  const lw = Math.min(32.0, fw * 0.22), lh = lw / LOGO_ASPECT;
+  s += `<image href="${KSP_LOGO_B64}" x="${fx0+fw-lw-6}" y="${fy0+6}" width="${lw}" height="${lh}" preserveAspectRatio="xMidYMid meet"/>`;
+
+  const rLamp = Math.max(3.6, Math.min(4.8, fw / 42.0));
+  [['L1',C.RED],['L2',C.OYL],['L3',C.BLU]].forEach(([lbl,col],k)=> s += drawQuarterLamp(fx0+fw*(0.32+k*0.18), fy0+fh*0.13, col, lbl, 'W', rLamp));
+  if (sp.nEc > 0) {
+    const vx0 = fx0+fw*0.26, vy0 = fy0+fh*0.20, sxd = fx0+fw*0.58;
+    s += R(vx0,vy0,fw*0.20,13,C.BLK,'#d97326',0.6)+R(vx0+3,vy0+3,fw*0.14,7,C.BLK,'#262626',0.45);
+    s += R(sxd,vy0,15,15,C.BLK,'#fff',0.6)+Cir(sxd+7.5,vy0+7.5,5.0)+L(sxd+3.5,vy0+7.5,sxd+11.5,vy0+7.5,C.BLK,1.1);
+  }
+  s += drawQuarterLamp(fx0+fw*0.40, fy0+fh*0.30, C.OYL, 'PH.FLT', 'Y', rLamp);
+  if (sp.nEc > 0) s += drawQuarterLamp(fx0+fw*0.62, fy0+fh*0.30, C.OYL, 'P24FLT', 'Y', rLamp);
+
+  // Fan Matrix (dynamic 1..4 rows cleanly fitted inside fw x fh up to 32 fans!)
+  const colsD = sp.n <= 8 ? 4 : (sp.n <= 12 ? 6 : (sp.n <= 20 ? 10 : 8));
+  const rowsD = Math.ceil(sp.n / colsD);
+  const xStep = (fw - 26) / Math.max(1, colsD);
+  const availH = fh * 0.57;
+  const rowPitch = availH / Math.max(1, rowsD);
+  const rF = Math.max(2.6, Math.min(4.2, Math.min(xStep * 0.20, rowPitch * 0.11)));
+  const sF = Math.max(3.2, Math.min(5.4, Math.min(xStep * 0.25, rowPitch * 0.13)));
+  const showMiniLbl = rowsD <= 2;
+  if (wV >= 1200) s += L(fx0 + fw/2, fy0 + 22, fx0 + fw/2, fy0 + fh - 4, C.GRY, 0.6, '3 2');
+  for (let i=0;i<sp.n;i++) {
+    const rr = Math.floor(i/colsD), cc = i%colsD, cx = fx0+14+cc*xStep+xStep/2-1, cyb = fy0+fh*0.39+rr*rowPitch+rF*1.6;
+    const tag = `${i<sp.nEc?'EC':'AC'}${String(i+1).padStart(2,'0')}`;
+    s += drawQuarterLamp(cx, cyb, C.RED, showMiniLbl?'OVL':'', showMiniLbl?'R':'', rF);
+    s += drawQuarterLamp(cx, cyb+rowPitch*0.27, C.GRN, showMiniLbl?'RUN':'', showMiniLbl?'G':'', rF);
+    s += drawRealisticSelector(cx, cyb+rowPitch*0.58, tag, sF);
+  }
+  s += R(fx0+fw/2-34,fy0+fh+8,68,13,C.BLK,'none',0.7)+Txt(fx0+fw/2,fy0+fh+17.5,'FRONT VIEW',6.2,C.BLK,true,'middle');
+  s += R(fx0,fy0+fh+32,fw,tdh,C.BLK,'#f7f7f9',0.9)+R(fx0+10,fy0+fh+38,fw-20,Math.max(4,tdh-12),C.BLK,'none',0.5,'3 2');
+  s += R(fx0+fw/2-42,fy0+fh+36+tdh,84,13,C.BLK,'none',0.7)+Txt(fx0+fw/2,fy0+fh+45.5+tdh,'TOP & BOTTOM VIEW',5.8,C.BLK,true,'middle');
+
+  // Infront View
+  s += L(ix0,iy0-8,ix0+iw,iy0-8,C.GRY,0.5)+Txt(ix0+iw/2,iy0-11,String(wV),6.5,C.GRY,false,'middle');
+  s += R(ix0,iy0,iw,ih,C.BLK,'#fcfcfc',1.1)+R(ix0+5,iy0+5,iw-10,ih-10,C.GRY,'none',0.5);
+  // 4 Fixed Wireducts (top, below Row 1, above Terminals, below XR2); intermediate starter ducts drawn dynamically
+  [0.05,0.24,0.725,0.84].forEach(df => {
+    const dy = iy0 + ih * df;
+    s += R(ix0+9,dy,iw-18,8,C.GRY,'#efefef',0.5,'2 1')+Txt(ix0+iw/2,dy+6.2,'WIREDUCT 40x60',3.8,C.GRY,false,'middle');
+  });
+  const r1y0 = iy0+ih*0.10, r1h = ih*0.12, mcb1W = iw*0.14;
+  s += R(ix0+10,r1y0,mcb1W,r1h,C.BLK,'#f2f2f2',0.7)+R(ix0+10+mcb1W*0.35,r1y0+r1h/2-5,mcb1W*0.3,10,C.BLK,C.RED,0.5);
+  s += R(ix0+13+mcb1W,r1y0+2,iw*0.09,r1h-4,C.BLK,'#f2f2f2',0.65);
+  const mSlot = Math.min(13.0, (iw*0.30)/Math.max(1,sp.grpCnt+1));
+  for (let g=0;g<=sp.grpCnt;g++) s += R(ix0+16+mcb1W+iw*0.09+g*mSlot, r1y0+3, mSlot-2, r1h-6, C.BLK, '#ebf0fa', 0.6);
+  if (sp.nEc>0) {
+    const sxb = ix0+iw*0.62;
+    s += R(sxb,r1y0+2,iw*0.11,r1h-4,C.BLU,'#f0f5ff',0.7)+Txt(sxb+2,r1y0+r1h/2+2,'SPS1',4.2,C.BLU,true);
+    s += R(sxb+iw*0.125,r1y0+3,iw*0.115,r1h-6,C.BLK,'#f5f5f5',0.55);
+    s += R(sxb+iw*0.25,r1y0+2,ix0+iw-10-(sxb+iw*0.25),r1h-4,C.GRN,'#f0fcf2',0.7)+Txt(sxb+iw*0.26,r1y0+r1h/2+2,'ISO',4.2,C.GRN,true);
+  }
+  // Dynamic Starter Rows (1 row <=10, 2 rows <=20, 3 rows <=32) with dedicated Wireducts — ZERO overlap!
+  const perR = sp.n <= 20 ? 10 : 12;
+  const rowsIn = Math.ceil(sp.n / perR);
+  const sPitch = (iw - 20) / perR, swBox = sPitch * 0.84;
+  const zoneTop = iy0 + ih * 0.285, zoneH = ih * 0.435;
+  const rowSlotH = zoneH / Math.max(1, rowsIn);
+  for (let r = 1; r < rowsIn; r++) {
+    const dy = zoneTop + r * rowSlotH - 7;
+    s += R(ix0+9, dy, iw-18, 6, C.GRY, '#efefef', 0.45, '2 1');
+  }
+  for (let i=0;i<sp.n;i++) {
+    const rr = Math.floor(i/perR), cc = i%perR, sx = ix0+10+cc*sPitch;
+    const sy = zoneTop + rr * rowSlotH;
+    const shT = Math.min(ih * 0.075, rowSlotH * 0.36);
+    const shB = Math.min(ih * 0.080, rowSlotH * 0.40);
+    s += R(sx,sy,swBox,shT,C.BLK,'#f2f5f5',0.55)+Cir(sx+swBox*0.33,sy+shT*0.45,1.4,C.RED)+Cir(sx+swBox*0.67,sy+shT*0.45,1.4,C.BLK);
+    s += R(sx,sy+shT+1.5,swBox,shB,C.BLK,'#ebebeb',0.55)+Txt(sx+1.2,sy+shT+shB*0.75,`K${i+1}`,rowsIn>=3?3.3:3.8,C.BLK,true);
+  }
+  const r4y = iy0+ih*0.76, r4h = ih*0.055;
+  s += R(ix0+10,r4y,iw-20,r4h,C.BLK,'#faf0b8',0.65)+Txt(ix0+iw/2,r4y+r4h*0.75,`XR1(5P) + XR2(${sp.n*4}P: U,V,W,PE)`,4.5,C.BLK,true,'middle');
+  const r5y = iy0+ih*0.89, r5h = ih*0.065;
+  s += R(ix0+10,r5y,iw*0.64-10,r5h,C.BLK,'#f2f2f2',0.65)+Txt(ix0+14,r5y+r5h*0.68,'XR3 + XR4',4.5,C.BLK,true);
+  s += R(ix0+iw*0.67,r5y,iw*0.14,r5h,C.BLU,'#e6f0ff',0.7)+Txt(ix0+iw*0.68,r5y+r5h*0.68,'N-BAR',4.0,C.BLU,true);
+  s += R(ix0+iw*0.83,r5y,iw-10-iw*0.83,r5h,C.GRN,'#e0fae6',0.8)+Txt(ix0+iw*0.835,r5y+r5h*0.68,'PE-BAR',4.0,C.GRN,true);
+  s += R(ix0+iw/2-38,iy0+ih+8,76,13,C.BLK,'none',0.7)+Txt(ix0+iw/2,iy0+ih+17.5,'INFRONT VIEW',6.2,C.BLK,true,'middle');
+
+  // Side View
+  s += L(sx0,iy0-8,sx0+sw,iy0-8,C.GRY,0.5)+Txt(sx0+sw/2,iy0-11,String(dV),6.5,C.GRY,false,'middle');
+  s += R(sx0,iy0,sw,sh,C.BLK,'#f7f7f9',1.0);
+  const rVf = Math.min(14.0, sw*0.30);
+  s += Cir(sx0+sw/2,iy0+sh*0.16,rVf,C.BLK,'#fff',0.75);
+  for(let a=0;a<360;a+=60) s += L(sx0+sw/2,iy0+sh*0.16,sx0+sw/2+(rVf-2)*Math.cos(a*Math.PI/180),iy0+sh*0.16+(rVf-2)*Math.sin(a*Math.PI/180),C.OYL,1.1);
+  s += Cir(sx0+sw/2,iy0+sh*0.16,3.0,C.BLK,'#b3b3b3',0.5)+Txt(sx0+4,iy0+18,'VF1',4.8,C.BLK,true);
+  s += R(sx0+sw*0.2,iy0+sh*0.76,sw*0.6,sh*0.14,C.BLK,'none',0.65);
+  for(let k=0;k<5;k++) s += L(sx0+sw*0.26,iy0+sh*0.78+k*(sh*0.022),sx0+sw*0.74,iy0+sh*0.78+k*(sh*0.022),C.GRY,0.5);
+  s += R(sx0+sw/2-26,iy0+sh+8,52,13,C.BLK,'none',0.7)+Txt(sx0+sw/2,iy0+sh+17.5,'SIDE VIEW',6.0,C.BLK,true,'middle');
+
+  const bx0 = Math.max(sx0 + sw + 18, 690);
+  s += R(bx0,iy0,800-bx0,185,C.BLK,C.BG,0.8);
+  s += Txt(bx0+6,iy0+16,'CABINET SPEC',6.8,C.BLU,true)+Txt(bx0+6,iy0+34,`W: ${wV} mm`,6.5,C.BLK,true)+Txt(bx0+6,iy0+48,`H: ${hV} mm`,6.5,C.BLK,true)+Txt(bx0+6,iy0+62,`D: ${dV} mm`,6.5,C.BLK,true);
+  s += Txt(bx0+6,iy0+78,`SCALE 1:${scaleDenom}`,6.2,C.RED,true)+Txt(bx0+6,iy0+98,'IP55 RAL 7035',6.0,C.GRY)+Txt(bx0+6,iy0+112,'1.5mm Steel',6.0,C.GRY);
+  s += Txt(bx0+6,iy0+134,'PE-BAR: 15x3 Cu',5.8,C.GRN,true)+Txt(bx0+6,iy0+148,'N-BAR : 15x3 Cu',5.8,C.BLU,true)+Txt(bx0+6,iy0+164,'Duct  : 40x60mm',5.8);
+  return s;
+}
+
+function buildLoadCalc(sp) {
+  let s = drawFrame(sp, 'LOAD CALCULATION & CABLE SCHEDULE', 8, 'R09');
+  s += Txt(230, 46, 'ELECTRICAL LOAD CALCULATION, CURRENT & CABLE SIZING SCHEDULE', 9.5, C.BLK, true);
+  const ecKw = (sp.nEc*sp.ecFan.kw).toFixed(2), ecAmp = (sp.nEc*sp.ecFan.amp).toFixed(2), ecCfm = sp.nEc*sp.ecFan.cfm;
+  const acKw = (sp.nAc*sp.acFan.kw).toFixed(2), acAmp = (sp.nAc*sp.acFan.amp).toFixed(2), acCfm = sp.nAc*sp.acFan.cfm;
+  const m3hr = Math.round(sp.totalCfm * 1.699);
+
+  let mWire='VSF 1x10 sq.mm', mIz='63 A', peWire='VSF 1x10 sq.mm (G/Y)', subW='VSF 1x4 sq.mm', subIz='34 A';
+  if (sp.mainBrk > 100) { mWire='VSF 1x50 sq.mm'; mIz='168 A'; peWire='VSF 1x25 sq.mm (G/Y)'; subW='VSF 1x6 sq.mm'; subIz='44 A'; }
+  else if (sp.mainBrk > 63) { mWire='VSF 1x25 / 1x35 sq.mm'; mIz='115-138 A'; peWire='VSF 1x16 sq.mm (G/Y)'; subW='VSF 1x6 sq.mm'; subIz='44 A'; }
+  else if (sp.mainBrk > 32) { mWire='VSF 1x16 sq.mm'; mIz='85 A'; peWire='VSF 1x16 sq.mm (G/Y)'; subW='VSF 1x4 / 1x6 sq.mm'; subIz='34-44 A'; }
+
+  s += R(42,56,373,192,C.BLK,'none',0.8)+R(42,56,373,18,C.BLK,C.BG,0.7)+Txt(52,69,'1. CONNECTED LOAD & CURRENT CALCULATION (3PH 380V 50Hz)',7,C.BLU,true);
+  [[`EC Fan Motors (${sp.ecFan.kw}kW / ${sp.ecFan.amp}A)`,`${sp.nEc} Units | ${ecKw} kW | ${ecAmp} A | ${ecCfm.toLocaleString()} CFM`],
+   [`AC Fan Motors (${sp.acFan.kw}kW / ${sp.acFan.amp}A)`,`${sp.nAc} Units | ${acKw} kW | ${acAmp} A | ${acCfm.toLocaleString()} CFM`],
+   ['Control & Cooling Aux (24V+VF1)','0.15 kW | ~0.7 A (1-Phase L1/L3-N)'],
+   ['Total Connected Motor Power',`${sp.totalKw.toFixed(2)} kW (Demand Factor 1.0)`],
+   ['Full Load Running Current (FLC)',`${sp.totalAmp.toFixed(1)} A (3PH 380V, PF 0.85)`],
+   ['Design Current (125% / 80% Rule)',`${sp.iDesign.toFixed(1)} A  -> Select MCB1 >= ${sp.iDesign.toFixed(1)} A`],
+   ['Total Ventilation @ 50 Pa (0.20")',`${sp.totalCfm.toLocaleString()} CFM (${m3hr.toLocaleString()} m3/hr)`]
+  ].forEach(([k,v],idx)=>{
+    const ry=74+idx*24.5; s+=L(42,ry+24.5,415,ry+24.5,C.GRY,0.35);
+    s+=Txt(48,ry+16,k,6.2,C.BLK,k.includes('Total')||k.includes('Design'))+Txt(202,ry+16,v,6.1,k.includes('Design')?C.RED:C.BLK,k.includes('Design')||k.includes('Full'));
+  });
+
+  s += R(425,56,375,192,C.BLK,'none',0.8)+R(425,56,375,18,C.BLK,C.BG,0.7)+Txt(435,69,'2. PROTECTIVE DEVICE & BUSBAR SIZING SUMMARY',7,C.BLU,true);
+  [['Main Breaker (MCB1)',`${sp.mainMod} (In=${sp.mainBrk}A >= ${sp.iDesign}A)`],
+   [`Sub-Breakers (MCB2..${sp.grpCnt+1})`,`${sp.grpCnt}x ${sp.bm.mcb} 3P ${sp.nAc>0?'25AT':'20AT'} (4 Fans/Grp)`],
+   ['EC Motor MPCB (QFR_EC)',`${sp.bm.mpcb_ec} (2.5-4.0A, Set ${sp.ecFan.amp}A)`],
+   ['AC Motor MPCB (QFR_AC)',`${sp.bm.mpcb_ac} (4.0-6.3A, Set ${sp.acFan.amp}A)`],
+   ['Control Breaker (MCB4)','2P 6AT (Protects 24VDC Supply & Ctrl)'],
+   ['Neutral & Ground Busbars',`N-BAR & PE-BAR 15x3mm Cu (210A >= ${sp.mainBrk}A)`],
+   ['Control / Phase Relay',`${sp.ctrlV} | ${sp.pprMod} (200-450V)`]
+  ].forEach(([k,v],idx)=>{
+    const ry=74+idx*24.5; s+=L(425,ry+24.5,800,ry+24.5,C.GRY,0.35);
+    s+=Txt(432,ry+16,k,6.2,C.BLK,true)+Txt(555,ry+16,v.slice(0,48),5.8,k.includes('Ground')?C.GRN:C.BLK);
+  });
+
+  s += R(42,258,758,234,C.BLK,'none',0.9)+R(42,258,758,18,C.BLK,C.BG,0.8)+Txt(52,271,'3. COMPLETE INTERNAL PANEL WIRING & FIELD CABLE SIZING SCHEDULE (IEC 60227 / IEC 60364)',7.2,C.BLU,true);
+  const cCols=[42,168,295,425,488,558,650,800];
+  s += R(42,276,758,16,C.BLK,C.BG,0.6);
+  for(let i=1;i<cCols.length-1;i++) s += L(cCols[i],276,cCols[i],492,C.BLK,0.5);
+  ['CIRCUIT / PATH','CABLE TYPE & SIZE','CORE / COLOR CODE','LOAD (A)','AMPACITY Iz','TERMINAL / BAR','APPLICATION NOTE'].forEach((h,i)=>s+=Txt(cCols[i]+4,287,h,5.5,C.BLK,true));
+  [['Main Incomer (XR1->MCB1)',mWire,'L1:Br L2:Bk L3:Gy N:Bu',`${sp.totalAmp} A`,mIz,'XR1 (Pin 1-4)','3PH+N PVC 70C'],
+   ['Earth Ground (PE)',peWire,'Green / Yellow (PE)',`${sp.mainBrk}A Fault`,'PE >= S/2','XR1-5 & PE-BAR','Bonded to Frame & Doors'],
+   ['Sub-Feeder (MCB1->MCB2..)',subW,'L1:Br L2:Bk L3:Gy',`${sp.nAc>0?'19.6':'12.3'} A`,subIz,'Bus / DIN MCB','Per 4-Fan Sub-Group'],
+   ['Group Bus (MCB2..->QFR)',`${sp.bm.bus} / 2.5mm2`,'4-Slot Comb + L1-L3',`${sp.nAc>0?sp.acFan.amp:sp.ecFan.amp} A`,'24-63 A','QFR Top Input','Brand Comb Busbar'],
+   ['Internal Motor (KMR->XR2)','VSF 1x2.5 + PE 2.5','U:Br V:Bk W:Gy PE:G/Y','3.1 - 4.9 A','24 A','XR2 (4P/Fan)','450/750V Flex Copper'],
+   ['Field Motor (XR2->Fans)','VCT 4x2.5 sq.mm','4C (U, V, W, PE)','3.1 - 4.9 A','24 A','XR2 -> MR1..n','Includes PE Earth Wire!'],
+   ['AC Control & Phase Relay','VSF 1x1.0 sq.mm','Br/Bk/Gy/Bu (220V)','< 1.0 A','12 A','FUR1/PPR1/VF1','Protected by FUR1/2'],
+   ['DC Control & 0-10V Signal','VSF 1.0 + LIY-CY 2x0.75','Rd(+24V)/Bu(0V)+Shld','< 2.0 A','12 A','SPS1/ISO->XR3','Shielded Twisted Analog']
+  ].forEach((row,idx)=>{
+    const ry=292+idx*25.0; s+=L(42,ry+25,800,ry+25,C.GRY,0.35);
+    row.forEach((v,ci)=>s+=Txt(cCols[ci]+4,ry+16,v.slice(0,26),5.8,(idx===1||idx===5)&&[0,1,2,6].includes(ci)?C.GRN:C.BLK,ci<2));
+  });
+  return s;
+}
+
+function buildSld(sp) {
+  let s = drawFrame(sp, 'SINGLE-LINE DIAGRAM (IEC 60617)', 9, 'R10');
+  s += Txt(45, 48, 'SINGLE-LINE DIAGRAM (IEC 60617) & PRODUCT SPECIFICATION SCHEDULE', 10, C.BLK, true);
+  const sldCb = (px, py, tag, l1, l2='', isMpcb=false) => {
+    let o = L(px,py-14,px,py-6,C.BLK,1.2)+L(px-3,py-9,px+3,py-3,C.BLK,1.0)+L(px-3,py-3,px+3,py-9,C.BLK,1.0)+L(px,py+8,px-6,py-6,C.BLK,1.2)+L(px,py+8,px,py+16,C.BLK,1.2);
+    if (isMpcb) o += R(px-10,py-3,5,8,C.BLK,'none',0.8)+L(px-5,py+1,px-2,py+1,C.BLK,0.7);
+    o += Txt(px+8,py-2,tag,6.5,tag.startsWith('MCB1')?C.RED:C.BLK,true);
+    if(l1) o += Txt(px+8,py+7,l1,5.6);
+    if(l2) o += Txt(px+8,py+15,l2,5.3,C.GRY);
+    return o;
+  };
+  const sldCont = (px, py, tag, spec) => L(px,py-12,px,py-5,C.BLK,1.2)+Cir(px,py-5,1.5,C.BLK,'#fff',0.8)+L(px,py+7,px-5,py-4,C.BLK,1.2)+L(px,py+7,px,py+14,C.BLK,1.2)+Txt(px+8,py,tag,6.2,C.BLK,true)+Txt(px+8,py+8,spec,5.4,C.GRY);
+  const sldSlash = (px, py, nc=3, lbl='') => [-3,0,3].map(o=>L(px-4+o,py+3,px+4+o,py-3,C.BLK,0.8)).join('')+Txt(px+7,py+2,lbl?`${nc} | ${lbl}`:String(nc),5.2,C.GRY);
+
+  s += Txt(100,68,'3~ 380V 50Hz + N + PE (XR1 5P)',7.5,C.BLK,true)+L(150,74,150,96,C.BLK,1.6)+sldSlash(150,84,4,'VSF Main');
+  s += sldCb(150,110,`MCB1: ${sp.mainMod}`,`Icu: ${sp.bm.icu} | ${sp.totalKw}kW (${sp.totalAmp}A)`,`Airflow @50Pa: ${sp.totalCfm.toLocaleString()} CFM`);
+  s += L(150,126,150,200,C.BLK,1.6)+Dot(150,158,C.BLK,2.2)+L(150,158,sp.nEc>0?650:460,158,C.BLK,1.1);
+  s += Dot(460,158,C.BLK,2.0)+L(460,158,460,116,C.BLK,0.9)+R(455,130,10,16,C.BLK,'#fff',0.9)+Txt(469,141,'FUR1 3P 6A',5.5);
+  s += R(435,82,160,34,C.RED,'none',0.9)+Txt(442,95,`PPR1: ${sp.pprMod}`,7,C.RED,true)+Txt(442,107,'VF1 + TS1 (35C) + HLR1-3',5.8,C.GRY);
+  if (sp.nEc>0) {
+    s += Dot(650,158,C.BLK,2.0)+L(650,158,650,116,C.BLK,0.9)+sldCb(650,138,'MCB4','2P 6AT');
+    s += R(620,82,170,34,C.BLU,'none',0.9)+Txt(627,95,`SPS1: ${sp.bm.sps}`,7,C.BLU,true)+Txt(627,107,`ISO1..${sp.isoCnt} (0-10V) + SS1 + RY`,5.8,C.GRY);
+  }
+  s += Dot(150,200,C.BLK,2.5)+L(75,200,775,200,C.BLK,2.2)+Txt(255,193,`MAIN DISTRIBUTION BUSBAR (${sp.grpCnt} GROUPS x 4 FANS)`,7,C.BLK,true);
+  const gw = Math.min(145, 680.0 / Math.max(1, sp.grpCnt));
+  for (let g=0;g<sp.grpCnt;g++) {
+    const gx = 95 + g * gw, fs = g*4+1, fe = Math.min((g+1)*4, sp.n), cg = fe-fs+1, isEcG = g*4 < sp.nEc;
+    s += Dot(gx,200,C.BLK,2.2)+L(gx,200,gx,222,C.BLK,1.1);
+    s += sldCb(gx,236,`MCB${g+2}: ${sp.bm.mcb}`,`3P ${sp.nAc>0?'25AT':'20AT'}`,`${sp.bm.bus} (F${fs}..${fe})`);
+    s += L(gx,252,gx,274,C.BLK,1.1)+sldSlash(gx,263,3);
+    s += sldCb(gx,288,`QFR${fs}..${fe}`,isEcG?sp.bm.mpcb_ec:sp.bm.mpcb_ac,`Link: ${sp.bm.link}`,true);
+    s += L(gx,304,gx,322,C.BLK,1.1)+sldCont(gx,334,`KMR${fs}..${fe}`,sp.contMod)+L(gx,348,gx,370,C.BLK,1.1)+sldSlash(gx,359,4,'XR2');
+    s += Cir(gx,384,13,C.BLK,'none',1.1)+Txt(gx,386,'M',8,C.BLK,true,'middle')+Txt(gx,394,'3~',5.5,C.BLK,false,'middle');
+    s += Txt(gx+16,382,`${cg}x ${isEcG?`EC ${sp.ecFan.kw}kW`:`AC ${sp.acFan.kw}kW`}`,5.8,isEcG?C.BLU:C.GRN,true)+Txt(gx+16,392,'VCT 4x2.5 (U,V,W,PE)',5.2,C.GRY);
+  }
+  s += R(45,425,750,70,C.BLK,C.BG,0.9)+Txt(55,440,`PRODUCT & ENCLOSURE SCHEDULE (${sp.bm.label})`,8,C.BLU,true);
+  s += Txt(55,455,`- Cabinet: ${sp.cabSz} mm (IP55 RAL 7035 1.5mm) | Main: ${sp.mainMod} | Branch: ${sp.grpCnt}x ${sp.bm.mcb}`,7);
+  s += Txt(55,469,`- EC Starters (${sp.nEc}x): ${sp.bm.mpcb_ec} + ${sp.contMod} | AC Starters (${sp.nAc}x): ${sp.bm.mpcb_ac} + ${sp.contMod}`,7);
+  s += Txt(55,483,`- Control: ${sp.ctrlV} | Isolators: ${sp.isoCnt}x 4-Ch | Phase Relay: ${sp.pprMod} | See R06 BOM & R08 Load Calc`,7,C.RED,true);
+  return s;
+}
+
+function buildPowerSheet(sp, g, sheetNo) {
+  let s = drawFrame(sp, 'COLLECTION POWER SUPPLY', sheetNo, `R${String(sheetNo+1).padStart(2,'0')}`);
+  let busY;
+  if (g === 0) {
+    s += Txt(70,48,'3~ 50/60 Hz 380 V',8,C.BLK,true);
+    ['L1','L2','L3','N','PE'].forEach((lbl, idx) => {
+      const ly = 56 + idx*10;
+      s += Txt(42,ly+3,lbl,6.5,lbl==='PE'?C.GRN:C.BLK,true);
+      s += L(55,ly, idx<3?240:(idx===3?770:136),ly, lbl==='PE'?C.GRN:C.BLK, 0.9);
+    });
+    s += Txt(775,89,`R${10+sp.grpCnt}A/04`,6);
+    for (let ix=0;ix<5;ix++) {
+      const px = 88+ix*12, colX = ix===4?C.GRN:C.BLK, lyTap = 56+ix*10;
+      s += Dot(px,lyTap,colX,1.8)+L(px,lyTap,px,ix<3?118:(ix===3?86:112),colX,0.9)+Cir(px,102,2.2,colX,'#fff',0.8);
+    }
+    s += Txt(146,105,'XR1 (L1,L2,L3,N,PE)',6,C.BLU,true)+L(130,112,142,112,C.GRN,0.8)+L(132,115,140,115,C.GRN,0.7)+L(134,118,138,118,C.GRN,0.6);
+    s += draw3pBreaker(88,118,'MCB1',sp.mainMod,false);
+    for(let i=0;i<3;i++){ const ly=166+i*10; s += L(88+i*12,152,88+i*12,198,C.BLK,0.9)+L(88+i*12,ly,770,ly,C.BLK,0.9)+Dot(88+i*12,ly,C.BLK,1.8); }
+    s += Txt(775,179,`R${String(sheetNo+1).padStart(2,'0')}D/01`,6)+draw3pBreaker(88,198,`MCB${g+2}`,`${sp.bm.mcb} 3P ${sp.nAc>0?'25AT':'20AT'}`,false);
+    busY = 248;
+  } else {
+    for(let i=0;i<3;i++){ const ly=80+i*10; s += Txt(42,ly+3,`L${i+1}`,6.5,C.BLK,true)+L(55,ly,770,ly,C.BLK,0.9)+L(88+i*12,ly,88+i*12,128,C.BLK,0.9)+Dot(88+i*12,ly,C.BLK,1.8); }
+    s += Txt(775,93,`R${String(sheetNo+1).padStart(2,'0')}D/01`,6)+draw3pBreaker(88,128,`MCB${g+2}`,`${sp.bm.mcb} 3P ${sp.nAc>0?'25AT':'20AT'}`,false);
+    busY = 188;
+  }
+  const fans = [];
+  for(let f=g*4+1; f<=Math.min((g+1)*4, sp.n); f++) fans.push(f);
+  const lastX = 88 + (fans.length-1)*165;
+  for(let i=0;i<3;i++) s += L(88+i*12,busY-16,88+i*12,busY+i*8,C.BLK,0.9)+L(88+i*12,busY+i*8,lastX+i*12,busY+i*8,C.BLK,1.1);
+  s += Txt(260,busY-6,`BUSBAR "${sp.bm.bus}"`,6.5,C.BLK,true);
+
+  fans.forEach((fnum, pos) => {
+    const fx = 88 + pos*165, isEc = fnum <= sp.nEc;
+    for(let i=0;i<3;i++){ if(pos<fans.length-1) s+=Dot(fx+i*12,busY+i*8,C.BLK,1.8); s+=L(fx+i*12,busY+i*8,fx+i*12,busY+34,C.BLK,0.9); }
+    s += draw3pBreaker(fx, busY+34, `QFR${fnum}`, isEc?`${sp.bm.mpcb_ec} (2.5-4A)`:`${sp.bm.mpcb_ac} (4-6.3A)`, true);
+    for(let i=0;i<3;i++) s += L(fx+i*12,busY+68,fx+i*12,busY+84,C.BLK,0.9);
+    s += Txt(fx+32,busY+78,sp.bm.link,5.5,C.GRY)+draw3pContactor(fx,busY+84,`KMR${fnum}`,sp.contMod);
+    for(let i=0;i<3;i++) s += L(fx+i*12,busY+114,fx+i*12,busY+138,C.BLK,0.9);
+    s += drawMotor(fx, busY+160, fnum, isEc, sp.ecFan, sp.acFan);
+  });
+  return s;
+}
+
+function buildProtection(sp, sheetNo) {
+  let s = drawFrame(sp, 'PROTECTION & FAULT LOOP', sheetNo, `R${String(sheetNo+1).padStart(2,'0')}`);
+  ['N','L3','L2','L1'].forEach((lbl, i)=>{ const ly=56+i*12; s+=Txt(150,ly+3,lbl,6.5,C.BLK,true)+L(170,ly,720,ly,C.BLK,0.9); });
+  s += R(210,120,54,25,C.BLK,'none',0.9)+Txt(216,136,'FUR1 3P 6A',6.5,C.BLK,true);
+  for(let i=0;i<3;i++){ const fxi=220+i*14, fyt=92-i*12; s+=Dot(fxi,fyt,C.BLK,1.8)+L(fxi,fyt,fxi,120,C.BLK,0.8)+L(fxi,145,fxi,185,C.BLK,0.8); }
+  s += Dot(278,56,C.BLK,1.8)+L(278,56,278,185,C.BLK,0.8);
+  s += R(205,185,90,55,C.RED,'none',1.1)+Txt(212,205,'PPR1',8,C.RED,true)+Txt(212,218,sp.pprMod,6.5)+Txt(212,230,'UV:200V / OV:450V',6,C.GRY);
+  s += L(250,240,250,275,C.BLK,0.9)+L(250,275,720,275,C.BLK,0.9)+Txt(620,271,`1 -> R${String(sheetNo+1).padStart(2,'0')}A/01`,6,C.BLU,true);
+
+  s += Dot(320,56,C.BLK,1.8)+L(320,56,320,165,C.BLK,0.8)+L(320,165,490,165,C.BLK,0.8);
+  for(let i=0;i<3;i++){
+    const hx=360+i*65, hyt=92-i*12;
+    s += Dot(hx,hyt,C.BLK,1.8)+L(hx,hyt,hx,111,C.BLK,0.8)+Cir(hx,122,11)+L(hx-7,115,hx+7,129,C.BLK,0.7)+L(hx+7,115,hx-7,129,C.BLK,0.7);
+    s += Txt(hx+14,125,`HLR${i+1}`,7,C.BLK,true)+L(hx,133,hx,165,C.BLK,0.8);
+    if(i<2) s += Dot(hx,165,C.BLK,1.8);
+  }
+  s += Dot(600,56,C.BLK,1.8)+L(600,56,600,106,C.BLK,0.8)+Cir(600,122,16,C.BLK,'none',1.0)+Txt(600,125,'VF1',7.5,C.BLK,true,'middle');
+  s += L(600,138,600,175,C.BLK,0.8)+R(588,175,24,23)+Txt(616,190,'TS1 (35C)',6.5,C.BLK,true);
+  s += L(600,198,600,218,C.BLK,0.8)+L(600,218,555,218,C.BLK,0.8)+L(555,218,555,162,C.BLK,0.8);
+  s += R(549,138,12,24)+L(555,138,555,162,C.BLK,0.7)+Txt(514,152,'FUR2 2A',5.8,C.BLK,true)+L(555,138,555,92,C.BLK,0.8)+Dot(555,92,C.BLK,1.8);
+
+  s += Txt(170,315,`OVERLOAD FAULT LOOP (QFR1 .. QFR${sp.n} NC 11-12 IN SERIES -> XR4 01/02)`,8,C.RED,true);
+  const stepX = Math.min(56, 560.0 / Math.max(1, sp.n)), lastQx = 185 + (sp.n-1)*stepX;
+  s += L(170,335,lastQx,335,C.BLK,0.9)+L(170,420,lastQx,420,C.BLK,0.9);
+  for(let i=0;i<sp.n;i++){
+    const qx = 185 + i*stepX;
+    s += Dot(qx,335)+Dot(qx,420)+L(qx,335,qx,365,C.BLK,0.8)+L(qx,390,qx,420,C.BLK,0.8)+L(qx-4,365,qx+2,390,C.BLK,0.9)+Txt(qx+4,380,`Q${i+1}`,5.5,C.BLK,true);
+  }
+  s += Txt(170,440,'01 / 02 -> XR4/AL OVERLOAD FAULT',7,C.RED,true);
+  return s;
+}
+
+function build24vIso(sp, sheetNo) {
+  let s = drawFrame(sp, '24VDC & 0-10V ISOLATORS', sheetNo, `R${String(sheetNo+1).padStart(2,'0')}`);
+  s += Txt(45,56,'L3',6.5,C.BLK,true)+L(62,54,790,54)+Txt(45,70,'N',6.5,C.BLK,true)+L(62,68,790,68);
+  s += Dot(95,54)+Dot(115,68)+L(95,54,95,90)+L(115,68,115,90)+L(95,104,95,110)+L(115,104,115,110);
+  s += L(91,90,95,104,C.BLK,1.0)+L(111,90,115,104,C.BLK,1.0)+L(82,97,113,97,C.BLK,0.6,'2 2')+Txt(122,98,'MCB4 2P 6AT',6.5,C.BLK,true);
+
+  s += R(75,110,77,55,C.BLU,'none',1.1)+Txt(93,120,'L',5.8,C.BLK,true)+Txt(113,120,'N',5.8,C.BLK,true)+Txt(81,134,'SPS1 24VDC',7.5,C.BLU,true)+Txt(81,145,sp.bm.sps.slice(0,18),5.2,C.GRY)+Txt(84,160,'+24V',6.0,C.RED,true)+Txt(123,160,'0V',6.0,C.BLU,true);
+  s += L(75,265,795,265,C.RED,1.0)+L(75,280,795,280,C.BLU,1.0)+L(75,295,795,295,C.GRN,1.0)+L(75,308,795,308,C.BLK,0.9);
+  s += Txt(45,268,'+24V',6.5,C.RED,true)+Txt(45,283,'0V',6.5,C.BLU,true)+Txt(45,298,'0-10V+',6,C.GRN,true)+Txt(45,311,'0-10V-',6,C.BLK,true);
+  s += L(92,165,92,265,C.RED,1.0)+Dot(92,265,C.RED,1.8)+L(128,165,128,280,C.BLU,1.0)+Dot(128,280,C.BLU,1.8);
+
+  s += R(160,195,32,20)+Txt(164,208,'RY1',6.5,C.BLK,true)+L(168,215,168,265,C.RED,0.8)+Dot(168,265,C.RED,1.8)+L(184,215,184,280,C.BLU,0.8)+Dot(184,280,C.BLU,1.8);
+  s += Dot(505,54)+L(505,54,505,82,C.BLK,0.8)+L(505,82,511,82,C.BLK,0.8)+L(510,81,505,98,C.BLK,0.9)+Txt(514,93,'RY1(11-12)',5.2,C.GRY);
+  s += L(505,98,505,120,C.BLK,0.8)+Cir(505,130,10,C.RED,'none',0.9)+Txt(518,133,'HLR4 (P24 FAULT)',6.5,C.RED,true)+L(505,140,505,158,C.BLK,0.8)+L(505,158,465,158,C.BLK,0.8)+L(465,158,465,68,C.BLK,0.8)+Dot(465,68);
+
+  s += R(215,105,80,50)+Txt(222,120,'SIG1 (0-10V)',7,C.BLK,true)+Txt(222,132,'MANUAL VOLUME',5.8,C.GRY)+Txt(232,148,'+',7,C.GRN,true)+Txt(278,148,'-',7,C.BLK,true);
+  s += R(330,105,100,50,C.BLK,'none',0.9,'3 2')+Txt(336,120,'EXT CONTROLLER',6.8,C.BLK,true)+Txt(336,132,'0-10VDC (XR3)',6,C.BLU)+Txt(342,148,'+',7,C.GRN,true)+Txt(408,148,'-',7,C.BLK,true);
+  s += R(215,180,215,42,C.BLK,'none',1.0)+Txt(225,195,'SS1: 4-STEP SELECTOR',7,C.BLK,true)+Txt(225,208,'1:100% | 2:MAN | 3:AUTO | 4:OFF',5.8,C.BLU);
+  s += L(235,155,235,180,C.GRN,0.9)+L(280,155,280,180,C.BLK,0.9)+L(345,155,345,180,C.GRN,0.9)+L(410,155,410,180,C.BLK,0.9);
+
+  const ryCnt = Math.ceil(sp.n / 2), ryStep = Math.min(36.0, 325.0 / Math.max(1, ryCnt));
+  for (let r=0;r<ryCnt;r++) {
+    const rx = 468 + r*ryStep;
+    s += R(rx,195,24,20)+Txt(rx+3,208,`RY${r+2}`,6.0,C.BLK,true)+L(rx+6,175,rx+6,195,C.RED,0.8)+Dot(rx+6,175,C.RED,1.5)+L(rx+18,215,rx+18,280,C.BLU,0.8)+Dot(rx+18,280,C.BLU,1.5);
+  }
+  const lastRx = 468 + (ryCnt-1)*ryStep + 6;
+  s += L(430,190,446,190,C.RED,0.9)+L(446,190,446,175,C.RED,0.9)+L(446,175,lastRx,175,C.RED,0.9);
+  s += L(265,222,265,295,C.GRN,1.0)+Dot(265,295,C.GRN,1.8)+L(295,222,295,308,C.BLK,0.9)+Dot(295,308,C.BLK,1.8);
+
+  const isoW = Math.min(215, 700.0 / Math.max(1, sp.isoCnt) - 14);
+  for (let k=0;k<sp.isoCnt;k++) {
+    const ix = 80 + k*(isoW+14);
+    s += R(ix,335,isoW,70,C.GRN,'none',1.1)+Txt(ix+8,347,'+24V',5.4,C.RED,true)+Txt(ix+32,347,'-24V',5.4,C.BLU,true)+Txt(ix+62,347,'IN+',5.4,C.GRN,true)+Txt(ix+86,347,'IN-',5.4,C.BLK,true);
+    s += Txt(ix+8,368,`ISO${k+1} (4-CH ISOLATOR)`,6.8,C.GRN,true)+Txt(ix+8,380,'PWR: 24VDC | SIG: 0-10VDC',5.4,C.GRY);
+    s += L(ix+16,265,ix+16,335,C.RED,0.8)+Dot(ix+16,265,C.RED,1.6)+L(ix+40,280,ix+40,335,C.BLU,0.8)+Dot(ix+40,280,C.BLU,1.6);
+    s += L(ix+68,295,ix+68,335,C.GRN,0.8)+Dot(ix+68,295,C.GRN,1.6)+L(ix+92,308,ix+92,335,C.BLK,0.8)+Dot(ix+92,308,C.BLK,1.6);
+    for (let ch=0;ch<4;ch++) {
+      const fId = k*4+ch+1;
+      if (fId <= sp.nEc) {
+        const cx = ix + 18 + ch*((isoW-36)/3.0);
+        s += Txt(cx-7,401,'+',6.2,C.GRN,true)+Txt(cx+2,401,'-',6.2,C.BLK,true);
+        s += L(cx-4,405,cx-4,455,C.GRN,0.8)+L(cx+4,405,cx+4,455,C.BLK,0.8)+Cir(cx-4,432,2.0,C.BLK,'#fff')+Cir(cx+4,432,2.0,C.BLK,'#fff');
+        s += R(cx-15,455,30,23,C.BLU,'none',0.8)+Txt(cx,470,`EC${fId}`,6.5,C.BLU,true,'middle');
+      }
+    }
+  }
+  s += Txt(70,495,`XR3 TERMINALS: PIN 1..${sp.nEc*2} (0-10V TO EC1..${sp.nEc}) | PIN ${sp.nEc*2+1}-${sp.nEc*2+2} (FROM EXT CTRL1)`,7,C.GRN,true);
+  return s;
+}
+
+function buildLadderSheet(sp, g, sheetNo) {
+  const fStart = g*4+1, fEnd = Math.min((g+1)*4, sp.n);
+  let s = drawFrame(sp, `COLLECTION CONTROL (FANS ${fStart}-${fEnd})`, sheetNo, `R${String(sheetNo+1).padStart(2,'0')}`);
+  const fans = []; for(let f=fStart;f<=fEnd;f++) fans.push(f);
+  const firstFx = 190, lastFx = 190 + (fans.length-1)*150, lastManX = lastFx - 35, lastHlrX = lastFx + 24;
+
+  s += R(140,48,lastFx+70-140,56,C.BLK,'none',0.8,'4 2')+Txt(150,61,'EXTERNAL CONTROLLER (PLC / SMART PIG DRY CONTACTS)',7,C.GRY,true)+L(firstFx,70,lastFx,70,C.BLK,0.7);
+  s += Txt(40,133,sp.ctrlV==='24VDC'?'+24V':'L1-F',7,C.RED,true)+L(72,130,117,130,C.RED,0.9)+L(117,130,117,138,C.RED,0.9)+R(110,138,14,20)+L(117,138,117,158,C.BLK,0.7);
+  s += Txt(128,151,`FUR${g+3} 1P 2A`,7,C.BLK,true)+L(117,158,117,168,C.RED,0.9)+L(117,168,lastManX,168,C.RED,0.9);
+  s += Txt(40,458,sp.ctrlV==='24VDC'?'0V':'N',7,C.BLU,true)+L(72,455,lastHlrX,455,C.BLU,1.0);
+
+  fans.forEach((fnum) => {
+    const fx = 190 + (fnum - fStart)*150;
+    s += Dot(fx,70,C.BLK,1.5)+L(fx,70,fx,80,C.BLK,0.8)+R(fx-18,83,6,6,C.BLK,'none',0.7)+L(fx-12,86,fx-2,86,C.BLK,0.6,'2 1');
+    s += L(fx-4,80,fx,94,C.BLK,0.9)+L(fx,94,fx,195,C.BLK,0.8)+Txt(fx+6,90,`KC${fnum}`,7,C.BLK,true);
+    s += Cir(fx,128,2.2,C.BLK,'#fff',0.8)+Txt(fx+6,131,`XR4:${fnum}`,6.5,C.BLU)+Txt(fx+6,148,String(fnum*4+10),6.5,C.GRY);
+    if (fx-35 < lastManX) s += Dot(fx-35,168,C.RED,1.6);
+    s += L(fx-35,168,fx-35,195,C.RED,0.8)+Txt(fx-33,189,'MAN',6.5,C.BLK,true)+Txt(fx+5,189,'AUT',6.5,C.BLK,true);
+    s += L(fx-42,195,fx-28,195,C.BLK,0.8)+L(fx-6,195,fx+8,195,C.BLK,0.8)+L(fx-18,225,fx-35,195,C.BLK,1.0)+Cir(fx-18,225,2.0,C.BLK,'#fff');
+    s += L(fx-48,210,fx-26,210,C.BLK,0.6,'2 1')+Txt(fx-50,206,'1 0 2',6,C.GRY)+Txt(fx+10,214,`SAR${fnum}`,7,C.BLK,true)+Txt(fx-12,242,String(fnum*4+6),6.5,C.GRY);
+    s += L(fx-18,225,fx-18,265,C.BLK,0.9)+L(fx-24,265,fx-18,285,C.BLK,0.9)+Txt(fx-32,268,'13',6.2,C.GRY)+Txt(fx-32,286,'14',6.2,C.GRY)+Txt(fx-8,278,`QFR${fnum}`,7,C.BLK,true);
+    s += L(fx-18,285,fx-18,325,C.BLK,0.9)+L(fx-24,325,fx-18,345,C.BLK,0.9)+Txt(fx-30,328,'1',6.2,C.GRY)+Txt(fx-30,346,'4',6.2,C.GRY)+Txt(fx-8,338,`RY${Math.floor((fnum-1)/2)+2}`,7,C.BLK,true)+L(fx-18,345,fx-18,385,C.BLK,0.9);
+    s += R(fx-35,385,33,20,C.BLK,'none',1.0)+L(fx-35,405,fx-2,385,C.BLK,0.6)+Txt(fx-47,391,'A1',6.2,C.GRY)+Txt(fx-47,405,'A2',6.2,C.GRY)+Txt(fx-14,417,`KMR${fnum}`,7,C.BLK,true);
+    s += L(fx-18,405,fx-18,455,C.BLK,0.9)+Dot(fx-18,455,C.BLU,1.6)+Dot(fx-18,372,C.BLK,1.6)+L(fx-18,372,fx+24,372,C.BLK,0.8)+L(fx+24,372,fx+24,385,C.BLK,0.8);
+    s += Cir(fx+24,395,10,C.GRN,'none',0.9)+L(fx+17,388,fx+31,402,C.GRN,0.7)+L(fx+31,388,fx+17,402,C.GRN,0.7);
+    s += Txt(fx+10,385,'X1',6.2,C.GRY)+Txt(fx+10,411,'X2',6.2,C.GRY)+Txt(fx+36,398,`HLR${fnum+4}`,7,C.GRN,true)+L(fx+24,405,fx+24,455,C.BLK,0.8);
+    if (fx+24 < lastHlrX) s += Dot(fx+24,455,C.BLU,1.6);
+  });
+  return s;
+}
+
+function buildTerminals(sp, sheetNo) {
+  let s = drawFrame(sp, 'COLLECTION TERMINALS', sheetNo, 'END');
+  s += drawTerminalStrip(65, 85, 'XR1', ['MCB1-1','MCB1-3','MCB1-5','N-BAR','PE-BAR'], ['PWR L1','PWR L2','PWR L3','NEUTRAL','GROUND (PE)'], 13);
+
+  const xr2Top=[], xr2Bot=[];
+  for(let f=1;f<=sp.n;f++){ xr2Top.push(`KMR${f}-2`,`KMR${f}-4`,`KMR${f}-6`,'PE-BAR'); xr2Bot.push(`F${f}-U`,`F${f}-V`,`F${f}-W`,`F${f}-PE`); }
+  let xr3Y0 = 265;
+  if (xr2Top.length <= 32) {
+    s += drawTerminalStrip(195, 75, 'XR2', xr2Top, xr2Bot, Math.min(12.0, 380.0 / xr2Top.length));
+  } else {
+    const mid2 = 4 * Math.ceil(sp.n / 2);
+    s += drawTerminalStrip(195, 68, 'XR2A', xr2Top.slice(0,mid2), xr2Bot.slice(0,mid2), Math.min(12.0, 380.0 / mid2));
+    s += drawTerminalStrip(195, 166, 'XR2B', xr2Top.slice(mid2), xr2Bot.slice(mid2), Math.min(12.0, 380.0 / (xr2Top.length - mid2)));
+    xr3Y0 = 264;
+  }
+
+  if (sp.nEc > 0) {
+    const xr3Top=[], xr3Bot=[];
+    for(let i=1;i<=sp.nEc;i++){ xr3Top.push(`ISO-O${i}+`,`ISO-O${i}-`); xr3Bot.push(`EC${i}(+)`,`EC${i}(-)`); }
+    xr3Top.push('CTRL1+','CTRL1-'); xr3Bot.push('EXT-0-10+','EXT-0-10-');
+    if (xr3Top.length <= 30) {
+      s += drawTerminalStrip(195, xr3Y0, 'XR3', xr3Top, xr3Bot, Math.min(12.0, 380.0 / xr3Top.length));
+    } else {
+      const mid3 = Math.floor(xr3Top.length / 2);
+      s += drawTerminalStrip(195, 260, 'XR3A', xr3Top.slice(0,mid3), xr3Bot.slice(0,mid3), Math.min(11.5, 380.0 / mid3));
+      s += drawTerminalStrip(195, 352, 'XR3B', xr3Top.slice(mid3), xr3Bot.slice(mid3), Math.min(11.5, 380.0 / (xr3Top.length - mid3)));
+    }
+  }
+
+  const xr4Top=[], xr4Bot=[];
+  for(let i=1;i<=sp.n;i++){ xr4Top.push(`SAR${i}-AUT`); xr4Bot.push(`KC${i}`); }
+  xr4Top.push('XR1-N','MCB1-L1','QFR-COM','QFR-NC'); xr4Bot.push('N-EXT','L1-EXT','OVL-01','OVL-02');
+  s += drawTerminalStrip(195, 444, 'XR4', xr4Top, xr4Bot, Math.min(12.0, 380.0 / xr4Top.length));
+
+  s += R(52,230,93,115,C.GRN,'#f2fcf5',0.8)+Txt(58,246,'BUSBARS (R07)',6.8,C.GRN,true)+Txt(58,264,'PE-BAR: Copper',6,C.GRN,true)+Txt(58,276,'Earth Ground Bar',5.6);
+  s += Txt(58,294,'N-BAR: Copper',6,C.BLU,true)+Txt(58,306,'Neutral Busbar',5.6)+Txt(58,326,'All F1..Fn VCT 4C',5.5,C.GRY)+Txt(58,336,'include PE wire!',5.5,C.GRN,true);
+
+  s += R(610,48,192,432,C.BLK,C.BG,0.8)+Txt(620,66,'LEGEND & PRODUCT SPECS',8,C.BLU,true);
+  [`MCB = ${sp.bm.mcb} / ${sp.bm.mccb}`,`QFR_EC = ${sp.bm.mpcb_ec} (2.5-4.0A)`,`QFR_AC = ${sp.bm.mpcb_ac} (4.0-6.3A)`,`KMR = ${sp.contMod}`,
+   `PPR = ${sp.pprMod}`,`SPS = ${sp.bm.sps}`,'ISO = 4-Ch 0-10V Isolator','RY  = Control Relay 24V/220V','SAR = Selector MAN-0-AUT',
+   'SS1 = Master Selector','SIG = 0-10V Speed Volume','HLR = Pilot Light Dia 22mm','VF  = Ventilation Fan','TS  = Thermostat (35C)',
+   'XR1 = Main Power + PE (5P)','XR2 = Motor Power + PE (4P/Fan)','XR3 = 0-10VDC Terminal','XR4 = Ext Control & Fault',
+   `CAB = ${sp.cabSz} mm (IP55)`,'CALC = See Sheet R08'].forEach((li,idx)=> s += Txt(620, 86+idx*18, li, 6.4));
+  return s;
+}
+
+// --- MAIN ORCHESTRATION ---
+function renderAll() {
+  const sp = computeSpec();
+  const sheets = [
+    buildCover(sp), buildContents(sp), buildSymbols(sp), buildAcronyms(sp),
+    buildCubicleSpec(sp), buildBom(sp), buildLayout(sp), buildLoadCalc(sp), buildSld(sp)
+  ];
+  let idx = 10;
+  for (let g=0; g<sp.grpCnt; g++) sheets.push(buildPowerSheet(sp, g, idx++));
+  sheets.push(buildProtection(sp, idx++));
+  if (sp.hasIso) sheets.push(build24vIso(sp, idx++));
+  for (let g=0; g<sp.grpCnt; g++) sheets.push(buildLadderSheet(sp, g, idx++));
+  sheets.push(buildTerminals(sp, idx));
+
+  if (state.activeSheet >= sheets.length) state.activeSheet = sheets.length - 1;
+
+  // Render Top Metrics
+  document.getElementById('topMetrics').innerHTML = `
+    <div class="metric-pill">รวม: <b>${sp.n} ตัว</b> (${sp.nEc} EC + ${sp.nAc} AC)</div>
+    <div class="metric-pill">โหลด: <b>${sp.totalKw} kW</b> / <b>${sp.totalAmp} A</b> (125%: ${sp.iDesign}A)</div>
+    <div class="metric-pill">เมน: <b>${sp.mainBrk}AT</b> | ตู้: <b>${sp.cabSz}</b></div>
+    <div class="metric-pill">ลมรวม: <b>${sp.totalCfm.toLocaleString()} CFM</b></div>
+  `;
+
+  // Render Sheet Tabs
+  document.getElementById('sheetTabs').innerHTML = sp.sheetList.map(([sno, des], i) =>
+    `<button class="sheet-tab ${i===state.activeSheet?'active':''}" onclick="goSheet(${i})" title="${des}">${sno}</button>`
+  ).join('');
+
+  // Render SVG Sheets into DOM
+  const scroll = document.getElementById('canvasScroll');
+  scroll.innerHTML = sheets.map((svgInner, i) => `
+    <div class="pdf-sheet ${(!state.showAll && i!==state.activeSheet)?'hidden-preview':''}" data-idx="${i}">
+      <svg viewBox="0 0 842 595" xmlns="http://www.w3.org/2000/svg">${svgInner}</svg>
+    </div>
+  `).join('');
+
+  document.getElementById('lblSheetPos').textContent = `R${String(state.activeSheet+1).padStart(2,'0')} / R${String(sheets.length).padStart(2,'0')}`;
+  applyZoom();
+}
+
+function applyZoom() {
+  const val = document.getElementById('selZoom').value;
+  const scroll = document.getElementById('canvasScroll');
+  let wPx = 842 * 1.25;
+  if (val === 'fit') wPx = Math.max(400, scroll.clientWidth - 48);
+  else wPx = 842 * parseFloat(val);
+  document.querySelectorAll('.pdf-sheet').forEach(el => {
+    el.style.width = wPx + 'px';
+    el.style.height = (wPx * 595 / 842) + 'px';
+  });
+}
+
+function goSheet(i) { state.activeSheet = i; state.showAll = false; renderAll(); }
+function stepSheet(d) { state.activeSheet = Math.max(0, Math.min(computeSpec().totalSheets - 1, state.activeSheet + d)); state.showAll = false; renderAll(); }
+function toggleAllView() { state.showAll = !state.showAll; document.getElementById('btnAllView').textContent = state.showAll ? 'ดูทีละหน้า' : 'ดูทุกหน้า'; renderAll(); }
+
+function setMode(m) {
+  state.mode = m;
+  ['mode_all_ec','mode_all_ac','mode_hybrid','mode_manual'].forEach(id => document.getElementById(id).classList.remove('active'));
+  const total = (parseInt(document.getElementById('inEcCount').value)||0) + (parseInt(document.getElementById('inAcCount').value)||0) || 8;
+  if (m === 'All-EC') { document.getElementById('mode_all_ec').classList.add('active'); document.getElementById('inEcCount').value = total; document.getElementById('inAcCount').value = 0; }
+  else if (m === 'All-AC') { document.getElementById('mode_all_ac').classList.add('active'); document.getElementById('inEcCount').value = 0; document.getElementById('inAcCount').value = total; }
+  else if (m === 'Hybrid_30EC') { document.getElementById('mode_hybrid').classList.add('active'); const ec = Math.max(1, Math.round(total*0.3)); document.getElementById('inEcCount').value = ec; document.getElementById('inAcCount').value = Math.max(1, total - ec); }
+  else { document.getElementById('mode_manual').classList.add('active'); document.getElementById('inEcCount').focus(); }
+  renderAll();
+}
+
+function applyHybrid30() { setMode('Hybrid_30EC'); }
+
+function setPresetTotal(tot) {
+  if (state.mode === 'All-EC') { document.getElementById('inEcCount').value = tot; document.getElementById('inAcCount').value = 0; }
+  else if (state.mode === 'All-AC') { document.getElementById('inEcCount').value = 0; document.getElementById('inAcCount').value = tot; }
+  else { const ec = Math.max(1, Math.round(tot*0.3)); document.getElementById('inEcCount').value = ec; document.getElementById('inAcCount').value = tot - ec; }
+  document.querySelectorAll('#fanPresets .chip').forEach(c => c.classList.toggle('active', parseInt(c.dataset.n)===tot));
+  renderAll();
+}
+
+function onManualFanChange() {
+  const ec = parseInt(document.getElementById('inEcCount').value)||0;
+  const ac = parseInt(document.getElementById('inAcCount').value)||0;
+  const tot = ec + ac;
+  ['mode_all_ec','mode_all_ac','mode_hybrid','mode_manual'].forEach(id => document.getElementById(id).classList.remove('active'));
+  document.getElementById('mode_manual').classList.add('active');
+  document.querySelectorAll('#fanPresets .chip').forEach(c => c.classList.toggle('active', parseInt(c.dataset.n)===tot));
+  renderAll();
+}
+
+function setSource(bk) {
+  state.bkey = bk;
+  ['master','th','vn','cn'].forEach(k => document.getElementById(`src_${k}`).classList.toggle('active', k===bk));
+  renderAll();
+}
+
+function onModelSelect(which) {
+  if (which === 'EC') document.getElementById('customEcFields').style.display = document.getElementById('selEcModel').value==='custom_ec'?'grid':'none';
+  else document.getElementById('customAcFields').style.display = document.getElementById('selAcModel').value==='custom_ac'?'grid':'none';
+  renderAll();
+}
+
+function printFullReport() {
+  const sp = computeSpec();
+  const prevTitle = document.title;
+  document.title = `${sp.codeNo}_${sp.mode}_${sp.n}Fans`;
+  window.print();
+  setTimeout(() => document.title = prevTitle, 500);
+}
+
+function savePreset() {
+  localStorage.setItem('ksp_offline_studio_v1', JSON.stringify({
+    ec: document.getElementById('inEcCount').value, ac: document.getElementById('inAcCount').value,
+    bkey: state.bkey, cab: document.getElementById('selCab').value,
+    ctrlV: document.getElementById('selCtrlV').value, ppr: document.getElementById('selPpr').value,
+    ecMod: document.getElementById('selEcModel').value, acMod: document.getElementById('selAcModel').value,
+    customer: document.getElementById('inCustomer').value, code: document.getElementById('inCode').value,
+    draftman: document.getElementById('inDraftman').value, approved: document.getElementById('inApproved').value
+  }));
+  alert('บันทึกค่า Preset แบบ Offline เรียบร้อยแล้ว');
+}
+
+function resetPreset() {
+  localStorage.removeItem('ksp_offline_studio_v1');
+  location.reload();
+}
+
+function loadSavedPreset() {
+  try {
+    if (location.hash && location.hash.length > 2) {
+      const p = new URLSearchParams(location.hash.slice(1));
+      if (p.has('ec')) document.getElementById('inEcCount').value = p.get('ec');
+      if (p.has('ac')) document.getElementById('inAcCount').value = p.get('ac');
+      if (p.get('ecMod')) document.getElementById('selEcModel').value = p.get('ecMod');
+      if (p.get('acMod')) document.getElementById('selAcModel').value = p.get('acMod');
+      if (p.get('bkey') && BRAND_MODELS[p.get('bkey')]) setSource(p.get('bkey'));
+      onManualFanChange();
+      return;
+    }
+    const raw = localStorage.getItem('ksp_offline_studio_v1');
+    if (!raw) return;
+    const d = JSON.parse(raw);
+    if (d.ec !== undefined) document.getElementById('inEcCount').value = d.ec;
+    if (d.ac !== undefined) document.getElementById('inAcCount').value = d.ac;
+    if (d.cab) document.getElementById('selCab').value = d.cab;
+    if (d.ctrlV) document.getElementById('selCtrlV').value = d.ctrlV;
+    if (d.ppr) document.getElementById('selPpr').value = d.ppr;
+    if (d.ecMod) document.getElementById('selEcModel').value = d.ecMod;
+    if (d.acMod) document.getElementById('selAcModel').value = d.acMod;
+    if (d.customer !== undefined) document.getElementById('inCustomer').value = d.customer;
+    if (d.code !== undefined) document.getElementById('inCode').value = d.code;
+    if (d.draftman !== undefined) document.getElementById('inDraftman').value = d.draftman;
+    if (d.approved !== undefined) document.getElementById('inApproved').value = d.approved;
+    if (d.bkey && BRAND_MODELS[d.bkey]) setSource(d.bkey);
+    onManualFanChange();
+  } catch (e) {}
+}
+
+function exportJsonConfig() {
+  const sp = computeSpec();
+  const blob = new Blob([JSON.stringify(sp, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${sp.codeNo}.json`; a.click();
+}
+
+function exportCsvBom() {
+  const sp = computeSpec();
+  const lines = [
+    ['Project', sp.codeNo, sp.mode, `${sp.n} Fans (${sp.nEc}EC+${sp.nAc}AC)`],
+    ['Source', sp.bm.label],
+    ['Tag','Description','Qty','Model/Spec'],
+    ['MCB1', 'Main Circuit Breaker', 1, sp.mainMod],
+    ['MCB2..', 'Branch 3P Breaker', sp.grpCnt, `${sp.bm.mcb} 3P ${sp.nAc>0?'25AT':'20AT'}`],
+    ['MCB4', 'Control 2P Breaker', 1, `${sp.bm.mcb} 2P 6AT`],
+    ['QFR_EC', 'EC MPCB + Link', sp.nEc, `${sp.bm.mpcb_ec} + ${sp.bm.link}`],
+    ['QFR_AC', 'AC MPCB + Link', sp.nAc, `${sp.bm.mpcb_ac} + ${sp.bm.link}`],
+    ['KMR', 'Contactor + Aux', sp.n, sp.contMod],
+    ['PPR1', 'Phase Relay', 1, sp.pprMod],
+    ['SPS1', '24VDC 5A Supply', sp.nEc>0?1:0, sp.bm.sps],
+    ['ISO', '0-10V 4-Ch Isolator', sp.isoCnt, '4-Ch Isolated'],
+    ['XR1-4', 'Terminals (L1,L2,L3,N,PE / U,V,W,PE)', 1, `XR1(5P)+XR2(${sp.n*4}P)`],
+    ['CABINET', 'IP55 Steel Enclosure', 1, `${sp.cabSz} mm`]
+  ].map(r => r.map(x => `"${String(x).replace(/"/g,'""')}"`).join(',')).join('\r\n');
+  const blob = new Blob(['\uFEFF'+lines], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${sp.codeNo}_BOM.csv`; a.click();
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('uiLogo').src = KSP_LOGO_B64;
+  document.getElementById('fanPresets').innerHTML = [4,6,8,10,12,14,16,18,20,24,28,32].map(n =>
+    `<button class="chip ${n===8?'active':''}" data-n="${n}" onclick="setPresetTotal(${n})">${n} ตัว</button>`
+  ).join('');
+  ['inCustomer','inCode','inDate','inDraftman','inApproved'].forEach(id => document.getElementById(id).addEventListener('input', renderAll));
+  loadSavedPreset();
+  renderAll();
+});
+window.addEventListener('resize', () => { if(document.getElementById('selZoom').value==='fit') applyZoom(); });
+</script>
+</body>
+</html>
