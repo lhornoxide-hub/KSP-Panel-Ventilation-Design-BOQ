@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>KSP Offline Panel Report & IEC 60617 Schematic Studio</title>
+<title>KSP Panel Report & IEC 60617 Schematic Studio</title>
 <style>
   :root {
     --bg: #0b1120;
@@ -21,7 +21,7 @@
   html, body {
     margin: 0; padding: 0;
     background: var(--bg); color: var(--text);
-    font-family: "Sarabun", "Noto Sans Thai", "Tahoma", "Leelawadee UI", "Segoe UI", sans-serif;
+    font-family: "Sarabun", "Tahoma", "Leelawadee UI", "Segoe UI", "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
     height: 100%; overflow: hidden;
   }
   .app-shell { display: flex; height: 100vh; width: 100vw; }
@@ -159,36 +159,42 @@
     <div class="sb-head">
       <img id="uiLogo" alt="KSP Logo">
       <div>
-        <div class="sb-title">KSP Panel Report Studio (Offline)</div>
-        <div class="sb-sub">IEC 60617 Multi-Sheet Schematic &amp; PDF Generator</div>
+        <div class="sb-title">KSP Panel Report Studio</div>
+        <div class="sb-sub" data-i18n="ui_sub">IEC 60617 Multi-Sheet Schematic &amp; PDF Generator</div>
       </div>
+    </div>
+    <div style="padding:6px 14px;background:#0b1222;border-bottom:1px solid var(--border);display:grid;grid-template-columns:repeat(4,1fr);gap:4px;">
+      <button class="seg-btn active" id="lang_th" onclick="setLang('th')" style="display:inline-flex;align-items:center;justify-content:center;gap:5px;"><svg width="18" height="12" viewBox="0 0 18 12" style="border-radius:2px;flex-shrink:0"><rect width="18" height="12" fill="#A51931"/><rect y="2" width="18" height="8" fill="#F4F5F8"/><rect y="4" width="18" height="4" fill="#2D2A4A"/></svg><span>ไทย</span></button>
+      <button class="seg-btn" id="lang_en" onclick="setLang('en')" style="display:inline-flex;align-items:center;justify-content:center;gap:5px;"><svg width="18" height="12" viewBox="0 0 18 12" style="border-radius:2px;flex-shrink:0"><rect width="18" height="12" fill="#012169"/><path d="M0,0 L18,12 M18,0 L0,12" stroke="#FFF" stroke-width="2.2"/><path d="M0,0 L18,12 M18,0 L0,12" stroke="#C8102E" stroke-width="1.1"/><path d="M9,0 V12 M0,6 H18" stroke="#FFF" stroke-width="3.6"/><path d="M9,0 V12 M0,6 H18" stroke="#C8102E" stroke-width="2"/></svg><span>EN</span></button>
+      <button class="seg-btn" id="lang_vi" onclick="setLang('vi')" style="display:inline-flex;align-items:center;justify-content:center;gap:4px;"><svg width="18" height="12" viewBox="0 0 18 12" style="border-radius:2px;flex-shrink:0"><rect width="18" height="12" fill="#DA251D"/><polygon points="9,2.2 10.1,5.4 13.4,5.4 10.7,7.3 11.7,10.5 9,8.6 6.3,10.5 7.3,7.3 4.6,5.4 7.9,5.4" fill="#FFCD00"/></svg><span>Tiếng Việt</span></button>
+      <button class="seg-btn" id="lang_zh" onclick="setLang('zh')" style="display:inline-flex;align-items:center;justify-content:center;gap:4px;"><svg width="18" height="12" viewBox="0 0 18 12" style="border-radius:2px;flex-shrink:0"><rect width="18" height="12" fill="#DE2910"/><polygon points="3.6,1.8 4.2,3.6 6.0,3.6 4.5,4.7 5.1,6.4 3.6,5.3 2.1,6.4 2.7,4.7 1.2,3.6 3.0,3.6" fill="#FFDE00"/><circle cx="7.4" cy="1.8" r="0.55" fill="#FFDE00"/><circle cx="8.4" cy="3.1" r="0.55" fill="#FFDE00"/><circle cx="8.4" cy="4.8" r="0.55" fill="#FFDE00"/><circle cx="7.4" cy="6.1" r="0.55" fill="#FFDE00"/></svg><span>简体中文</span></button>
     </div>
 
     <div class="sb-body">
       <!-- Project Metadata -->
       <div class="card">
-        <div class="card-title">1. ข้อมูลโครงการ &amp; เอกสาร</div>
+        <div class="card-title" data-i18n="ui_c1">1. ข้อมูลโครงการ &amp; เอกสาร</div>
         <div style="margin-bottom:6px">
-          <label>ชื่อลูกค้า / ฟาร์ม (Customer)</label>
+          <label data-i18n="ui_cust">ชื่อลูกค้า / ฟาร์ม (Customer)</label>
           <input type="text" id="inCustomer" value="............................................................">
         </div>
         <div class="grid-2" style="margin-bottom:6px">
           <div>
-            <label>รหัสแบบ (Code No.)</label>
+            <label data-i18n="ui_code">รหัสแบบ (Code No.)</label>
             <input type="text" id="inCode" placeholder="Auto">
           </div>
           <div>
-            <label>Revise / Date</label>
+            <label data-i18n="ui_date">Revise / Date</label>
             <input type="text" id="inDate" value="2026-11">
           </div>
         </div>
         <div class="grid-2">
           <div>
-            <label>Draftman / ผู้เขียนแบบ</label>
+            <label data-i18n="ui_draft">Draftman / ผู้เขียนแบบ</label>
             <input type="text" id="inDraftman" value="KSP ENG">
           </div>
           <div>
-            <label>Approved / ผู้อนุมัติ</label>
+            <label data-i18n="ui_appr">Approved / ผู้อนุมัติ</label>
             <input type="text" id="inApproved" value="">
           </div>
         </div>
@@ -197,36 +203,36 @@
       <!-- Mode & Fans -->
       <div class="card">
         <div class="card-title">
-          <span>2. โหมดระบบ &amp; จำนวนพัดลม</span>
-          <button class="chip" onclick="applyHybrid30()" title="ตั้งค่า EC ประมาณ 30% ของจำนวนรวม">Auto 30% EC</button>
+          <span data-i18n="ui_c2">2. โหมดระบบ &amp; จำนวนพัดลม</span>
+          <button class="chip" onclick="applyHybrid30()" data-i18n="ui_auto30">Auto 30% EC</button>
         </div>
         <div class="seg-group">
           <button class="seg-btn active" id="mode_all_ec" onclick="setMode('All-EC')">All-EC</button>
           <button class="seg-btn" id="mode_all_ac" onclick="setMode('All-AC')">All-AC</button>
           <button class="seg-btn" id="mode_hybrid" onclick="setMode('Hybrid_30EC')">Hybrid 30%</button>
-          <button class="seg-btn" id="mode_manual" onclick="setMode('Manual')">Manual</button>
+          <button class="seg-btn" id="mode_manual" onclick="setMode('Manual')" data-i18n="ui_manual">Manual</button>
         </div>
-        <label>เลือกจำนวนพัดลมรวมด่วน (1 โรงเรือน)</label>
+        <label data-i18n="ui_quick_fans">เลือกจำนวนพัดลมรวมด่วน (1 โรงเรือน)</label>
         <div class="chip-row" id="fanPresets"></div>
 
         <div class="grid-2" style="margin-top:8px">
           <div>
-            <label>จำนวนพัดลม EC (กรอกเอง 0–32)</label>
+            <label data-i18n="ui_ec_cnt">จำนวนพัดลม EC (0–32)</label>
             <input type="number" id="inEcCount" min="0" max="32" value="8" oninput="onManualFanChange()" onchange="onManualFanChange()">
           </div>
           <div>
-            <label>จำนวนพัดลม AC (กรอกเอง 0–32)</label>
+            <label data-i18n="ui_ac_cnt">จำนวนพัดลม AC (0–32)</label>
             <input type="number" id="inAcCount" min="0" max="32" value="0" oninput="onManualFanChange()" onchange="onManualFanChange()">
           </div>
         </div>
 
         <div id="ecModelBox" style="margin-top:8px">
-          <label>รุ่นพัดลม EC (BESS Lab / Custom)</label>
+          <label data-i18n="ui_ec_mod">รุ่นพัดลม EC (BESS Lab / Custom)</label>
           <select id="selEcModel" onchange="onModelSelect('EC')">
             <option value="24611">#24611 Agrifan ZP-50 EC (1.5kW | 3.07A | 30,500 CFM)</option>
             <option value="26238">#26238 Agrifan ZMD50 EC (1.5kW | 3.23A | 27,400 CFM)</option>
             <option value="20285">#20285 Agrifan 56" Var (1.5kW | 2.46A | 26,800 CFM)</option>
-            <option value="custom_ec">Custom EC Motor (กำหนด kW / A / CFM เอง)</option>
+            <option value="custom_ec" data-i18n="ui_cust_ec">Custom EC Motor (กำหนด kW / A / CFM)</option>
           </select>
           <div id="customEcFields" class="grid-3" style="margin-top:6px;display:none">
             <div><label>kW</label><input type="number" step="0.1" id="custEcKw" value="1.5" onchange="renderAll()"></div>
@@ -236,11 +242,11 @@
         </div>
 
         <div id="acModelBox" style="margin-top:8px">
-          <label>รุ่นพัดลม AC (BESS Lab / Custom)</label>
+          <label data-i18n="ui_ac_mod">รุ่นพัดลม AC (BESS Lab / Custom)</label>
           <select id="selAcModel" onchange="onModelSelect('AC')">
             <option value="24579">#24579 Agrifan ZP50 AC (1.8kW | 4.90A | 30,100 CFM)</option>
             <option value="26237">#26237 Agrifan ZMD50 AC (1.5kW | 4.60A | 26,700 CFM)</option>
-            <option value="custom_ac">Custom AC Motor (กำหนด kW / A / CFM เอง)</option>
+            <option value="custom_ac" data-i18n="ui_cust_ac">Custom AC Motor (กำหนด kW / A / CFM)</option>
           </select>
           <div id="customAcFields" class="grid-3" style="margin-top:6px;display:none">
             <div><label>kW</label><input type="number" step="0.1" id="custAcKw" value="1.8" onchange="renderAll()"></div>
@@ -252,35 +258,35 @@
 
       <!-- 4 Sources -->
       <div class="card">
-        <div class="card-title">3. แหล่งผลิตและยี่ห้ออุปกรณ์ (4 รูปแบบ)</div>
+        <div class="card-title" data-i18n="ui_c3">3. แหล่งผลิตและยี่ห้ออุปกรณ์ (4 รูปแบบ)</div>
         <div class="brand-grid">
-          <button class="brand-btn active" id="src_master" onclick="setSource('master')"><b>🇹🇭 ไทย: Schneider</b>iK60N / CVS / GV2-ME / LC1D</button>
-          <button class="brand-btn" id="src_th" onclick="setSource('th')"><b>🇹🇭 ไทย: Mitsubishi</b>BH-D6 / NF-CV / MMP-T32 / S-T10</button>
-          <button class="brand-btn" id="src_vn" onclick="setSource('vn')"><b>🇻🇳 เวียดนาม: LS</b>LA63N / ABE / MMS-32S / GMC-9M</button>
-          <button class="brand-btn" id="src_cn" onclick="setSource('cn')"><b>🇨🇳 จีน: Chint</b>NXB-63 / NM1 / NS2-25 / NC1</button>
+          <button class="brand-btn active" id="src_master" onclick="setSource('master')"><b data-i18n="ui_src_master">🇹🇭 ไทย: Schneider</b>iK60N / CVS / GV2-ME / LC1D</button>
+          <button class="brand-btn" id="src_th" onclick="setSource('th')"><b data-i18n="ui_src_th">🇹🇭 ไทย: Mitsubishi</b>BH-D6 / NF-CV / MMP-T32 / S-T10</button>
+          <button class="brand-btn" id="src_vn" onclick="setSource('vn')"><b data-i18n="ui_src_vn">🇻🇳 เวียดนาม: LS</b>LA63N / ABE / MMS-32S / GMC-9M</button>
+          <button class="brand-btn" id="src_cn" onclick="setSource('cn')"><b data-i18n="ui_src_cn">🇨🇳 จีน: Chint</b>NXB-63 / NM1 / NS2-25 / NC1</button>
         </div>
       </div>
 
       <!-- Cabinet & Controls -->
       <div class="card">
-        <div class="card-title">4. ตู้ควบคุม &amp; ระบบป้องกัน</div>
+        <div class="card-title" data-i18n="ui_c4">4. ตู้ควบคุม &amp; ระบบป้องกัน</div>
         <div class="grid-2" style="margin-bottom:6px">
           <div>
-            <label>ขนาดตู้ (mm IP55)</label>
+            <label data-i18n="ui_cab">ขนาดตู้ (mm IP55)</label>
             <select id="selCab" onchange="renderAll()">
-              <option value="auto">อัตโนมัติ (แนะนำตามจำนวน)</option>
-              <option value="570x690x250">570×690×250 (ไม่เกิน 4 ตัว)</option>
-              <option value="800x1200x250">800×1200×250 (ไม่เกิน 10 ตัว)</option>
-              <option value="800x1500x400">800×1500×400 (ไม่เกิน 16 ตัว)</option>
-              <option value="1000x1800x450">1000×1800×450 (ไม่เกิน 20 ตัว)</option>
-              <option value="1200x1800x450">1200×1800×450 (21–28 ตัว / 2 ประตู)</option>
-              <option value="1200x2000x500">1200×2000×500 (29–32 ตัว / 2 ประตู)</option>
+              <option value="auto" data-i18n="ui_cab_auto">อัตโนมัติ (แนะนำตามจำนวน)</option>
+              <option value="570x690x250">570×690×250 (≤4)</option>
+              <option value="800x1200x250">800×1200×250 (≤10)</option>
+              <option value="800x1500x400">800×1500×400 (≤16)</option>
+              <option value="1000x1800x450">1000×1800×450 (≤20)</option>
+              <option value="1200x1800x450">1200×1800×450 (21–28 / 2-Door)</option>
+              <option value="1200x2000x500">1200×2000×500 (29–32 / 2-Door)</option>
             </select>
           </div>
           <div>
-            <label>แรงดันคอยล์ควบคุม</label>
+            <label data-i18n="ui_ctrlv">แรงดันคอยล์ควบคุม</label>
             <select id="selCtrlV" onchange="renderAll()">
-              <option value="auto">อัตโนมัติ (EC=24VDC / AC=220V)</option>
+              <option value="auto" data-i18n="ui_ctrl_auto">อัตโนมัติ (EC=24VDC / AC=220V)</option>
               <option value="24VDC">24VDC Wide-Range</option>
               <option value="220VAC">220VAC Standard</option>
             </select>
@@ -294,17 +300,17 @@
           </select>
         </div>
         <div style="margin-bottom:6px">
-          <label>Option 1: Digital Power Meter (PM1 + CT 3x)</label>
+          <label data-i18n="ui_opt1">Option 1: Digital Power Meter (PM1 + CT 3x)</label>
           <div class="seg-group" style="margin-bottom:4px">
-            <button class="seg-btn active" id="pm_off" onclick="setPmOpt(false)">ไม่ติด Power Meter</button>
-            <button class="seg-btn" id="pm_on" onclick="setPmOpt(true)">ติด Power Meter (PM1)</button>
+            <button class="seg-btn active" id="pm_off" onclick="setPmOpt(false)" data-i18n="ui_pm_off">ไม่ติด Power Meter</button>
+            <button class="seg-btn" id="pm_on" onclick="setPmOpt(true)" data-i18n="ui_pm_on">ติด Power Meter (PM1)</button>
           </div>
         </div>
         <div id="rs485Box" style="margin-bottom:6px;display:none">
-          <label>Option 2: วงจรเชื่อมต่อ RS485 (A+ / B- / SHLD)</label>
+          <label data-i18n="ui_opt2">Option 2: วงจรเชื่อมต่อ RS485 (A+ / B- / SHLD)</label>
           <div class="seg-group" style="margin-bottom:4px">
-            <button class="seg-btn active" id="rs_off" onclick="setRs485Opt(false)">ไม่ใช้ RS485 (เฉพาะที่ตู้)</button>
-            <button class="seg-btn" id="rs_on" onclick="setRs485Opt(true)">ใช้ RS485 (เชื่อม Smart Pig)</button>
+            <button class="seg-btn active" id="rs_off" onclick="setRs485Opt(false)" data-i18n="ui_rs_off">ไม่ใช้ RS485 (เฉพาะที่ตู้)</button>
+            <button class="seg-btn" id="rs_on" onclick="setRs485Opt(true)" data-i18n="ui_rs_on">ใช้ RS485 (เชื่อม Smart Pig)</button>
           </div>
           <div id="rs485Note" style="font-size:10.5px;color:#93c5fd;line-height:1.35;margin-top:2px;"></div>
         </div>
@@ -314,14 +320,14 @@
     </div>
 
     <div class="sb-foot">
-      <button class="btn btn-primary" onclick="printFullReport()">🖨️ พิมพ์ / Save Report PDF (A4 แนวนอน ครบทุกหน้า)</button>
+      <button class="btn btn-primary" onclick="printFullReport()" data-i18n="ui_print">🖨️ พิมพ์ / Save Report PDF (A4 แนวนอน ครบทุกหน้า)</button>
       <div class="grid-3">
-        <button class="btn btn-sec" onclick="savePreset()">💾 Save</button>
+        <button class="btn btn-sec" onclick="savePreset()" data-i18n="ui_save">💾 Save</button>
         <button class="btn btn-sec" onclick="exportJsonConfig()">📄 JSON</button>
         <button class="btn btn-sec" onclick="exportCsvBom()">📊 BOM CSV</button>
       </div>
       <div style="text-align:center;margin-top:2px;">
-        <button class="chip" onclick="resetPreset()" style="font-size:10px;border:none;background:transparent;color:var(--muted);">↺ รีเซ็ตค่าเริ่มต้น (8 EC All-EC)</button>
+        <button class="chip" onclick="resetPreset()" style="font-size:10px;border:none;background:transparent;color:var(--muted);" data-i18n="ui_reset">↺ รีเซ็ตค่าเริ่มต้น (8 EC All-EC)</button>
       </div>
     </div>
   </aside>
@@ -331,16 +337,16 @@
     <div class="toolbar no-print">
       <div class="metrics" id="topMetrics"></div>
       <div style="display:flex; gap:6px; align-items:center;">
-        <button class="btn btn-sec" onclick="stepSheet(-1)">◀ ก่อนหน้า</button>
+        <button class="btn btn-sec" onclick="stepSheet(-1)" data-i18n="ui_prev">◀ ก่อนหน้า</button>
         <span id="lblSheetPos" style="font-size:12px; font-weight:700; min-width:75px; text-align:center;">R01 / R16</span>
-        <button class="btn btn-sec" onclick="stepSheet(1)">ถัดไป ▶</button>
+        <button class="btn btn-sec" onclick="stepSheet(1)" data-i18n="ui_next">ถัดไป ▶</button>
         <select id="selZoom" style="width:95px" onchange="applyZoom()">
           <option value="fit">Fit Page</option>
           <option value="1">100%</option>
           <option value="1.25" selected>125%</option>
           <option value="1.5">150%</option>
         </select>
-        <button class="btn btn-sec" id="btnAllView" onclick="toggleAllView()">ดูทุกหน้า</button>
+        <button class="btn btn-sec" id="btnAllView" onclick="toggleAllView()" data-i18n="ui_viewall">ดูทุกหน้า</button>
       </div>
     </div>
     <div class="nav-bar no-print" id="sheetTabs"></div>
@@ -371,6 +377,7 @@ const BRAND_MODELS = {
 const CAB_MAX = { '570x690x250':4, '800x1200x250':10, '800x1500x400':16, '1000x1800x450':20, '1200x1800x450':28, '1200x2000x500':32 };
 
 let state = {
+  lang: 'th',
   mode: 'All-EC',
   bkey: 'master',
   nEc: 8,
@@ -380,6 +387,210 @@ let state = {
   activeSheet: 0,
   showAll: false
 };
+
+const I18N = {
+  th: {
+    ui_sub:'โปรแกรมสร้างแบบวงจร IEC 60617 & รายงาน PDF',
+    ui_c1:'1. ข้อมูลโครงการ & เอกสาร', ui_cust:'ชื่อลูกค้า / ฟาร์ม (Customer)', ui_code:'รหัสแบบ (Code No.)', ui_date:'Revise / Date',
+    ui_draft:'Draftman / ผู้เขียนแบบ', ui_appr:'Approved / ผู้อนุมัติ',
+    ui_c2:'2. โหมดระบบ & จำนวนพัดลม', ui_auto30:'Auto 30% EC', ui_manual:'กำหนดเอง', ui_quick_fans:'เลือกจำนวนพัดลมรวมด่วน (1 โรงเรือน)',
+    ui_ec_cnt:'จำนวนพัดลม EC (0–32)', ui_ac_cnt:'จำนวนพัดลม AC (0–32)', ui_ec_mod:'รุ่นพัดลม EC (BESS Lab / Custom)', ui_ac_mod:'รุ่นพัดลม AC (BESS Lab / Custom)',
+    ui_cust_ec:'Custom EC Motor (กำหนด kW / A / CFM)', ui_cust_ac:'Custom AC Motor (กำหนด kW / A / CFM)',
+    ui_c3:'3. แหล่งผลิตและยี่ห้ออุปกรณ์ (4 รูปแบบ)',
+    ui_src_master:'🇹🇭 ไทย: Schneider', ui_src_th:'🇹🇭 ไทย: Mitsubishi', ui_src_vn:'🇻🇳 เวียดนาม: LS', ui_src_cn:'🇨🇳 จีน: Chint',
+    ui_c4:'4. ตู้ควบคุม & ระบบป้องกัน', ui_cab:'ขนาดตู้ (mm IP55)', ui_cab_auto:'อัตโนมัติ (แนะนำตามจำนวน)', ui_ctrlv:'แรงดันคอยล์ควบคุม', ui_ctrl_auto:'อัตโนมัติ (EC=24VDC / AC=220V)',
+    ui_opt1:'Option 1: Digital Power Meter (PM1 + CT 3x)', ui_pm_off:'ไม่ติด Power Meter', ui_pm_on:'ติด Power Meter (PM1)',
+    ui_opt2:'Option 2: วงจรเชื่อมต่อ RS485 (A+ / B- / SHLD)', ui_rs_off:'ไม่ใช้ RS485 (เฉพาะที่ตู้)', ui_rs_on:'ใช้ RS485 (เชื่อม Smart Pig)',
+    ui_print:'🖨️ พิมพ์ / Save Report PDF (A4 แนวนอน ครบทุกหน้า)', ui_save:'💾 Save', ui_reset:'↺ รีเซ็ตค่าเริ่มต้น (8 EC All-EC)',
+    ui_prev:'◀ ก่อนหน้า', ui_next:'ถัดไป ▶', ui_viewall:'ดูทุกหน้า', ui_viewone:'ดูทีละหน้า',
+    fan_unit:'ตัว', m_total:'รวม', m_load:'โหลด', m_main:'เมน', m_cab:'ตู้', m_air:'ลมรวม', m_meter:'มิเตอร์',
+    rs_allac:'โหมด All-AC: ติดตั้ง PM1 อ่านค่าเฉพาะหน้าตู้ (ไม่เดิน RS485)',
+    rs_on_note:'เปิด RS485: เพิ่มขั้ว A+/B-/SHLD บน XR3 + Surge เชื่อม Smart Pig',
+    rs_off_note:'ไม่ใช้ RS485: PM1 อ่านค่าเฉพาะหน้าตู้ (ประหยัด Surge & สาย RS485)',
+    bom_none:'📋 <b>BOM:</b> มาตรฐาน (ไม่มี PM1 / ไม่มี RS485)',
+    bom_local:'📋 <b>BOM เพิ่ม:</b> {pm} (1) + CT {ct} (3) — <i>เฉพาะที่ตู้</i>',
+    bom_rs485:'📋 <b>BOM เพิ่ม:</b> {pm} (1) + CT {ct} (3) + RS485 Surge &amp; XR3',
+    warn_cab:'⚠️ ตู้ {cab} mm รองรับได้ ~{max} ตัว แต่เลือก {n} ตัว (แนะนำ {auto})',
+    warn_ec:'⚠️ กระแส EC ({amp}A) เกินช่วง MPCB EC (2.5-4.0A)', warn_ac:'⚠️ กระแส AC ({amp}A) เกินช่วง MPCB AC (4.0-6.3A)',
+    saved_msg:'บันทึกค่า Preset แบบ Offline เรียบร้อยแล้ว',
+    // SVG Sheet Labels
+    sh_cover:'หน้าปกแบบ (COVER PAGE)', sh_contents:'สารบัญแบบ (CONTENTS)', sh_symbols:'รายการสัญลักษณ์ไฟฟ้า (IEC 60617)',
+    sh_acronyms:'รหัสอุปกรณ์ & อักษรย่อมาตรฐาน', sh_cubicle:'สเปกตู้ควบคุม & สายไฟ (IEC 61439)', sh_bom:'รายการอุปกรณ์และจำนวน (BOM)',
+    sh_layout:'แบบโครงสร้างตู้ควบคุม (LAYOUT)', sh_load:'รายการคำนวณโหลด & ตารางสายไฟ', sh_sld:'ไดอะแกรมเส้นเดียว (SLD IEC 60617)',
+    sh_power:'วงจรกำลังไฟฟ้า (FANS {a}-{b})', sh_prot:'วงจรป้องกัน, Phase Relay & Fault Loop', sh_iso:'วงจร 24VDC & 0-10V ISOLATORS (ISO{a}-{b})',
+    sh_ladder:'วงจรควบคุม (FANS {a}-{b})', sh_term:'รางขั้วต่อสาย (XR1-XR4) & คำอธิบาย',
+    cv_cust:'ลูกค้า :', cv_proj:'โครงการ :', cv_appr:'การอนุมัติจากลูกค้า:', cv_stat:'สถานะเอกสาร:', cv_note:'หมายเหตุวิศวกรรม:', cv_rev:'ประวัติการแก้ไข',
+    cv_n1:'- เดินสายตามมาตรฐาน IEC 60617 & IEC 61439-1/2', cv_n2:'- มีระบบกราวด์ PE ที่ XR1 และมอเตอร์ทุกตัว', cv_n3:'- ตารางคำนวณโหลดและขนาดสายอยู่หน้า R08',
+    ct_sheet:'หน้า', ct_desig:'รายการแบบ', ct_rev:'แก้ไข',
+    bom_t:'รายการอุปกรณ์และจำนวน (BOM)', bom_b1:'อุปกรณ์เบรกเกอร์', bom_b2:'อุปกรณ์วัด & ป้องกัน', bom_b3:'อุปกรณ์ควบคุม', bom_b4:'อุปกรณ์บัสบาร์',
+    bom_b5:'พิกัดบัสบาร์ IEC 61439-2 (อุณหภูมิ 40C, สูงสุด 90C, 50Hz)',
+    lay_title:'แบบโครงสร้างตู้ควบคุม ({cab} mm IP55 | สเกลจริง 1:{sc})', lay_front:'ด้านหน้าตู้', lay_in:'ภายในตู้', lay_side:'ด้านข้าง', lay_tb:'ด้านบน & ล่าง', lay_spec:'สเปกตู้',
+    lc_title:'รายการคำนวณโหลดไฟฟ้า, พิกัดกระแส และขนาดสายไฟ', lc_s1:'1. สรุปโหลดและกระแสไฟฟ้า (3PH 380V 50Hz)', lc_s2:'2. พิกัดอุปกรณ์ป้องกัน & บัสบาร์', lc_s3:'3. ตารางขนาดสายไฟภายในตู้และสายสนาม (IEC 60227 / IEC 60364)',
+    lc_tot_kw:'กำลังไฟฟ้ารวมทั้งหมด', lc_flc:'กระแสโหลดเต็มพิกัด (FLC)', lc_des:'กระแสออกแบบ (125% / 80%)', lc_vent:'ปริมาณลมรวม @ 50 Pa',
+    pr_loop:'วงจรป้องกันโอเวอร์โหลด (QFR1..QFR{n} NC 11-12 อนุกรม -> XR4 01/02)', pr_note:'01/02 -> XR4/AL OVERLOAD FAULT | สาย: VSF 1x1.0 sq.mm (ปกติ=NC ปิด | ทริป=NO เปิด)',
+    iso_fn:'ฟังก์ชันการทำงาน (SS1 4-STEP)', iso_f1:'1. พัดลมทำงานเต็มรอบ 100% | 2. ปรับรอบ Manual', iso_f2:'3. รับสัญญาณ 0-10V ภายนอก | 4. หยุดพัดลม',
+    ld_ext:'ชุดควบคุมภายนอก (PLC / Smart Pig Dry Contacts) | VSF 1x1.0 sq.mm', ld_ret:'สายกลับ: VSF 1x1.0 sq.mm ({v})',
+    tm_bus:'บัสบาร์กราวด์/นิวทรัล', tm_pe_note:'สายดิน PE ครบทุกตัว!', tm_leg:'คำอธิบายสัญลักษณ์ & สเปกอุปกรณ์'
+  },
+  en: {
+    ui_sub:'IEC 60617 Multi-Sheet Schematic & PDF Generator',
+    ui_c1:'1. Project & Document Info', ui_cust:'Customer / Farm Name', ui_code:'Drawing Code No.', ui_date:'Revise / Date',
+    ui_draft:'Draftman', ui_appr:'Approved By',
+    ui_c2:'2. System Mode & Fan Count', ui_auto30:'Auto 30% EC', ui_manual:'Manual', ui_quick_fans:'Quick Total Fan Preset (1 House)',
+    ui_ec_cnt:'EC Fan Qty (0–32)', ui_ac_cnt:'AC Fan Qty (0–32)', ui_ec_mod:'EC Fan Model (BESS Lab / Custom)', ui_ac_mod:'AC Fan Model (BESS Lab / Custom)',
+    ui_cust_ec:'Custom EC Motor (Define kW / A / CFM)', ui_cust_ac:'Custom AC Motor (Define kW / A / CFM)',
+    ui_c3:'3. Equipment Source & Brand (4 Formats)',
+    ui_src_master:'🇹🇭 TH: Schneider', ui_src_th:'🇹🇭 TH: Mitsubishi', ui_src_vn:'🇻🇳 VN: LS', ui_src_cn:'🇨🇳 CN: Chint',
+    ui_c4:'4. Enclosure & Protection', ui_cab:'Cabinet Size (mm IP55)', ui_cab_auto:'Auto (Recommended)', ui_ctrlv:'Control Coil Voltage', ui_ctrl_auto:'Auto (EC=24VDC / AC=220V)',
+    ui_opt1:'Option 1: Digital Power Meter (PM1 + CT 3x)', ui_pm_off:'No Power Meter', ui_pm_on:'Include Power Meter (PM1)',
+    ui_opt2:'Option 2: RS485 Port (A+ / B- / SHLD)', ui_rs_off:'No RS485 (Panel Local)', ui_rs_on:'Use RS485 (Smart Pig Link)',
+    ui_print:'🖨️ Print / Save Full PDF Report (A4 Landscape)', ui_save:'💾 Save', ui_reset:'↺ Reset Default (8 EC All-EC)',
+    ui_prev:'◀ Prev', ui_next:'Next ▶', ui_viewall:'View All', ui_viewone:'Single Page',
+    fan_unit:'Fans', m_total:'Total', m_load:'Load', m_main:'Main', m_cab:'Cab', m_air:'Airflow', m_meter:'Meter',
+    rs_allac:'All-AC Mode: PM1 local panel readout only (no RS485)',
+    rs_on_note:'RS485 Enabled: Adds A+/B-/SHLD on XR3 + Surge for Smart Pig',
+    rs_off_note:'No RS485: PM1 local panel readout only (saves Surge & cable)',
+    bom_none:'📋 <b>BOM:</b> Standard (No PM1 / No RS485)',
+    bom_local:'📋 <b>BOM Added:</b> {pm} (1) + CT {ct} (3) — <i>Local Only</i>',
+    bom_rs485:'📋 <b>BOM Added:</b> {pm} (1) + CT {ct} (3) + RS485 Surge &amp; XR3',
+    warn_cab:'⚠️ Cabinet {cab} mm max ~{max} fans, selected {n} (Rec: {auto})',
+    warn_ec:'⚠️ EC Current ({amp}A) exceeds MPCB EC range (2.5-4.0A)', warn_ac:'⚠️ AC Current ({amp}A) exceeds MPCB AC range (4.0-6.3A)',
+    saved_msg:'Offline preset saved to browser storage.',
+    sh_cover:'COVER PAGE (GENERAL ARRANGEMENT)', sh_contents:'CONTENTS (TABLE OF CONTENTS)', sh_symbols:'ELECTRICAL SYMBOLS LIST (IEC 60617)',
+    sh_acronyms:'STANDARD DEVICE NUMBER & ACRONYMS', sh_cubicle:'CUBICAL & WIRING SPECIFICATION (IEC 61439)', sh_bom:'EQUIPMENT LIST & QUANTITY (BOM)',
+    sh_layout:'SWITCHBOARD LAYOUT LOW VOLTAGE', sh_load:'LOAD CALCULATION & CABLE SCHEDULE', sh_sld:'SINGLE-LINE DIAGRAM (IEC 60617)',
+    sh_power:'COLLECTION POWER SUPPLY (FANS {a}-{b})', sh_prot:'PROTECTION, PHASE RELAY & FAULT LOOP', sh_iso:'24VDC & 0-10V ISOLATORS (ISO{a}-{b})',
+    sh_ladder:'CONTROL LADDER (FANS {a}-{b})', sh_term:'COLLECTION TERMINALS (XR1-XR4) & LEGEND',
+    cv_cust:'CUSTOMER :', cv_proj:'PROJECT :', cv_appr:'CLIENT APPROVAL:', cv_stat:'DOCUMENT STATUS:', cv_note:'ENGINEERING NOTE:', cv_rev:'REVISION HISTORY',
+    cv_n1:'- All wiring per IEC 60617 & IEC 61439-1/2.', cv_n2:'- PE Grounding included for XR1 & all motors.', cv_n3:'- Load Calc & Cable Schedule on Sheet R08.',
+    ct_sheet:'SHEET NO', ct_desig:'DESIGNATION', ct_rev:'REV / MOD',
+    bom_t:'EQUIPMENT LIST & QUANTITY (BOM)', bom_b1:'BREAKER EQUIPMENT', bom_b2:'METERING & PROTECTION', bom_b3:'CONTROL EQUIPMENT', bom_b4:'BUSBAR EQUIPMENT',
+    bom_b5:'BUSBAR RATING IEC 61439-2 (AMBIENT 40C, MAX 90C, 50Hz)',
+    lay_title:'SWITCHBOARD LAYOUT ({cab} mm IP55 | TRUE SCALE 1:{sc})', lay_front:'FRONT VIEW', lay_in:'INFRONT VIEW', lay_side:'SIDE VIEW', lay_tb:'TOP & BOTTOM VIEW', lay_spec:'CABINET SPEC',
+    lc_title:'ELECTRICAL LOAD CALCULATION, CURRENT & CABLE SIZING SCHEDULE', lc_s1:'1. CONNECTED LOAD & CURRENT (3PH 380V 50Hz)', lc_s2:'2. PROTECTIVE DEVICE & BUSBAR SUMMARY', lc_s3:'3. INTERNAL PANEL & FIELD CABLE SIZING SCHEDULE (IEC 60227 / IEC 60364)',
+    lc_tot_kw:'Total Connected Motor Power', lc_flc:'Full Load Running Current (FLC)', lc_des:'Design Current (125% / 80% Rule)', lc_vent:'Total Ventilation @ 50 Pa',
+    pr_loop:'OVERLOAD FAULT LOOP (QFR1 .. QFR{n} NC 11-12 IN SERIES -> XR4 01/02)', pr_note:'01/02 -> XR4/AL OVERLOAD FAULT | WIRE: VSF 1x1.0 sq.mm (NORMAL=NC CLOSED | TRIP=NO OPEN)',
+    iso_fn:'FUNCTION (SS1 4-STEP)', iso_f1:'1. Motor Running 100% | 2. Manual Speed Volume', iso_f2:'3. External 0-10V Controller | 4. Motor Stopped',
+    ld_ext:'EXTERNAL CONTROLLER (PLC / Smart Pig Dry Contacts) | VSF 1x1.0 sq.mm', ld_ret:'Return: VSF 1x1.0 sq.mm ({v})',
+    tm_bus:'BUSBARS (R07)', tm_pe_note:'include PE wire!', tm_leg:'LEGEND & PRODUCT SPECS'
+  },
+  vi: {
+    ui_sub:'Trình tạo sơ đồ IEC 60617 & Báo cáo PDF',
+    ui_c1:'1. Thông tin dự án & Tài liệu', ui_cust:'Tên khách hàng / Trang trại', ui_code:'Mã bản vẽ (Code No.)', ui_date:'Phiên bản / Ngày',
+    ui_draft:'Người vẽ (Draftman)', ui_appr:'Người duyệt (Approved)',
+    ui_c2:'2. Chế độ hệ thống & Số lượng quạt', ui_auto30:'Auto 30% EC', ui_manual:'Tùy chỉnh', ui_quick_fans:'Chọn nhanh tổng số quạt (1 chuồng)',
+    ui_ec_cnt:'Số lượng quạt EC (0–32)', ui_ac_cnt:'Số lượng quạt AC (0–32)', ui_ec_mod:'Model quạt EC (BESS Lab / Custom)', ui_ac_mod:'Model quạt AC (BESS Lab / Custom)',
+    ui_cust_ec:'Custom EC Motor (Tự nhập kW / A / CFM)', ui_cust_ac:'Custom AC Motor (Tự nhập kW / A / CFM)',
+    ui_c3:'3. Xuất xứ & Thương hiệu thiết bị (4 Loại)',
+    ui_src_master:'🇹🇭 Thái: Schneider', ui_src_th:'🇹🇭 Thái: Mitsubishi', ui_src_vn:'🇻🇳 Việt Nam: LS', ui_src_cn:'🇨🇳 Trung Quốc: Chint',
+    ui_c4:'4. Tủ điện & Hệ thống bảo vệ', ui_cab:'Kích thước tủ (mm IP55)', ui_cab_auto:'Tự động (Theo số quạt)', ui_ctrlv:'Điện áp cuộn hút điều khiển', ui_ctrl_auto:'Tự động (EC=24VDC / AC=220V)',
+    ui_opt1:'Option 1: Digital Power Meter (PM1 + CT 3x)', ui_pm_off:'Không lắp Power Meter', ui_pm_on:'Lắp Power Meter (PM1)',
+    ui_opt2:'Option 2: Cổng truyền thông RS485 (A+ / B- / SHLD)', ui_rs_off:'Không dùng RS485 (Tại tủ)', ui_rs_on:'Dùng RS485 (Kết nối Smart Pig)',
+    ui_print:'🖨️ In / Lưu báo cáo PDF (A4 Ngang Đầy đủ)', ui_save:'💾 Lưu', ui_reset:'↺ Khôi phục mặc định (8 EC All-EC)',
+    ui_prev:'◀ Trước', ui_next:'Sau ▶', ui_viewall:'Xem tất cả', ui_viewone:'Xem từng trang',
+    fan_unit:'Quạt', m_total:'Tổng', m_load:'Tải', m_main:'Tổng CB', m_cab:'Tủ', m_air:'Lưu lượng', m_meter:'Đồng hồ',
+    rs_allac:'Chế độ All-AC: PM1 chỉ đọc tại tủ (Không có RS485)',
+    rs_on_note:'Bật RS485: Thêm chân A+/B-/SHLD trên XR3 + Surge nối Smart Pig',
+    rs_off_note:'Không RS485: PM1 chỉ đọc tại tủ (Tiết kiệm Surge & dây)',
+    bom_none:'📋 <b>BOM:</b> Tiêu chuẩn (Không PM1 / Không RS485)',
+    bom_local:'📋 <b>BOM Thêm:</b> {pm} (1) + CT {ct} (3) — <i>Chỉ tại tủ</i>',
+    bom_rs485:'📋 <b>BOM Thêm:</b> {pm} (1) + CT {ct} (3) + RS485 Surge &amp; XR3',
+    warn_cab:'⚠️ Tủ {cab} mm tối đa ~{max} quạt, đang chọn {n} (Nên dùng {auto})',
+    warn_ec:'⚠️ Dòng EC ({amp}A) vượt dải MPCB EC (2.5-4.0A)', warn_ac:'⚠️ Dòng AC ({amp}A) vượt dải MPCB AC (4.0-6.3A)',
+    saved_msg:'Đã lưu cấu hình Preset Offline thành công.',
+    sh_cover:'TRANG BÌA (BỐ TRÍ CHUNG)', sh_contents:'MỤC LỤC BẢN VẼ (CONTENTS)', sh_symbols:'DANH MỤC KÝ HIỆU ĐIỆN (IEC 60617)',
+    sh_acronyms:'MÃ THIẾT BỊ & TỪ VIẾT TẮT', sh_cubicle:'QUY CÁCH TỦ ĐIỆN & DÂY DẪN (IEC 61439)', sh_bom:'BẢNG KÊ THIẾT BỊ & SỐ LƯỢNG (BOM)',
+    sh_layout:'BỐ TRÍ MẶT TỦ ĐIỆN HẠ THẾ', sh_load:'TÍNH TOÁN PHỤ TẢI & BẢNG CHỌN DÂY', sh_sld:'SƠ ĐỒ MỘT SỢI (SLD IEC 60617)',
+    sh_power:'MẠCH ĐỘNG LỰC (QUẠT {a}-{b})', sh_prot:'MẠCH BẢO VỆ, PHASE RELAY & FAULT LOOP', sh_iso:'NGUỒN 24VDC & BỘ CÁCH LY 0-10V (ISO{a}-{b})',
+    sh_ladder:'MẠCH ĐIỀU KHIỂN (QUẠT {a}-{b})', sh_term:'CẦU ĐẤU DÂY (XR1-XR4) & CHÚ THÍCH',
+    cv_cust:'KHÁCH HÀNG :', cv_proj:'DỰ ÁN :', cv_appr:'KHÁCH HÀNG PHÊ DUYỆT:', cv_stat:'TRẠNG THÁI HỒ SƠ:', cv_note:'GHI CHÚ KỸ THUẬT:', cv_rev:'LỊCH SỬ SỬA ĐỔI',
+    cv_n1:'- Đấu dây theo tiêu chuẩn IEC 60617 & IEC 61439-1/2.', cv_n2:'- Có nối đất PE tại XR1 và tất cả động cơ.', cv_n3:'- Bảng tính tải & chọn dây xem tại trang R08.',
+    ct_sheet:'TRANG', ct_desig:'NỘI DUNG BẢN VẼ', ct_rev:'SỬA ĐỔI',
+    bom_t:'BẢNG KÊ THIẾT BỊ & SỐ LƯỢNG (BOM)', bom_b1:'THIẾT BỊ ĐÓNG CẮT', bom_b2:'ĐO LƯỜNG & BẢO VỆ', bom_b3:'THIẾT BỊ ĐIỀU KHIỂN', bom_b4:'THANH CÁI ĐỒNG',
+    bom_b5:'ĐỊNH MỨC THANH CÁI IEC 61439-2 (MT 40C, MAX 90C, 50Hz)',
+    lay_title:'BỐ TRÍ TỦ ĐIỆN ({cab} mm IP55 | TỶ LỆ THẬT 1:{sc})', lay_front:'MẶT TRƯỚC', lay_in:'MẶT TRONG', lay_side:'MẶT BÊN', lay_tb:'TRÊN & DƯỚI', lay_spec:'THÔNG SỐ TỦ',
+    lc_title:'TÍNH TOÁN PHỤ TẢI ĐIỆN, DÒNG ĐỊNH MỨC & BẢNG CHỌN DÂY DẪN', lc_s1:'1. TỔNG HỢP TẢI & DÒNG ĐIỆN (3PH 380V 50Hz)', lc_s2:'2. THIẾT BỊ BẢO VỆ & THANH CÁI', lc_s3:'3. BẢNG CHỌN DÂY TRONG TỦ & DÂY RA QUẠT (IEC 60227 / IEC 60364)',
+    lc_tot_kw:'Tổng công suất động cơ', lc_flc:'Dòng điện toàn tải (FLC)', lc_des:'Dòng thiết kế (125% / 80%)', lc_vent:'Tổng lưu lượng gió @ 50 Pa',
+    pr_loop:'MẠCH BÁO LỖI QUÁ TẢI (QFR1..QFR{n} NC 11-12 NỐI TIẾP -> XR4 01/02)', pr_note:'01/02 -> XR4/AL OVERLOAD FAULT | DÂY: VSF 1x1.0 sq.mm (BÌNH THƯỜNG=NC ĐÓNG | LỖI=NO MỞ)',
+    iso_fn:'CHỨC NĂNG (SS1 4-STEP)', iso_f1:'1. Chạy 100% tốc độ | 2. Chỉnh tay Manual', iso_f2:'3. Điều khiển ngoài 0-10V | 4. Dừng quạt',
+    ld_ext:'BỘ ĐIỀU KHIỂN NGOÀI (PLC / Smart Pig Dry Contacts) | VSF 1x1.0 sq.mm', ld_ret:'Dây hồi: VSF 1x1.0 sq.mm ({v})',
+    tm_bus:'THANH CÁI (R07)', tm_pe_note:'có dây tiếp địa PE!', tm_leg:'CHÚ THÍCH & THÔNG SỐ THIẾT BỊ'
+  },
+  zh: {
+    ui_sub:'IEC 60617 多页电气原理图与 PDF 报告生成器',
+    ui_c1:'1. 项目与文件信息', ui_cust:'客户 / 养殖场名称', ui_code:'图纸编号 (Code No.)', ui_date:'版本 / 日期',
+    ui_draft:'制图人 (Draftman)', ui_appr:'审批人 (Approved)',
+    ui_c2:'2. 系统模式与风机数量', ui_auto30:'Auto 30% EC', ui_manual:'手动设定', ui_quick_fans:'快速选择风机总数 (单栋)',
+    ui_ec_cnt:'EC 风机数量 (0–32)', ui_ac_cnt:'AC 风机数量 (0–32)', ui_ec_mod:'EC 风机型号 (BESS Lab / Custom)', ui_ac_mod:'AC 风机型号 (BESS Lab / Custom)',
+    ui_cust_ec:'Custom EC Motor (自定义 kW / A / CFM)', ui_cust_ac:'Custom AC Motor (自定义 kW / A / CFM)',
+    ui_c3:'3. 产地与元件品牌 (4 种标准)',
+    ui_src_master:'🇹🇭 泰国: Schneider', ui_src_th:'🇹🇭 泰国: Mitsubishi', ui_src_vn:'🇻🇳 越南: LS', ui_src_cn:'🇨🇳 中国: Chint',
+    ui_c4:'4. 控制柜体与保护系统', ui_cab:'柜体尺寸 (mm IP55)', ui_cab_auto:'自动推荐 (按风机数量)', ui_ctrlv:'控制线圈电压', ui_ctrl_auto:'自动 (EC=24VDC / AC=220V)',
+    ui_opt1:'Option 1: Digital Power Meter (PM1 + CT 3x)', ui_pm_off:'不配 Power Meter', ui_pm_on:'配置 Power Meter (PM1)',
+    ui_opt2:'Option 2: RS485 通讯端子 (A+ / B- / SHLD)', ui_rs_off:'不用 RS485 (仅柜面显示)', ui_rs_on:'启用 RS485 (连接 Smart Pig)',
+    ui_print:'🖨️ 打印 / 保存完整 PDF 报告 (A4 横版)', ui_save:'💾 保存', ui_reset:'↺ 恢复默认设置 (8 台 EC)',
+    ui_prev:'◀ 上一页', ui_next:'下一页 ▶', ui_viewall:'查看全部', ui_viewone:'单页视图',
+    fan_unit:'台', m_total:'总计', m_load:'负载', m_main:'主开关', m_cab:'柜体', m_air:'总风量', m_meter:'电表',
+    rs_allac:'All-AC 模式: PM1 仅在柜面本地显示 (无 RS485)',
+    rs_on_note:'已启用 RS485: 在 XR3 增加 A+/B-/SHLD 端子 + 浪涌保护连接 Smart Pig',
+    rs_off_note:'未启用 RS485: PM1 仅柜面显示 (节省浪涌与通讯线)',
+    bom_none:'📋 <b>BOM:</b> 标准配置 (无 PM1 / 无 RS485)',
+    bom_local:'📋 <b>BOM 新增:</b> {pm} (1) + CT {ct} (3) — <i>仅柜面显示</i>',
+    bom_rs485:'📋 <b>BOM 新增:</b> {pm} (1) + CT {ct} (3) + RS485 浪涌 &amp; XR3',
+    warn_cab:'⚠️ 柜体 {cab} mm 建议最多 {max} 台，当前选 {n} 台 (推荐 {auto})',
+    warn_ec:'⚠️ EC 电流 ({amp}A) 超出 MPCB EC 量程 (2.5-4.0A)', warn_ac:'⚠️ AC 电流 ({amp}A) 超出 MPCB AC 量程 (4.0-6.3A)',
+    saved_msg:'已离线保存当前配置。',
+    sh_cover:'封面总图 (COVER PAGE)', sh_contents:'图纸目录 (CONTENTS)', sh_symbols:'电气图形符号表 (IEC 60617)',
+    sh_acronyms:'标准器件代号与缩写表', sh_cubicle:'柜体结构与配线规范 (IEC 61439)', sh_bom:'设备材料清单 (BOM)',
+    sh_layout:'低压控制柜布置图 (LAYOUT)', sh_load:'负荷计算与电缆选型表', sh_sld:'一次系统单线图 (SLD IEC 60617)',
+    sh_power:'主动力配电回路 (风机 {a}-{b})', sh_prot:'保护回路、相序继电器与故障串联回路', sh_iso:'24VDC 电源与 0-10V 信号隔离器 (ISO{a}-{b})',
+    sh_ladder:'二次控制原理图 (风机 {a}-{b})', sh_term:'端子排接线图 (XR1-XR4) 与图例',
+    cv_cust:'客户名称 :', cv_proj:'工程项目 :', cv_appr:'客户审批:', cv_stat:'文件状态:', cv_note:'工程说明:', cv_rev:'修订记录',
+    cv_n1:'- 全部配线符合 IEC 60617 与 IEC 61439-1/2 标准', cv_n2:'- XR1 进线及所有电机均配置 PE 保护接地', cv_n3:'- 负荷计算与线径选型详见第 R08 页',
+    ct_sheet:'图号', ct_desig:'图纸名称', ct_rev:'版本',
+    bom_t:'设备材料清单 (BOM)', bom_b1:'断路器设备', bom_b2:'仪表与保护元件', bom_b3:'控制与接线元件', bom_b4:'铜排母线设备',
+    bom_b5:'铜排载流量标准 IEC 61439-2 (环境 40C, 最高 90C, 50Hz)',
+    lay_title:'控制柜布置图 ({cab} mm IP55 | 实际比例 1:{sc})', lay_front:'正视图 (FRONT)', lay_in:'内部布置 (INFRONT)', lay_side:'侧视图 (SIDE)', lay_tb:'顶/底视图', lay_spec:'柜体规格',
+    lc_title:'电气负荷计算、额定电流及电缆选型表', lc_s1:'1. 连接负荷与运行电流计算 (3PH 380V 50Hz)', lc_s2:'2. 保护断路器与铜排选型汇总', lc_s3:'3. 柜内配线与现场电机电缆选型表 (IEC 60227 / IEC 60364)',
+    lc_tot_kw:'电机总装机功率', lc_flc:'满载运行电流 (FLC)', lc_des:'设计计算电流 (125% / 80%)', lc_vent:'总通风量 @ 50 Pa',
+    pr_loop:'过载故障报警串联回路 (QFR1..QFR{n} NC 11-12 串联 -> XR4 01/02)', pr_note:'01/02 -> XR4/AL 过载报警 | 线径: VSF 1x1.0 sq.mm (正常=NC 闭合 | 跳闸=NO 断开)',
+    iso_fn:'功能说明 (SS1 4-STEP)', iso_f1:'1. 风机 100% 全速 | 2. 手动电位器调速', iso_f2:'3. 外部 0-10V 控制 | 4. 风机停止',
+    ld_ext:'外部控制器 (PLC / Smart Pig 无源干接点) | VSF 1x1.0 sq.mm', ld_ret:'回线: VSF 1x1.0 sq.mm ({v})',
+    tm_bus:'接地/零排 (R07)', tm_pe_note:'含 PE 保护地线!', tm_leg:'图例与元件规格'
+  }
+};
+
+function t(k, vars={}) {
+  const dict = I18N[state.lang] || I18N.th;
+  let str = dict[k] !== undefined ? dict[k] : (I18N.th[k] || k);
+  for (const [vk, vv] of Object.entries(vars)) str = str.replace(new RegExp(`\\{${vk}\\}`, 'g'), vv);
+  return str;
+}
+
+function applyUiLanguage() {
+  document.documentElement.lang = state.lang;
+  ['th','en','vi','zh'].forEach(l => {
+    const el = document.getElementById(`lang_${l}`);
+    if (el) el.classList.toggle('active', l === state.lang);
+  });
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    el.textContent = t(key);
+  });
+  const btnAll = document.getElementById('btnAllView');
+  if (btnAll) btnAll.textContent = state.showAll ? t('ui_viewone') : t('ui_viewall');
+  // Update fan preset chip units
+  document.querySelectorAll('#fanPresets .chip').forEach(c => {
+    c.textContent = `${c.dataset.n} ${t('fan_unit')}`;
+  });
+}
+
+function setLang(l) {
+  if (!I18N[l]) return;
+  state.lang = l;
+  applyUiLanguage();
+  renderAll();
+}
 
 // SVG Builder helpers
 const C = { BLK:'#000000', GRY:'#595959', LGRY:'#c7c7c7', BLU:'#0d40a6', RED:'#bf1919', GRN:'#0d732e', YEL:'#f2d940', OYL:'#e6ad0d', TGRN:'#33a64d', BG:'#f5f7fa' };
@@ -483,7 +694,7 @@ function drawFrame(spec, installTitle, sheetNo, nextSheet) {
   s += Txt(793, ty+23, nextSheet, 7.2, C.BLK, true);
   s += Txt(772, ty+39, 'TOTAL SHEET', 5.5, C.GRY);
   s += Txt(795, ty+52, String(spec.totalSheets), 7.8, C.BLK, true);
-  s += Txt(28, H-12, 'DW-RR-04 rev.1 (KSP Offline Engineering Schematic & Report Studio)', 7, C.GRY);
+  s += Txt(28, H-12, 'DW-RR-04 rev.1 (KSP Engineering Schematic & Report Studio)', 7, C.GRY);
   return s;
 }
 
@@ -649,21 +860,19 @@ function computeSpec() {
     rsOnBtn.style.cursor = 'not-allowed';
     rsOffBtn.classList.add('active');
     rsOnBtn.classList.remove('active');
-    rsNote.textContent = 'โหมด All-AC: ติดตั้ง Power Meter อ่านค่าเฉพาะหน้าตู้ (ไม่เดินวงจร RS485)';
+    rsNote.textContent = t('rs_allac');
   } else {
     rsOnBtn.disabled = false;
     rsOnBtn.style.opacity = '1';
     rsOnBtn.style.cursor = 'pointer';
     rsOffBtn.classList.toggle('active', !hasRs485);
     rsOnBtn.classList.toggle('active', hasRs485);
-    rsNote.textContent = hasRs485
-      ? 'เปิดใช้ RS485: เพิ่มขั้ว A+/B-/SHLD บน XR3 + Surge เพื่อเชื่อม Smart Pig (Modbus RTU)'
-      : 'ไม่ใช้ RS485: Power Meter อ่านค่าเฉพาะหน้าตู้เท่านั้น (ประหยัดค่า Surge & สาย RS485)';
+    rsNote.textContent = hasRs485 ? t('rs_on_note') : t('rs_off_note');
   }
   const bomNote = document.getElementById('bomImpactNote');
-  if (!hasPm) bomNote.innerHTML = '📋 <b>BOM:</b> มาตรฐาน (ไม่มี Power Meter / ไม่มี RS485)';
-  else if (!hasRs485) bomNote.innerHTML = `📋 <b>BOM เพิ่ม:</b> ${pmMod} (1) + CT ${ctRatio} (3) — <i>เฉพาะที่ตู้</i>`;
-  else bomNote.innerHTML = `📋 <b>BOM เพิ่ม:</b> ${pmMod} (1) + CT ${ctRatio} (3) + RS485 Surge &amp; XR3 (A+/B-/SHLD)`;
+  if (!hasPm) bomNote.innerHTML = t('bom_none');
+  else if (!hasRs485) bomNote.innerHTML = t('bom_local', {pm: pmMod, ct: ctRatio});
+  else bomNote.innerHTML = t('bom_rs485', {pm: pmMod, ct: ctRatio});
 
   const autoCab = n <= 4 ? '570x690x250' : (n <= 10 ? '800x1200x250' : (n <= 16 ? '800x1500x400' : (n <= 20 ? '1000x1800x450' : (n <= 28 ? '1200x1800x450' : '1200x2000x500'))));
   const selCab = document.getElementById('selCab').value;
@@ -671,10 +880,10 @@ function computeSpec() {
   const warnEl = document.getElementById('cabWarn');
   const warns = [];
   if (selCab !== 'auto' && n > (CAB_MAX[cabSz] || 12)) {
-    warns.push(`⚠️ ตู้ ${cabSz} mm รองรับได้ ~${CAB_MAX[cabSz]} ตัว แต่เลือก ${n} ตัว (แนะนำ ${autoCab})`);
+    warns.push(t('warn_cab', {cab: cabSz, max: CAB_MAX[cabSz], n, auto: autoCab}));
   }
-  if (nEc > 0 && ecFan.amp > 4.0) warns.push(`⚠️ กระแส EC (${ecFan.amp}A) เกินช่วง MPCB EC (2.5-4.0A) ควรปรับพิกัด MPCB`);
-  if (nAc > 0 && acFan.amp > 6.3) warns.push(`⚠️ กระแส AC (${acFan.amp}A) เกินช่วง MPCB AC (4.0-6.3A) ควรปรับพิกัด MPCB`);
+  if (nEc > 0 && ecFan.amp > 4.0) warns.push(t('warn_ec', {amp: ecFan.amp}));
+  if (nAc > 0 && acFan.amp > 6.3) warns.push(t('warn_ac', {amp: acFan.amp}));
   if (warns.length) { warnEl.style.display = 'block'; warnEl.innerHTML = warns.join('<br>'); }
   else { warnEl.style.display = 'none'; }
 
@@ -683,22 +892,22 @@ function computeSpec() {
   const codeNo = customCode || `KSP-${bm.codeTag}-${mode.slice(0,3).toUpperCase()}-${String(n).padStart(2,'0')}`;
 
   const sheetList = [
-    ['R01', 'COVER PAGE (GENERAL ARRANGEMENT)'],
-    ['R02', 'CONTENTS (TABLE OF CONTENTS)'],
-    ['R03', 'ELECTRICAL SYMBOLS LIST (IEC 60617)'],
-    ['R04', 'STANDARD DEVICE NUMBER & ACRONYMS'],
-    ['R05', 'CUBICAL & WIRING SPECIFICATION'],
-    ['R06', 'EQUIPMENT LIST & QUANTITY (BOM)'],
-    ['R07', 'SWITCHBOARD LAYOUT LOW VOLTAGE'],
-    ['R08', 'LOAD CALCULATION & CABLE SCHEDULE'],
-    ['R09', 'SINGLE-LINE DIAGRAM (IEC 60617)'],
+    ['R01', t('sh_cover')],
+    ['R02', t('sh_contents')],
+    ['R03', t('sh_symbols')],
+    ['R04', t('sh_acronyms')],
+    ['R05', t('sh_cubicle')],
+    ['R06', t('sh_bom')],
+    ['R07', t('sh_layout')],
+    ['R08', t('sh_load')],
+    ['R09', t('sh_sld')],
   ];
   let sCur = 10;
-  for (let g = 0; g < grpCnt; g++) sheetList.push([`R${String(sCur++).padStart(2,'0')}`, `POWER WIRING (FANS ${g*4+1}-${Math.min((g+1)*4,n)})`]);
-  sheetList.push([`R${String(sCur++).padStart(2,'0')}`, 'PROTECTION, PHASE RELAY & FAULT LOOP']);
-  for (let ip = 0; ip < isoPages; ip++) sheetList.push([`R${String(sCur++).padStart(2,'0')}`, `24VDC & 0-10V ISOLATORS (ISO${ip*4+1}-${Math.min((ip+1)*4,isoCnt)})`]);
-  for (let g = 0; g < grpCnt; g++) sheetList.push([`R${String(sCur++).padStart(2,'0')}`, `CONTROL LADDER (FANS ${g*4+1}-${Math.min((g+1)*4,n)})`]);
-  sheetList.push([`R${String(sCur).padStart(2,'0')}`, 'COLLECTION TERMINALS (XR1-XR4) & LEGEND']);
+  for (let g = 0; g < grpCnt; g++) sheetList.push([`R${String(sCur++).padStart(2,'0')}`, t('sh_power', {a: g*4+1, b: Math.min((g+1)*4,n)})]);
+  sheetList.push([`R${String(sCur++).padStart(2,'0')}`, t('sh_prot')]);
+  for (let ip = 0; ip < isoPages; ip++) sheetList.push([`R${String(sCur++).padStart(2,'0')}`, t('sh_iso', {a: ip*4+1, b: Math.min((ip+1)*4,isoCnt)})]);
+  for (let g = 0; g < grpCnt; g++) sheetList.push([`R${String(sCur++).padStart(2,'0')}`, t('sh_ladder', {a: g*4+1, b: Math.min((g+1)*4,n)})]);
+  sheetList.push([`R${String(sCur).padStart(2,'0')}`, t('sh_term')]);
 
   return {
     n, nEc, nAc, mode, ecFan, acFan, bm, totalKw, totalAmp, totalCfm, iDesign,
@@ -715,55 +924,55 @@ function computeSpec() {
 
 // --- SHEET BUILDERS (R01..END) ---
 function buildCover(sp) {
-  let s = drawFrame(sp, 'COVER PAGE (GENERAL ARRANGEMENT)', 1, 'R02');
+  let s = drawFrame(sp, t('sh_cover'), 1, 'R02');
   s += R(42, 42, 758, 76, C.BLK, C.BG, 0.9);
   const lw = 76, lh = lw / LOGO_ASPECT;
   s += `<image href="${KSP_LOGO_B64}" x="52" y="${80-lh/2}" width="${lw}" height="${lh}" preserveAspectRatio="xMidYMid meet"/>`;
-  s += Txt(142, 62, 'K.S.P. EQUIPMENT CO., LTD. / ' + sp.bm.label, 11, C.BLK, true);
-  s += Txt(142, 78, '51/845 M.3, Lumsai, Wangnoi, Ayutthaya 13170 Thailand | Tel: 035-200891-6', 7.5, C.GRY);
-  s += Txt(142, 93, 'STANDARD: IEC 61439-1/2 | IEC 60617 | IP55 WEATHERPROOF ENCLOSURE', 7.5, C.BLU, true);
+  s += Txt(142, 62, 'K.S.P. EQUIPMENT CO., LTD. / ' + sp.bm.label, 12, C.BLK, true);
+  s += Txt(142, 79, '51/845 M.3, Lumsai, Wangnoi, Ayutthaya 13170 Thailand | Tel: 035-200891-6', 8.2, C.GRY, true);
+  s += Txt(142, 95, 'STANDARD: IEC 61439-1/2 | IEC 60617 | IP55 WEATHERPROOF ENCLOSURE', 8.2, C.BLU, true);
 
   s += R(42, 138, 758, 100, C.BLK, 'none', 0.9);
-  s += Txt(60, 168, 'CUSTOMER :', 11, C.BLK, true);
-  s += Txt(165, 168, sp.customer || '....................................................................................', 10.5, sp.customer && !sp.customer.startsWith('...') ? C.BLK : C.GRY, true);
-  s += Txt(60, 198, 'PROJECT   :', 11, C.BLK, true);
-  s += Txt(165, 198, `CONTROL PANEL 1:${sp.n} FANS (${sp.mode}: ${sp.nEc} EC + ${sp.nAc} AC) - 3PH 380V 50Hz`, 10.5, C.BLU, true);
-  s += Txt(165, 218, `DRAWING CODE: ${sp.codeNo} | TOTAL SHEETS: ${sp.totalSheets} | GROUNDING: TN-S (L1,L2,L3,N,PE)`, 8, C.GRY);
+  s += Txt(60, 168, t('cv_cust'), 11.5, C.BLK, true);
+  s += Txt(168, 168, sp.customer || '....................................................................................', 11, sp.customer && !sp.customer.startsWith('...') ? C.BLK : C.GRY, true);
+  s += Txt(60, 198, t('cv_proj'), 11.5, C.BLK, true);
+  s += Txt(168, 198, `CONTROL PANEL 1:${sp.n} FANS (${sp.mode}: ${sp.nEc} EC + ${sp.nAc} AC) - 3PH 380V 50Hz`, 11, C.BLU, true);
+  s += Txt(168, 220, `DRAWING CODE: ${sp.codeNo} | TOTAL SHEETS: ${sp.totalSheets} | GROUNDING: TN-S (L1,L2,L3,N,PE)`, 8.5, C.BLK, true);
 
   s += R(42, 258, 243, 230, C.BLK, 'none', 0.8);
-  s += Txt(52, 276, 'CLIENT APPROVAL:', 8.5, C.BLK, true);
-  ['[  ] APPROVED', '[  ] APPROVED AS NOTE', '[  ] RETURNED FOR CORRECTION'].forEach((lbl, idx) => s += Txt(58, 298 + idx*18, lbl, 7.5));
-  s += Txt(52, 362, 'NOTE:', 7.5, C.GRY, true);
+  s += Txt(52, 276, t('cv_appr'), 9.2, C.BLU, true);
+  ['[  ] APPROVED', '[  ] APPROVED AS NOTE', '[  ] RETURNED FOR CORRECTION'].forEach((lbl, idx) => s += Txt(58, 298 + idx*18, lbl, 8.0, C.BLK, true));
+  s += Txt(52, 362, 'NOTE:', 8.0, C.GRY, true);
   for (let r = 0; r < 4; r++) s += L(52, 382 + r*18, 275, 382 + r*18, C.GRY, 0.5, '2 2');
-  s += Txt(52, 466, 'SIGNED: _____________________', 7) + Txt(52, 480, 'DATE:   _____/_____/_________', 7);
+  s += Txt(52, 466, 'SIGNED: _____________________', 7.5, C.BLK, true) + Txt(52, 480, 'DATE:   _____/_____/_________', 7.5, C.BLK, true);
 
   s += R(298, 258, 222, 230, C.BLK, 'none', 0.8);
-  s += Txt(308, 276, 'DOCUMENT STATUS:', 8.5, C.BLK, true);
-  ['[  ] PRELIMINARY', '[X] FOR APPROVAL', '[  ] AS MANUFACTURED', '[  ] AS BUILT'].forEach((lbl, idx) => s += Txt(314, 298 + idx*18, lbl, 7.5, lbl.includes('[X]') ? C.BLU : C.BLK, lbl.includes('[X]')));
-  s += Txt(308, 380, 'ENGINEERING NOTE:', 7.5, C.GRY, true);
-  s += Txt(308, 398, '- All wiring per IEC 60617 & IEC 61439-1/2.', 6.8);
-  s += Txt(308, 414, '- PE Grounding included for XR1 & all motors.', 6.8, C.GRN);
-  s += Txt(308, 430, '- Load Calc & Cable Schedule on Sheet R08.', 6.8, C.BLU);
+  s += Txt(308, 276, t('cv_stat'), 9.2, C.BLU, true);
+  ['[  ] PRELIMINARY', '[X] FOR APPROVAL', '[  ] AS MANUFACTURED', '[  ] AS BUILT'].forEach((lbl, idx) => s += Txt(314, 298 + idx*18, lbl, 8.0, lbl.includes('[X]') ? C.BLU : C.BLK, true));
+  s += Txt(308, 380, t('cv_note'), 8.2, C.BLK, true);
+  s += Txt(308, 398, t('cv_n1'), 7.3, C.BLK, true);
+  s += Txt(308, 415, t('cv_n2'), 7.3, C.GRN, true);
+  s += Txt(308, 432, t('cv_n3'), 7.3, C.BLU, true);
 
   s += R(533, 258, 267, 230, C.BLK, 'none', 0.8);
-  s += Txt(620, 276, 'REVISION HISTORY', 8.5, C.BLK, true);
+  s += Txt(666, 276, t('cv_rev'), 9.2, C.BLU, true, 'middle');
   s += L(533, 286, 800, 286, C.BLK, 0.7) + L(585, 286, 585, 488, C.BLK, 0.6) + L(650, 286, 650, 488, C.BLK, 0.6);
-  s += Txt(542, 300, 'REV', 7, C.BLK, true) + Txt(598, 300, 'DATE', 7, C.BLK, true) + Txt(685, 300, 'REVISION DETAILS', 7, C.BLK, true);
+  s += Txt(542, 300, 'REV', 7.5, C.BLK, true) + Txt(598, 300, 'DATE', 7.5, C.BLK, true) + Txt(685, 300, 'REVISION DETAILS', 7.5, C.BLK, true);
   s += L(533, 308, 800, 308, C.BLK, 0.6);
-  s += Txt(542, 325, 'REV.1', 7, C.BLU, true) + Txt(592, 325, sp.dateStr, 7) + Txt(656, 325, 'FULL IEC + PE + LOAD CALC', 6.5);
+  s += Txt(542, 325, 'REV.1', 7.5, C.BLU, true) + Txt(592, 325, sp.dateStr, 7.5, C.BLK, true) + Txt(656, 325, 'FULL IEC + PE + LOAD CALC', 7.0, C.BLK, true);
   for (let r = 1; r < 8; r++) s += L(533, 308 + r*22, 800, 308 + r*22, C.GRY, 0.4);
   return s;
 }
 
 function buildContents(sp) {
-  let s = drawFrame(sp, 'CONTENTS (TABLE OF CONTENTS)', 2, 'R03');
-  s += Txt(375, 48, 'CONTENTS', 11, C.BLK, true);
+  let s = drawFrame(sp, t('sh_contents'), 2, 'R03');
+  s += Txt(421, 48, t('sh_contents'), 11, C.BLK, true, 'middle');
   [45, 430].forEach(x0 => {
     const wS = 55, wD = 240, wR = 75;
     s += R(x0, 58, wS+wD+wR, 430, C.BLK, 'none', 0.9);
     s += R(x0, 58, wS+wD+wR, 22, C.BLK, C.BG, 0.8);
     s += L(x0+wS, 58, x0+wS, 488, C.BLK, 0.7) + L(x0+wS+wD, 58, x0+wS+wD, 488, C.BLK, 0.7);
-    s += Txt(x0+8, 73, 'SHEET NO', 7, C.BLK, true) + Txt(x0+wS+70, 73, 'DESIGNATION', 7, C.BLK, true) + Txt(x0+wS+wD+10, 73, 'REV / MOD', 7, C.BLK, true);
+    s += Txt(x0+8, 73, t('ct_sheet'), 7.6, C.BLK, true) + Txt(x0+wS+70, 73, t('ct_desig'), 7.6, C.BLK, true) + Txt(x0+wS+wD+10, 73, t('ct_rev'), 7.6, C.BLK, true);
     for (let r = 1; r < 20; r++) s += L(x0, 80 + r*20.4, x0+wS+wD+wR, 80 + r*20.4, C.GRY, 0.4);
   });
   sp.sheetList.forEach(([sno, desig], idx) => {
@@ -771,20 +980,70 @@ function buildContents(sp) {
     if (rowIdx >= 20) return;
     const x0 = colIdx === 0 ? 45 : 430;
     const ry = 80 + rowIdx * 20.4 + 14;
-    s += Txt(x0+14, ry, sno, 7, C.BLU, true) + Txt(x0+62, ry, desig.slice(0,42), 7) + Txt(x0+325, ry, 'REV.1', 6.5, C.GRY);
+    s += Txt(x0+14, ry, sno, 7.6, C.BLU, true) + Txt(x0+62, ry, desig.slice(0,42), 7.3, C.BLK, true) + Txt(x0+325, ry, 'REV.1', 7.0, C.GRY, true);
   });
   return s;
 }
 
 function buildSymbols(sp) {
-  let s = drawFrame(sp, 'ELECTRICAL SYMBOLS LIST (IEC 60617)', 3, 'R04');
-  s += Txt(285, 46, 'ELECTRICAL SYMBOLS LIST (IEC 60617 STANDARD)', 9.5, C.BLK, true);
+  let s = drawFrame(sp, t('sh_symbols'), 3, 'R04');
+  s += Txt(421, 46, t('sh_symbols'), 10.5, C.BLK, true, 'middle');
   const cols = [42, 232, 422, 612];
+  const symHdr = {
+    th: ['สัญลักษณ์', 'คำอธิบายสัญลักษณ์'],
+    en: ['SYMBOLS', 'DESIGNATION'],
+    vi: ['KÝ HIỆU', 'MÔ TẢ THIẾT BỊ'],
+    zh: ['图形符号', '名称与说明']
+  }[state.lang] || ['SYMBOLS', 'DESIGNATION'];
   cols.forEach(cx => {
     s += R(cx, 54, 186, 438, C.BLK, 'none', 0.8) + R(cx, 54, 186, 18, C.BLK, C.BG, 0.7) + L(cx+52, 54, cx+52, 492, C.BLK, 0.6);
-    s += Txt(cx+8, 66, 'SYMBOLS', 6.6, C.BLK, true) + Txt(cx+75, 66, 'DESIGNATION', 6.6, C.BLK, true);
+    s += Txt(cx+26, 66, symHdr[0], 7.0, C.BLU, true, 'middle') + Txt(cx+119, 66, symHdr[1], 7.0, C.BLU, true, 'middle');
     for (let r = 1; r < 13; r++) s += L(cx, 72+r*32.3, cx+186, 72+r*32.3, C.GRY, 0.35);
   });
+  const SYM_TR = {
+    th: {
+      cb:'เซอร์กิตเบรกเกอร์ (Fixed Type)', cb_draw:'เซอร์กิตเบรกเกอร์ (Drawout)', cb_plug:'เซอร์กิตเบรกเกอร์ (Plug-in)', cb_tm:'CB ตัดวงจร Thermal-Magnetic',
+      mcb:'เบรกเกอร์ย่อย (MCB)', mpcb:'เบรกเกอร์ป้องกันมอเตอร์ (MPCB)', ol:'หน้าสัมผัสโอเวอร์โหลด (Thermal)', no_nc:'หน้าสัมผัสช่วย NO / NC',
+      sel:'สวิตช์เลือกโหมด (MAN-0-AUT)', pb:'สวิตช์ปุ่มกด (Push Button)', tmr_c:'หน้าสัมผัสไทเมอร์ (On/Off)', tmr_k:'คอยล์รีเลย์ตั้งเวลา (Timer)', ss4:'สวิตช์แคม 4 สเต็ป (SS1)',
+      disc:'สวิตช์ตัดตอน (Disconnector)', fuse_sw:'สวิตช์ฟิวส์ตัดตอนได้', fuse:'ฟิวส์ HRC / กล่องฟิวส์ (FUR)', cont_c:'หน้าสัมผัสแมกเนติกคอนแทคเตอร์',
+      cont_k:'คอยล์แมกเนติกคอนแทคเตอร์', ind:'รีแอกเตอร์ / โช้ก / ขดลวด', cap:'ตัวเก็บประจุ (Capacitor)', vt:'หม้อแปลงแรงดัน (VT)', ct:'หม้อแปลงกระแส (CT)',
+      nct:'หม้อแปลงกระแสสาย N (NCT)', gnd:'จุดต่อสายดิน (Earth / Ground)', pe:'สายดินป้องกัน (PE)', dm:'มิเตอร์ดิจิทัล / Power Meter',
+      meter_a:'แอมป์มิเตอร์ (A) / โวลต์มิเตอร์ (V)', meter_wh:'มิเตอร์วัดพลังงาน (Wh / W)', meter_hz:'มิเตอร์ความถี่ (Hz) / PF', elr:'รีเลย์กันไฟรั่ว (ELR)',
+      dol:'ชุดสตาร์ทมอเตอร์ตรง (DOL)', yd:'ชุดสตาร์ทสตาร์-เดลต้า (Y-D)', vsd:'อินเวอร์เตอร์ปรับความเร็ว (VSD)', soft:'ซอฟต์สตาร์ทเตอร์ (Soft Starter)',
+      rect:'แหล่งจ่ายไฟ 24VDC (SPS)', lamp:'หลอดไฟสัญญาณ (HLR)', m3:'มอเตอร์ AC/EC 3 เฟส (M 3~)', m1:'มอเตอร์ AC 1 เฟส (M 1~)', iso:'ตัวแยกสัญญาณ 0-10VDC (4-Ch)',
+      uv:'รีเลย์แรงดันต่ำ (U<)', ov:'รีเลย์แรงดันเกิน (U>)', ppr:'รีเลย์ป้องกันเฟส (PPR1)', shunt:'คอยล์สั่งทริป (Shunt Trip ST)',
+      bus:'บัสบาร์เมนจ่ายไฟ (Busway)', slash3:'สายเมน 3 เฟส (3L)', slash4:'สาย 4 เส้น (3L+PE / 3L+N)', junc:'จุดเชื่อมต่อสายไฟ (Junction)',
+      term:'จุดต่อเทอร์มินอล (Terminal)', tstrip:'รางเทอร์มินอลพร้อมป้าย (XR)', fan:'พัดลมระบายอากาศตู้ (VF1)', ts:'เทอร์โมสตัทตู้ (TS1 35C)', plc:'ชุดควบคุมภายนอก (PLC/KC)'
+    },
+    vi: {
+      cb:'Aptomat khối cố định (CB)', cb_draw:'Aptomat kéo rút (Drawout)', cb_plug:'Aptomat cắm (Plug-in)', cb_tm:'CB bảo vệ nhiệt - từ',
+      mcb:'Aptomat tép (MCB)', mpcb:'CB bảo vệ động cơ (MPCB)', ol:'Tiếp điểm rơ-le nhiệt', no_nc:'Tiếp điểm thường mở / đóng (NO/NC)',
+      sel:'Công tắc xoay (MAN-0-AUT)', pb:'Nút nhấn (Push Button)', tmr_c:'Tiếp điểm định thời (Timer)', tmr_k:'Cuộn hút rơ-le thời gian', ss4:'Công tắc cam 4 cấp (SS1)',
+      disc:'Cầu dao cách ly (Disconnector)', fuse_sw:'Cầu chì cách ly (Fuse Switch)', fuse:'Cầu chì HRC / Đế chì (FUR)', cont_c:'Tiếp điểm khởi động từ (KMR)',
+      cont_k:'Cuộn hút khởi động từ (KMR)', ind:'Cuộn kháng / Cuộn dây', cap:'Tụ điện (Capacitor)', vt:'Biến điện áp (VT)', ct:'Biến dòng điện (CT)',
+      nct:'Biến dòng dây trung tính (NCT)', gnd:'Điểm nối đất (Ground)', pe:'Dây tiếp địa bảo vệ (PE)', dm:'Đồng hồ số / Power Meter',
+      meter_a:'Đồng hồ Ampe (A) / Vôn (V)', meter_wh:'Công tơ điện (Wh / W)', meter_hz:'Đồng hồ tần số (Hz) / PF', elr:'Rơ-le bảo vệ chạm đất (ELR)',
+      dol:'Khởi động trực tiếp (DOL)', yd:'Khởi động Sao - Tam giác (Y-D)', vsd:'Biến tần điều tốc (VSD)', soft:'Khởi động mềm (Soft Starter)',
+      rect:'Bộ nguồn 24VDC (SPS)', lamp:'Đèn báo trạng thái (HLR)', m3:'Động cơ AC/EC 3 pha (M 3~)', m1:'Động cơ AC 1 pha (M 1~)', iso:'Bộ cách ly 0-10VDC (4-Ch)',
+      uv:'Rơ-le thấp áp (U<)', ov:'Rơ-le quá áp (U>)', ppr:'Rơ-le bảo vệ pha (PPR1)', shunt:'Cuộn cắt từ xa (Shunt Trip ST)',
+      bus:'Thanh cái phân phối (Busway)', slash3:'Cáp 3 pha (3L)', slash4:'Cáp 4 lõi (3L+PE / 3L+N)', junc:'Điểm đấu nối dây (Junction)',
+      term:'Điểm đấu cầu nối (Terminal)', tstrip:'Cầu đấu dây có nhãn (XR)', fan:'Quạt thông gió tủ (VF1)', ts:'Cảm biến nhiệt tủ (TS1 35C)', plc:'Bộ điều khiển ngoài (PLC/KC)'
+    },
+    zh: {
+      cb:'固定式断路器 (CB)', cb_draw:'抽屉式断路器 (Drawout)', cb_plug:'插入式断路器 (Plug-in)', cb_tm:'热磁脱扣断路器',
+      mcb:'微型断路器 (MCB)', mpcb:'电机保护断路器 (MPCB)', ol:'热过载保护触点', no_nc:'常开 / 常闭辅助触点 (NO/NC)',
+      sel:'选择开关 (MAN-0-AUT)', pb:'按钮开关 (Push Button)', tmr_c:'时间继电器触点 (Timer)', tmr_k:'时间继电器线圈 (Timer)', ss4:'4档凸轮选择开关 (SS1)',
+      disc:'隔离开关 (Disconnector)', fuse_sw:'隔离熔断开关', fuse:'HRC 熔断器 / 底座 (FUR)', cont_c:'交流接触器主触点 (KMR)',
+      cont_k:'交流接触器线圈 (KMR)', ind:'电抗器 / 扼流圈 / 绕组', cap:'电容器 (Capacitor)', vt:'电压互感器 (VT)', ct:'电流互感器 (CT)',
+      nct:'零序电流互感器 (NCT)', gnd:'接地连接点 (Ground)', pe:'保护接地线 (PE)', dm:'数字多功能电表 (Power Meter)',
+      meter_a:'电流表 (A) / 电压表 (V)', meter_wh:'电度表 (Wh) / 功率表 (W)', meter_hz:'频率表 (Hz) / 功率因数表', elr:'漏电保护继电器 (ELR)',
+      dol:'直接起动器 (DOL)', yd:'星-三角起动器 (Y-D)', vsd:'变频调速器 (VSD)', soft:'软起动器 (Soft Starter)',
+      rect:'整流 / 24VDC 开关电源 (SPS)', lamp:'状态指示灯 (HLR)', m3:'三相 AC/EC 电机 (M 3~)', m1:'单相 AC 电机 (M 1~)', iso:'0-10VDC 信号隔离器 (4-Ch)',
+      uv:'欠压保护继电器 (U<)', ov:'过压保护继电器 (U>)', ppr:'相序保护继电器 (PPR1)', shunt:'分励脱扣线圈 (ST)',
+      bus:'主配电母线排 (Busway)', slash3:'三相电缆 (3L)', slash4:'四芯电缆 (3L+PE / 3L+N)', junc:'导线连接点 (Junction)',
+      term:'端子连接点 (Terminal)', tstrip:'带标号端子排 (XR)', fan:'控制柜散热风扇 (VF1)', ts:'柜内温控开关 (TS1 35C)', plc:'外部控制器 (PLC/KC)'
+    }
+  };
   const items = [
     ['cb','Circuit Breaker (Fixed Type)'],['cb_draw','Circuit Breaker (Drawout Type)'],['cb_plug','Circuit Breaker (Plug-in Type)'],['cb_tm','CB Thermal-Magnetic Trip'],
     ['mcb','Miniature Circuit Breaker (MCB)'],['mpcb','Motor Protection CB (MPCB)'],['ol','Thermal Overload Contact'],['no_nc','Contact NO / NC'],
@@ -798,7 +1057,7 @@ function buildSymbols(sp) {
     ['uv','Under Voltage Relay (U<)'],['ov','Over Voltage Relay (U>)'],['ppr','Phase Protection Relay (PPR1)'],['shunt','Shunt Trip Coil Release (ST)'],
     ['bus','Busway / Main Distribution Bus'],['slash3','Three-Phase Line Cable (3L)'],['slash4','4-Wire Line Cable (3L+PE / 3L+N)'],['junc','Junction / Connection Point'],
     ['term','Terminal Connection Point'],['tstrip','Terminal Strip with Labels (XR)'],['fan','Cabinet Exhaust Fan (VF1)'],['ts','Thermostat Switch (TS1 35C)'],['plc','External Controller (PLC/KC)']
-  ];
+  ].map(([sym, enLbl]) => [sym, (SYM_TR[state.lang] && SYM_TR[state.lang][sym]) || enLbl]);
   items.forEach(([sym, lbl], idx) => {
     const c = Math.floor(idx / 13), r = idx % 13;
     if (c >= 4) return;
@@ -845,14 +1104,14 @@ function buildSymbols(sp) {
     else if (sym==='tstrip') s += [0,1,2].map(k=>R(sx-12+k*8,sy-5,8,10,C.BLK,C.YEL,0.6)+Txt(sx-8+k*8,sy+2,String(k+1),4.8,C.BLK,true,'middle')).join('');
     else if (sym==='fan') s += Cir(sx,sy,7.5)+Txt(sx,sy+2.5,'VF',6,C.BLK,true,'middle');
     else if (sym==='ts') s += L(sx-10,sy,sx-3,sy)+L(sx-3,sy,sx+5,sy-4)+L(sx+5,sy,sx+11,sy)+Txt(sx-6,sy+8,'35C',4.8);
-    s += Txt(x0+57, sy+2.5, lbl.slice(0,30), 6.0);
+    s += Txt(x0+56, sy+2.5, lbl.slice(0,32), 6.5, C.BLK, true);
   });
   return s;
 }
 
 function buildAcronyms(sp) {
-  let s = drawFrame(sp, 'DEVICE NUMBERS & COMMON ACRONYMS', 4, 'R05');
-  s += Txt(260, 46, 'STANDARD DEVICE NUMBER & COMMON ACRONYMS', 9.5, C.BLK, true);
+  let s = drawFrame(sp, t('sh_acronyms'), 4, 'R05');
+  s += Txt(421, 46, t('sh_acronyms'), 10.5, C.BLK, true, 'middle');
   const acrs = [
     ['L1,L2,L3,N,PE','3-Phase Power, Neutral & Earth (PE)'],['MCCB','Molded Case Circuit Breaker'],['MCB','Miniature Circuit Breaker'],
     ['QFR','Motor Protection Circuit Breaker'],['KMR','Magnetic Contactor'],['FUR','Control Fuse Holder (1P / 3P)'],
@@ -863,8 +1122,8 @@ function buildAcronyms(sp) {
     ['XR3','0-10VDC Analog Signal Terminal'],['XR4','External Control & Fault Terminal'],['PE-BAR / N-BAR','Copper Earth Ground & Neutral Busbars'],['IP55','Dust & Water Jet Protection Rating']
   ];
   s += R(42, 54, 373, 438, C.BLK, 'none', 0.8)+R(42, 54, 373, 18, C.BLK, C.BG, 0.7)+L(135, 54, 135, 492, C.BLK, 0.6);
-  s += Txt(55, 66, 'ACRONYM', 6.8, C.BLK, true)+Txt(195, 66, 'DESIGNATION', 6.8, C.BLK, true);
-  acrs.forEach(([a,d], i) => { const ry = 72+i*19; s += L(42,ry+19,415,ry+19,C.GRY,0.35)+Txt(50,ry+13,a,6.2,C.BLU,true)+Txt(142,ry+13,d,6.3); });
+  s += Txt(55, 66, 'ACRONYM', 7.4, C.BLU, true)+Txt(195, 66, 'DESIGNATION', 7.4, C.BLU, true);
+  acrs.forEach(([a,d], i) => { const ry = 72+i*19; s += L(42,ry+19,415,ry+19,C.GRY,0.35)+Txt(50,ry+13,a,6.8,C.BLU,true)+Txt(142,ry+13,d,6.8,C.BLK,true); });
 
   const devs = [
     ['1','Master Element'],['2','Time-Delay Starting / Closing Relay'],['3','Checking / Interlocking Relay'],['4','Master Contactor'],['5','Stopping Device'],
@@ -874,25 +1133,25 @@ function buildAcronyms(sp) {
     ['59','Overvoltage Relay (PPR1)'],['62','Time-Delay Stopping / Opening Relay'],['74','Alarm Relay (Fault Loop)'],['86','Lockout Relay'],['94','Tripping or Trip-Free Relay']
   ];
   s += R(428, 54, 372, 438, C.BLK, 'none', 0.8)+R(428, 54, 372, 18, C.BLK, C.BG, 0.7)+L(495, 54, 495, 492, C.BLK, 0.6);
-  s += Txt(438, 66, 'DEV NO.', 6.8, C.BLK, true)+Txt(560, 66, 'ANSI / IEEE DEVICE FUNCTION', 6.8, C.BLK, true);
-  devs.forEach(([n,d], i) => { const ry = 72+i*19; s += L(428,ry+19,800,ry+19,C.GRY,0.35)+Txt(452,ry+13,n,6.5,C.RED,true)+Txt(505,ry+13,d,6.5); });
+  s += Txt(438, 66, 'DEV NO.', 7.4, C.RED, true)+Txt(560, 66, 'ANSI / IEEE DEVICE FUNCTION', 7.4, C.BLU, true);
+  devs.forEach(([n,d], i) => { const ry = 72+i*19; s += L(428,ry+19,800,ry+19,C.GRY,0.35)+Txt(452,ry+13,n,7.0,C.RED,true)+Txt(505,ry+13,d,6.8,C.BLK,true); });
   return s;
 }
 
 function buildCubicleSpec(sp) {
-  let s = drawFrame(sp, 'CUBICAL SPECIFICATION (IEC 61439)', 5, 'R06');
-  s += Txt(285, 46, 'CUBICAL & WIRING SPECIFICATION (IEC 61439-1/2)', 9.5, C.BLK, true);
-  s += R(42, 56, 353, 434, C.BLK, 'none', 0.8)+R(42, 56, 353, 20, C.BLK, C.BG, 0.7)+Txt(52, 70, 'TYPE OF CABINET: WALL / FLOOR STANDING PANEL', 7.5, C.BLK, true);
-  s += R(75, 92, 90, 123, C.BLK, 'none', 1.1)+R(83, 100, 74, 107, C.BLK, 'none', 0.7)+R(195, 92, 50, 123, C.BLK, 'none', 1.0)+Cir(220, 125, 14)+Txt(212, 128, 'VF1', 7, C.BLK, true);
-  s += Txt(95, 228, 'FRONT DOOR (IP55)', 6.5, C.BLU, true)+Txt(192, 228, 'SIDE LOUVER + FAN', 6.5, C.BLU, true);
-  s += Txt(260, 130, `SIZE: ${sp.cabSz} mm`, 7.5, C.RED, true)+Txt(260, 146, 'THICKNESS: 1.5 mm', 6.8)+Txt(260, 162, 'GROUND BOLT: M8 Cu (100%)', 6.8, C.GRN);
+  let s = drawFrame(sp, t('sh_cubicle'), 5, 'R06');
+  s += Txt(421, 46, t('sh_cubicle'), 10.5, C.BLK, true, 'middle');
+  s += R(42, 56, 353, 434, C.BLK, 'none', 0.8)+R(42, 56, 353, 20, C.BLK, C.BG, 0.7)+Txt(52, 70, 'TYPE OF CABINET: WALL / FLOOR STANDING PANEL', 7.8, C.BLU, true);
+  s += R(75, 92, 90, 123, C.BLK, 'none', 1.1)+R(83, 100, 74, 107, C.BLK, 'none', 0.7)+R(195, 92, 50, 123, C.BLK, 'none', 1.0)+Cir(220, 125, 14)+Txt(212, 128, 'VF1', 7.5, C.BLK, true);
+  s += Txt(95, 228, 'FRONT DOOR (IP55)', 7.0, C.BLU, true)+Txt(192, 228, 'SIDE LOUVER + FAN', 7.0, C.BLU, true);
+  s += Txt(255, 130, `SIZE: ${sp.cabSz} mm`, 8.0, C.RED, true)+Txt(255, 148, 'THICKNESS: 1.5 mm', 7.4, C.BLK, true)+Txt(255, 166, 'GROUND BOLT: M8 Cu (100%)', 7.2, C.GRN, true);
   [['CONSTRUCTION','[X] BEND & WELD METAL FRAME  (FORM 1)'],['MATERIAL','[X] COLD ROLLED / GALVANIZED STEEL 1.5mm'],
    ['PROTECTION','[X] IP55 (DUST & WATERPROOF GASKET)'],['COLOR / FINISH','[X] RAL 7035 LIGHT GREY (TEXTURE POWDER)'],
    ['COOLING','[X] EXHAUST FAN 4" + INSECT SCREEN + TS1 35C'],['WIREDUCT','[X] SLOTTED PVC WIREDUCT 40x60 mm']].forEach(([k,v],i)=>{
-     const sy = 252 + i*36; s += L(42,sy-10,395,sy-10,C.GRY,0.4)+Txt(52,sy+4,k+':',7,C.BLK,true)+Txt(145,sy+4,v,6.8,C.BLU);
+     const sy = 252 + i*36; s += L(42,sy-10,395,sy-10,C.GRY,0.4)+Txt(52,sy+4,k+':',7.3,C.BLK,true)+Txt(142,sy+4,v,7.1,C.BLU,true);
   });
 
-  s += R(408, 56, 392, 434, C.BLK, 'none', 0.8)+R(408, 56, 392, 20, C.BLK, C.BG, 0.7)+Txt(420, 70, 'BUSBAR, CABLE & WIRE COLOR SPECIFICATION', 7.5, C.BLK, true);
+  s += R(408, 56, 392, 434, C.BLK, 'none', 0.8)+R(408, 56, 392, 20, C.BLK, C.BG, 0.7)+Txt(420, 70, 'BUSBAR, CABLE & WIRE COLOR SPECIFICATION', 7.8, C.BLU, true);
   [['PHASE MARKING','L1: BROWN | L2: BLACK | L3: GREY | N: BLUE | PE: G/Y'],
    ['STANDARD','IEC 60227-01 / 06 (THW / VSF) & SHIELDED LIY-CY'],
    ['MAIN POWER','VSF 1x10 / 1x16 / 1x25 sq.mm (See Load Calc R08)'],
@@ -903,36 +1162,36 @@ function buildCubicleSpec(sp) {
    ['GROUNDING (PE)','PE-BAR 15x3mm Cu + VSF 1x6/2.5 GREEN/YELLOW TO MOTORS'],
    ['FERRULE MARKER','PVC SLEEVE MARKERS AT EVERY TERMINAL & DEVICE'],
    ['AMBIENT RATING','40C AMBIENT / 90C MAX BUSBAR / TEMP RISE 50K']].forEach(([k,v],i)=>{
-     const sy = 94 + i*38; s += L(408,sy+24,800,sy+24,C.GRY,0.4)+Txt(418,sy+8,k,7,C.BLK,true)+Txt(528,sy+8,v,6.4,k.includes('PE')?C.GRN:C.BLK);
+     const sy = 94 + i*38; s += L(408,sy+24,800,sy+24,C.GRY,0.4)+Txt(418,sy+8,k,7.2,C.BLK,true)+Txt(526,sy+8,v,6.8,k.includes('PE')?C.GRN:(k.includes('SIGNAL')||k.includes('MAIN')?C.BLU:C.BLK),true);
   });
   return s;
 }
 
 function buildBom(sp) {
-  let s = drawFrame(sp, 'EQUIPMENT LIST & QUANTITY (BOM)', 6, 'R07');
-  s += Txt(315, 45, 'EQUIPMENT LIST & QUANTITY', 10, C.BLK, true);
+  let s = drawFrame(sp, t('sh_bom'), 6, 'R07');
+  s += Txt(421, 45, t('bom_t'), 11, C.BLK, true, 'middle');
   const bm = sp.bm;
 
   // 1. Breaker Equipment
-  s += R(42,54,240,258,C.BLK,'none',0.8)+R(42,54,240,16,C.BLK,C.BG,0.7)+Txt(112,65,'BREAKER EQUIPMENT',7,C.BLK,true);
-  const bCols = [42, 66, 152, 178, 232, 282];
+  s += R(42,54,240,258,C.BLK,'none',0.8)+R(42,54,240,16,C.BLK,C.BG,0.7)+Txt(162,65,t('bom_b1'),7.8,C.BLU,true,'middle');
+  const bCols = [42, 62, 152, 178, 224, 282];
   s += R(42,70,240,14,C.BLK,C.BG,0.6);
   for(let i=1;i<bCols.length-1;i++) s += L(bCols[i],70,bCols[i],312,C.BLK,0.5);
-  ['IT','CIRCUIT BREAKER','Ic','MODEL','NAME PLATE'].forEach((h,i)=>s+=Txt(bCols[i]+3,80,h,5.5,C.BLK,true));
+  ['IT','CIRCUIT BREAKER','Ic','MODEL','NAME PLATE'].forEach((h,i)=>s+=Txt(bCols[i]+3,80,h,6.4,C.BLK,true));
   const mainModShort = sp.mainBrk >= 50 ? bm.mccb.split(' ').pop() : bm.mcb.split(' ').pop();
   const bRows = [['M', `${sp.mainType} 3P ${sp.mainBrk}AT`, sp.mainIcu, mainModShort, 'MAIN CB']];
   for (let g=0;g<sp.grpCnt;g++) bRows.push([`F${g+1}`,`MCB 3P ${sp.nAc>0?'25AT':'20AT'}`,'6kA',bm.mcb.split(' ').pop(),`FAN ${g*4+1}-${Math.min((g+1)*4,sp.n)}`]);
-  bRows.push(['C1','MCB 2P 6AT','6kA',bm.mcb.split(' ').pop(),`CONTROL ${sp.ctrlV}`]);
-  bRows.slice(0,12).forEach((r,idx)=>{ const ry=84+idx*18.5; s+=L(42,ry+18.5,282,ry+18.5,C.GRY,0.35); r.forEach((v,ci)=>s+=Txt(bCols[ci]+3,ry+12,v.slice(0,16),5.2)); });
+  bRows.push(['C1','MCB 2P 6AT','6kA',bm.mcb.split(' ').pop(),`CTRL ${sp.ctrlV}`]);
+  bRows.slice(0,12).forEach((r,idx)=>{ const ry=84+idx*18.5; s+=L(42,ry+18.5,282,ry+18.5,C.GRY,0.35); r.forEach((v,ci)=>s+=Txt(bCols[ci]+3,ry+12.8,v.slice(0,20),6.3,ci===1&&idx===0?C.BLU:(ci===2&&idx===0?C.RED:C.BLK),true)); });
 
   // 2. Metering & Protection
-  s += R(286,54,240,258,C.BLK,'none',0.8)+R(286,54,240,16,C.BLK,C.BG,0.7)+Txt(348,65,'METERING & PROTECTION',7,C.BLK,true);
-  const mCols = [286, 306, 424, 446, 470, 526];
+  s += R(286,54,240,258,C.BLK,'none',0.8)+R(286,54,240,16,C.BLK,C.BG,0.7)+Txt(406,65,t('bom_b2'),7.8,C.BLU,true,'middle');
+  const mCols = [286, 304, 424, 446, 472, 526];
   s += R(286,70,240,14,C.BLK,C.BG,0.6);
   for(let i=1;i<mCols.length-1;i++) s += L(mCols[i],70,mCols[i],312,C.BLK,0.5);
-  ['IT','DESCRIPTION','QTY','UNIT','MAKER'].forEach((h,i)=>s+=Txt(mCols[i]+3,80,h,5.5,C.BLK,true));
+  ['IT','DESCRIPTION','QTY','UNIT','MAKER'].forEach((h,i)=>s+=Txt(mCols[i]+3,80,h,6.4,C.BLK,true));
   const mRows = [
-    ['1','Phase Pilot Lamp 22mm R/Y/B','3','PCS','SCHNEIDER/STD'],
+    ['1','Phase Pilot Lamp 22mm R/Y/B','3','PCS','SCHNEIDER'],
     ['2','Control Fuse 6A + Base (FUR)',String(sp.grpCnt+2),'SET','KSP STD'],
     ['3',`Phase Relay ${sp.pprMod}`,'1','PCS',sp.pprMod.split(' ')[0].toUpperCase()],
     ['4','P24 Fault Lamp 22mm Red',sp.nEc>0?'1':'0','PCS','KSP STD'],
@@ -946,14 +1205,14 @@ function buildBom(sp) {
   if (sp.hasRs485) {
     mRows.push(['9', 'RS485 Surge + 3P Term', '1', 'SET', 'KSP STD']);
   }
-  mRows.forEach((r,idx)=>{ const ry=84+idx*18.5; s+=L(286,ry+18.5,526,ry+18.5,C.GRY,0.35); r.forEach((v,ci)=>s+=Txt(mCols[ci]+3,ry+12,v.slice(0,26),5.0)); });
+  mRows.forEach((r,idx)=>{ const ry=84+idx*18.5; s+=L(286,ry+18.5,526,ry+18.5,C.GRY,0.35); r.forEach((v,ci)=>s+=Txt(mCols[ci]+3,ry+12.8,v.slice(0,30),6.2,ci===2?C.BLU:C.BLK,ci===1||ci===2||ci===4)); });
 
   // 3. Control Equipment
-  s += R(530,54,270,258,C.BLK,'none',0.8)+R(530,54,270,16,C.BLK,C.BG,0.7)+Txt(620,65,'CONTROL EQUIPMENT',7,C.BLK,true);
-  const cCols = [530, 548, 692, 716, 742, 800];
+  s += R(530,54,270,258,C.BLK,'none',0.8)+R(530,54,270,16,C.BLK,C.BG,0.7)+Txt(665,65,t('bom_b3'),7.8,C.BLU,true,'middle');
+  const cCols = [530, 548, 700, 722, 748, 800];
   s += R(530,70,270,14,C.BLK,C.BG,0.6);
   for(let i=1;i<cCols.length-1;i++) s += L(cCols[i],70,cCols[i],312,C.BLK,0.5);
-  ['IT','DESCRIPTION','QTY','UNIT','MAKER'].forEach((h,i)=>s+=Txt(cCols[i]+3,80,h,5.5,C.BLK,true));
+  ['IT','DESCRIPTION','QTY','UNIT','MAKER'].forEach((h,i)=>s+=Txt(cCols[i]+3,80,h,6.4,C.BLK,true));
   const cRows = [
     ['Run/Fault Lamp 22mm G/R', String(sp.n*2), 'PCS', 'KSP STD'],
     ['Selector M-0-A 22mm (SAR)', String(sp.n), 'PCS', 'KSP STD'],
@@ -961,7 +1220,7 @@ function buildBom(sp) {
   ];
   if (sp.nEc>0) cRows.push([`MPCB EC ${bm.mpcb_ec} + Link`, String(sp.nEc), 'SET', bm.mpcb_ec.split(' ')[0]]);
   if (sp.nAc>0) cRows.push([`MPCB AC ${bm.mpcb_ac} + Link`, String(sp.nAc), 'SET', bm.mpcb_ac.split(' ')[0]]);
-  cRows.push(['Aux Contact 1NO+2NC (Fault+OVL)', String(sp.n), 'PCS', bm.mpcb_ec.split(' ')[0]]);
+  cRows.push(['Aux Contact 1NO+2NC (Fault)', String(sp.n), 'PCS', bm.mpcb_ec.split(' ')[0]]);
   cRows.push([`Relay ${sp.ctrlV} + Socket`, String(sp.nEc>0 ? Math.ceil(sp.n/2)+1 : 1), 'SET', 'OMRON/IDEC']);
   if (sp.nEc>0) {
     cRows.push([`Power Supply ${sp.spsSpec}`, '1', 'PCS', sp.spsSpec.split(' ')[0]]);
@@ -969,36 +1228,36 @@ function buildBom(sp) {
     cRows.push(['4-Step SS1 + Speed Vol SIG1', '1', 'SET', 'KSP STD']);
   }
   cRows.push(['Exhaust Fan 4" + TS1 Thermo', '1', 'SET', 'KSP STD']);
-  cRows.push([`Terminals XR1(5P)+XR2(${sp.n*4}P)+XR3/4`, '1', 'LOT', 'KSP STD']);
+  cRows.push([`Terminals XR1(5P)+XR2(${sp.n*4}P)`, '1', 'LOT', 'KSP STD']);
   cRows.push([`PE-BAR & N-BAR (${sp.busSize})`, '2', 'BAR', 'COPPER']);
-  cRows.slice(0,12).forEach((r,idx)=>{ const ry=84+idx*18.5; s+=L(530,ry+18.5,800,ry+18.5,C.GRY,0.35); s+=Txt(cCols[0]+3,ry+12,String(idx+1),5.2); r.forEach((v,ci)=>s+=Txt(cCols[ci+1]+3,ry+12,v.slice(0,26),5.0)); });
+  cRows.slice(0,12).forEach((r,idx)=>{ const ry=84+idx*18.5; s+=L(530,ry+18.5,800,ry+18.5,C.GRY,0.35); s+=Txt(cCols[0]+3,ry+12.8,String(idx+1),6.2,C.BLK,true); r.forEach((v,ci)=>s+=Txt(cCols[ci+1]+3,ry+12.8,v.slice(0,32),6.2,ci===1?C.BLU:C.BLK,ci===0||ci===1||ci===3)); });
 
   // Bottom Busbar Equipment & Rating
-  s += R(42,320,273,172,C.BLK,'none',0.8)+R(42,320,273,16,C.BLK,C.BG,0.7)+Txt(115,331,'BUSBAR EQUIPMENT',7,C.BLK,true);
+  s += R(42,320,273,172,C.BLK,'none',0.8)+R(42,320,273,16,C.BLK,C.BG,0.7)+Txt(178.5,331,t('bom_b4'),7.8,C.BLU,true,'middle');
   [['1','MAIN L1/L2/L3 BUS',`${sp.mainBrk}A`,sp.mainBrk>160?'20x5 mm Cu':'Comb / Cable'],['2','NEUTRAL BUSBAR (N-BAR)','100%',`${sp.busSize}`],
    ['3','GROUND BUSBAR (PE-BAR)','100%',`${sp.busSize}`],['4',`BRANCH BUS (${bm.bus})`,`${sp.grpCnt} PCS`,'4-Slot Comb'],
    ['5','DOOR EARTH STRAP','1 PCS','Braided Cu']].forEach(([bi,bn,ba,bs],idx)=>{
-     const ry=344+idx*24; s+=L(42,ry+20,315,ry+20,C.GRY,0.35)+Txt(48,ry+13,bi,5.8)+Txt(65,ry+13,bn,5.8,bn.includes('GROUND')?C.GRN:C.BLK,true)+Txt(185,ry+13,ba,5.8,C.BLU,true)+Txt(235,ry+13,bs,5.8);
+     const ry=344+idx*24; s+=L(42,ry+20,315,ry+20,C.GRY,0.35)+Txt(48,ry+13.5,bi,6.7,C.BLK,true)+Txt(64,ry+13.5,bn,6.6,bn.includes('GROUND')?C.GRN:C.BLK,true)+Txt(190,ry+13.5,ba,6.8,C.BLU,true)+Txt(236,ry+13.5,bs,6.6,C.BLK,true);
   });
 
-  s += R(320,320,480,172,C.BLK,'none',0.8)+R(320,320,480,16,C.BLK,C.BG,0.7)+Txt(365,331,'BUSBAR RATING IEC 61439-2 (AMBIENT 40C, MAX 90C, 50Hz)',7,C.BLK,true);
+  s += R(320,320,480,172,C.BLK,'none',0.8)+R(320,320,480,16,C.BLK,C.BG,0.7)+Txt(560,331,t('bom_b5'),7.6,C.BLU,true,'middle');
   const rCols=[320,355,435,515,595,680,800];
   s += R(320,336,480,16,C.BLK,C.BG,0.6);
   for(let i=1;i<rCols.length-1;i++) s += L(rCols[i],336,rCols[i],492,C.BLK,0.5);
-  ['ITEM','RATED (A)','SIZE WxT (mm)','AREA (mm2)','1-BAR (A)','REMARK'].forEach((h,i)=>s+=Txt(rCols[i]+5,347,h,5.5,C.BLK,true));
+  ['ITEM','RATED (A)','SIZE WxT (mm)','AREA (mm2)','1-BAR (A)','REMARK'].forEach((h,i)=>s+=Txt(rCols[i]+5,347,h,6.5,C.BLK,true));
   [['1','100 - 160 A','15 x 3 mm','45','210 A','PE-BAR & N-BAR STD'],['2','160 - 250 A','20 x 5 mm','100','355 A','Main Copper Bus'],
    ['3','250 - 400 A','30 x 5 mm','150','491 A','Heavy Feeder Bus'],['4','400 - 630 A','40 x 5 mm','200','626 A','High Load Bus'],['5','630 - 800 A','40 x 10 mm','400','909 A','Industrial Switchboard']]
-  .forEach((rr,idx)=>{ const ry=352+idx*24; s+=L(320,ry+24,800,ry+24,C.GRY,0.35); rr.forEach((v,ci)=>s+=Txt(rCols[ci]+6,ry+15,v,5.8,idx===0?C.BLU:C.BLK,idx===0)); });
+  .forEach((rr,idx)=>{ const ry=352+idx*24; s+=L(320,ry+24,800,ry+24,C.GRY,0.35); rr.forEach((v,ci)=>s+=Txt(rCols[ci]+6,ry+15.5,v,6.8,idx===0?C.BLU:(ci===4?C.RED:C.BLK),true)); });
   return s;
 }
 
 function buildLayout(sp) {
-  let s = drawFrame(sp, 'SWITCHBOARD LAYOUT LOW VOLTAGE', 7, 'R08');
+  let s = drawFrame(sp, t('sh_layout'), 7, 'R08');
   const [wV, hV, dV] = sp.cabSz.split('x').map(Number);
   const sc = Math.min(290.0 / hV, 540.0 / (2.0 * wV + dV));
   const fw = wV * sc, fh = hV * sc, iw = fw, ih = fh, sw = dV * sc, sh = fh, tdh = Math.min(65.0, dV * sc);
   const scaleDenom = (1.0 / (sc * 25.4 / 72.0)).toFixed(1);
-  s += Txt(235, 44, `SWITCHBOARD LAYOUT (${wV}x${hV}x${dV} mm IP55 | TRUE SCALE 1:${scaleDenom})`, 9.2, C.BLK, true);
+  s += Txt(421, 44, t('lay_title', {cab: `${wV}x${hV}x${dV}`, sc: scaleDenom}), 9.2, C.BLK, true, 'middle');
 
   const fx0 = 62, fy0 = 66, ix0 = fx0 + fw + 32, iy0 = 66, sx0 = ix0 + iw + 24;
   // Front View
@@ -1045,9 +1304,9 @@ function buildLayout(sp) {
     s += drawQuarterLamp(cx, cyb+rowPitch*0.27, C.GRN, showMiniLbl?'RUN':'', showMiniLbl?'G':'', rF);
     s += drawRealisticSelector(cx, cyb+rowPitch*0.58, tag, sF);
   }
-  s += R(fx0+fw/2-34,fy0+fh+8,68,13,C.BLK,'none',0.7)+Txt(fx0+fw/2,fy0+fh+17.5,'FRONT VIEW',6.2,C.BLK,true,'middle');
+  s += R(fx0+fw/2-38,fy0+fh+8,76,13,C.BLK,'none',0.7)+Txt(fx0+fw/2,fy0+fh+17.5,t('lay_front'),5.8,C.BLK,true,'middle');
   s += R(fx0,fy0+fh+32,fw,tdh,C.BLK,'#f7f7f9',0.9)+R(fx0+10,fy0+fh+38,fw-20,Math.max(4,tdh-12),C.BLK,'none',0.5,'3 2');
-  s += R(fx0+fw/2-42,fy0+fh+36+tdh,84,13,C.BLK,'none',0.7)+Txt(fx0+fw/2,fy0+fh+45.5+tdh,'TOP & BOTTOM VIEW',5.8,C.BLK,true,'middle');
+  s += R(fx0+fw/2-44,fy0+fh+36+tdh,88,13,C.BLK,'none',0.7)+Txt(fx0+fw/2,fy0+fh+45.5+tdh,t('lay_tb'),5.5,C.BLK,true,'middle');
 
   // Infront View
   s += L(ix0,iy0-8,ix0+iw,iy0-8,C.GRY,0.5)+Txt(ix0+iw/2,iy0-11,String(wV),6.5,C.GRY,false,'middle');
@@ -1092,7 +1351,7 @@ function buildLayout(sp) {
   s += R(ix0+10,r5y,iw*0.64-10,r5h,C.BLK,'#f2f2f2',0.65)+Txt(ix0+14,r5y+r5h*0.68,'XR3 + XR4',4.5,C.BLK,true);
   s += R(ix0+iw*0.67,r5y,iw*0.14,r5h,C.BLU,'#e6f0ff',0.7)+Txt(ix0+iw*0.68,r5y+r5h*0.68,'N-BAR',4.0,C.BLU,true);
   s += R(ix0+iw*0.83,r5y,iw-10-iw*0.83,r5h,C.GRN,'#e0fae6',0.8)+Txt(ix0+iw*0.835,r5y+r5h*0.68,'PE-BAR',4.0,C.GRN,true);
-  s += R(ix0+iw/2-38,iy0+ih+8,76,13,C.BLK,'none',0.7)+Txt(ix0+iw/2,iy0+ih+17.5,'INFRONT VIEW',6.2,C.BLK,true,'middle');
+  s += R(ix0+iw/2-42,iy0+ih+8,84,13,C.BLK,'none',0.7)+Txt(ix0+iw/2,iy0+ih+17.5,t('lay_in'),5.8,C.BLK,true,'middle');
 
   // Side View
   s += L(sx0,iy0-8,sx0+sw,iy0-8,C.GRY,0.5)+Txt(sx0+sw/2,iy0-11,String(dV),6.5,C.GRY,false,'middle');
@@ -1103,19 +1362,19 @@ function buildLayout(sp) {
   s += Cir(sx0+sw/2,iy0+sh*0.16,3.0,C.BLK,'#b3b3b3',0.5)+Txt(sx0+4,iy0+18,'VF1',4.8,C.BLK,true);
   s += R(sx0+sw*0.2,iy0+sh*0.76,sw*0.6,sh*0.14,C.BLK,'none',0.65);
   for(let k=0;k<5;k++) s += L(sx0+sw*0.26,iy0+sh*0.78+k*(sh*0.022),sx0+sw*0.74,iy0+sh*0.78+k*(sh*0.022),C.GRY,0.5);
-  s += R(sx0+sw/2-26,iy0+sh+8,52,13,C.BLK,'none',0.7)+Txt(sx0+sw/2,iy0+sh+17.5,'SIDE VIEW',6.0,C.BLK,true,'middle');
+  s += R(sx0+sw/2-32,iy0+sh+8,64,13,C.BLK,'none',0.7)+Txt(sx0+sw/2,iy0+sh+17.5,t('lay_side'),5.6,C.BLK,true,'middle');
 
-  const bx0 = Math.max(sx0 + sw + 18, 690);
-  s += R(bx0,iy0,800-bx0,185,C.BLK,C.BG,0.8);
-  s += Txt(bx0+6,iy0+16,'CABINET SPEC',6.8,C.BLU,true)+Txt(bx0+6,iy0+34,`W: ${wV} mm`,6.5,C.BLK,true)+Txt(bx0+6,iy0+48,`H: ${hV} mm`,6.5,C.BLK,true)+Txt(bx0+6,iy0+62,`D: ${dV} mm`,6.5,C.BLK,true);
-  s += Txt(bx0+6,iy0+78,`SCALE 1:${scaleDenom}`,6.2,C.RED,true)+Txt(bx0+6,iy0+98,'IP55 RAL 7035',6.0,C.GRY)+Txt(bx0+6,iy0+112,'1.5mm Steel',6.0,C.GRY);
-  s += Txt(bx0+6,iy0+134,'PE-BAR: 15x3 Cu',5.8,C.GRN,true)+Txt(bx0+6,iy0+148,'N-BAR : 15x3 Cu',5.8,C.BLU,true)+Txt(bx0+6,iy0+164,'Duct  : 40x60mm',5.8);
+  const bx0 = Math.max(sx0 + sw + 18, 684);
+  s += R(bx0,iy0,800-bx0,192,C.BLK,C.BG,0.8);
+  s += Txt(bx0+6,iy0+17,t('lay_spec'),7.6,C.BLU,true)+Txt(bx0+6,iy0+36,`W: ${wV} mm`,7.4,C.BLK,true)+Txt(bx0+6,iy0+52,`H: ${hV} mm`,7.4,C.BLK,true)+Txt(bx0+6,iy0+68,`D: ${dV} mm`,7.4,C.BLK,true);
+  s += Txt(bx0+6,iy0+86,`SCALE 1:${scaleDenom}`,7.0,C.RED,true)+Txt(bx0+6,iy0+106,'IP55 RAL 7035',6.8,C.BLK,true)+Txt(bx0+6,iy0+122,'1.5mm Steel',6.8,C.GRY,true);
+  s += Txt(bx0+6,iy0+144,'PE-BAR: 15x3 Cu',6.7,C.GRN,true)+Txt(bx0+6,iy0+160,'N-BAR : 15x3 Cu',6.7,C.BLU,true)+Txt(bx0+6,iy0+176,'Duct  : 40x60mm',6.6,C.BLK,true);
   return s;
 }
 
 function buildLoadCalc(sp) {
-  let s = drawFrame(sp, 'LOAD CALCULATION & CABLE SCHEDULE', 8, 'R09');
-  s += Txt(230, 46, 'ELECTRICAL LOAD CALCULATION, CURRENT & CABLE SIZING SCHEDULE', 9.5, C.BLK, true);
+  let s = drawFrame(sp, t('sh_load'), 8, 'R09');
+  s += Txt(421, 46, t('lc_title'), 10.5, C.BLK, true, 'middle');
   const ecKw = (sp.nEc*sp.ecFan.kw).toFixed(2), ecAmp = (sp.nEc*sp.ecFan.amp).toFixed(2), ecCfm = sp.nEc*sp.ecFan.cfm;
   const acKw = (sp.nAc*sp.acFan.kw).toFixed(2), acAmp = (sp.nAc*sp.acFan.amp).toFixed(2), acCfm = sp.nAc*sp.acFan.cfm;
   const m3hr = Math.round(sp.totalCfm * 1.699);
@@ -1124,20 +1383,21 @@ function buildLoadCalc(sp) {
   const maxGrpAmp = (Math.min(4, sp.n) * (sp.nAc > 0 && sp.nEc > 0 ? Math.max(sp.ecFan.amp, sp.acFan.amp) : (sp.nAc > 0 ? sp.acFan.amp : sp.ecFan.amp))).toFixed(1);
   const fanAmpRng = (sp.nEc > 0 && sp.nAc > 0) ? `${Math.min(sp.ecFan.amp, sp.acFan.amp)} - ${Math.max(sp.ecFan.amp, sp.acFan.amp)} A` : `${sp.nEc > 0 ? sp.ecFan.amp : sp.acFan.amp} A`;
 
-  s += R(42,56,373,192,C.BLK,'none',0.8)+R(42,56,373,18,C.BLK,C.BG,0.7)+Txt(52,69,'1. CONNECTED LOAD & CURRENT CALCULATION (3PH 380V 50Hz)',7,C.BLU,true);
-  [[`EC Fan Motors (${sp.ecFan.kw}kW / ${sp.ecFan.amp}A)`,`${sp.nEc} Units | ${ecKw} kW | ${ecAmp} A | ${ecCfm.toLocaleString()} CFM`],
-   [`AC Fan Motors (${sp.acFan.kw}kW / ${sp.acFan.amp}A)`,`${sp.nAc} Units | ${acKw} kW | ${acAmp} A | ${acCfm.toLocaleString()} CFM`],
+  s += R(42,56,373,192,C.BLK,'none',0.8)+R(42,56,373,18,C.BLK,C.BG,0.7)+Txt(52,69,t('lc_s1'),7.6,C.BLU,true);
+  [[`EC Fan Motors (${sp.ecFan.kw}kW / ${sp.ecFan.amp}A)`,`${sp.nEc} ${t('fan_unit')} | ${ecKw} kW | ${ecAmp} A | ${ecCfm.toLocaleString()} CFM`],
+   [`AC Fan Motors (${sp.acFan.kw}kW / ${sp.acFan.amp}A)`,`${sp.nAc} ${t('fan_unit')} | ${acKw} kW | ${acAmp} A | ${acCfm.toLocaleString()} CFM`],
    ['Control & Cooling Aux (24V+VF1)','0.15 kW | ~0.7 A (1-Phase L1/L3-N)'],
-   ['Total Connected Motor Power',`${sp.totalKw.toFixed(2)} kW (Demand Factor 1.0)`],
-   ['Full Load Running Current (FLC)',`${sp.totalAmp.toFixed(1)} A (3PH 380V, PF 0.85)`],
-   ['Design Current (125% / 80% Rule)',`${sp.iDesign.toFixed(1)} A  -> Select MCB1 >= ${sp.iDesign.toFixed(1)} A`],
-   ['Total Ventilation @ 50 Pa (0.20")',`${sp.totalCfm.toLocaleString()} CFM (${m3hr.toLocaleString()} m3/hr)`]
+   [t('lc_tot_kw'),`${sp.totalKw.toFixed(2)} kW (Demand Factor 1.0)`],
+   [t('lc_flc'),`${sp.totalAmp.toFixed(1)} A (3PH 380V, PF 0.85)`],
+   [t('lc_des'),`${sp.iDesign.toFixed(1)} A  -> MCB1 >= ${sp.iDesign.toFixed(1)} A`],
+   [t('lc_vent'),`${sp.totalCfm.toLocaleString()} CFM (${m3hr.toLocaleString()} m3/hr)`]
   ].forEach(([k,v],idx)=>{
     const ry=74+idx*24.5; s+=L(42,ry+24.5,415,ry+24.5,C.GRY,0.35);
-    s+=Txt(48,ry+16,k,6.2,C.BLK,k.includes('Total')||k.includes('Design'))+Txt(202,ry+16,v,6.1,k.includes('Design')?C.RED:C.BLK,k.includes('Design')||k.includes('Full'));
+    const isB = idx>=3;
+    s+=Txt(48,ry+16,k,6.7,C.BLK,true)+Txt(202,ry+16,v,6.7,idx===5?C.RED:(idx===4?C.BLU:C.BLK),isB);
   });
 
-  s += R(425,56,375,192,C.BLK,'none',0.8)+R(425,56,375,18,C.BLK,C.BG,0.7)+Txt(435,69,'2. PROTECTIVE DEVICE & BUSBAR SIZING SUMMARY',7,C.BLU,true);
+  s += R(425,56,375,192,C.BLK,'none',0.8)+R(425,56,375,18,C.BLK,C.BG,0.7)+Txt(435,69,t('lc_s2'),7.6,C.BLU,true);
   [['Main Breaker (MCB1)',`${sp.mainMod} (In=${sp.mainBrk}A >= ${sp.iDesign}A)`],
    [`Sub-Breakers (MCB2..${sp.grpCnt+1})`,`${sp.grpCnt}x ${sp.bm.mcb} 3P ${sp.nAc>0?'25AT':'20AT'} (4 Fans/Grp)`],
    ['EC Motor MPCB (QFR_EC)',`${sp.bm.mpcb_ec} (2.5-4.0A, Set ${sp.ecFan.amp}A)`],
@@ -1147,14 +1407,14 @@ function buildLoadCalc(sp) {
    ['Control / Phase Relay',`${sp.ctrlV} (${sp.nEc>0?sp.spsSpec:'Direct'}) | ${sp.pprMod}`]
   ].forEach(([k,v],idx)=>{
     const ry=74+idx*24.5; s+=L(425,ry+24.5,800,ry+24.5,C.GRY,0.35);
-    s+=Txt(432,ry+16,k,6.2,C.BLK,true)+Txt(555,ry+16,v.slice(0,48),5.8,k.includes('Ground')?C.GRN:C.BLK);
+    s+=Txt(432,ry+16,k,6.7,C.BLK,true)+Txt(555,ry+16,v.slice(0,46),6.6,k.includes('Ground')?C.GRN:(idx===0?C.BLU:C.BLK),true);
   });
 
-  s += R(42,258,758,234,C.BLK,'none',0.9)+R(42,258,758,18,C.BLK,C.BG,0.8)+Txt(52,271,'3. COMPLETE INTERNAL PANEL WIRING & FIELD CABLE SIZING SCHEDULE (IEC 60227 / IEC 60364)',7.2,C.BLU,true);
+  s += R(42,258,758,234,C.BLK,'none',0.9)+R(42,258,758,18,C.BLK,C.BG,0.8)+Txt(52,271,t('lc_s3'),7.6,C.BLU,true);
   const cCols=[42,168,295,425,488,558,650,800];
   s += R(42,276,758,16,C.BLK,C.BG,0.6);
   for(let i=1;i<cCols.length-1;i++) s += L(cCols[i],276,cCols[i],492,C.BLK,0.5);
-  ['CIRCUIT / PATH','CABLE TYPE & SIZE','CORE / COLOR CODE','LOAD (A)','AMPACITY Iz','TERMINAL / BAR','APPLICATION NOTE'].forEach((h,i)=>s+=Txt(cCols[i]+4,287,h,5.5,C.BLK,true));
+  ['CIRCUIT / PATH','CABLE TYPE & SIZE','CORE / COLOR CODE','LOAD (A)','AMPACITY Iz','TERMINAL / BAR','APPLICATION NOTE'].forEach((h,i)=>s+=Txt(cCols[i]+4,287,h,6.5,C.BLK,true));
   [['Main Incomer (XR1->MCB1)',mWire,'L1:Br L2:Bk L3:Gy N:Bu',`${sp.totalAmp} A`,mIz,'XR1 (Pin 1-4)','3PH+N PVC 70C'],
    ['Earth Ground (PE)',peWire,'Green / Yellow (PE)',`${sp.mainBrk}A Fault`,'PE >= S/2','XR1-5 & PE-BAR','Bonded to Frame & Doors'],
    ['Sub-Feeder (MCB1->MCB2..)',subW,'L1:Br L2:Bk L3:Gy',`${maxGrpAmp} A`,subIz,'Bus / DIN MCB','Per 4-Fan Sub-Group'],
@@ -1170,15 +1430,15 @@ function buildLoadCalc(sp) {
     sp.hasRs485 ? 'Shielded 0-10V & Modbus' : (sp.hasPm ? 'Local Meter (No RS485)' : 'Shielded Twisted Analog')]
   ].forEach((row,idx)=>{
     const ry=292+idx*25.0; s+=L(42,ry+25,800,ry+25,C.GRY,0.35);
-    row.forEach((v,ci)=>s+=Txt(cCols[ci]+4,ry+16,v.slice(0,26),5.8,(idx===1||idx===5)&&[0,1,2,6].includes(ci)?C.GRN:C.BLK,ci<2));
+    row.forEach((v,ci)=>s+=Txt(cCols[ci]+4,ry+16.5,v.slice(0,28),6.7,(idx===1||idx===5)&&[0,1,2,6].includes(ci)?C.GRN:(ci===1?C.BLU:(ci===4?C.RED:C.BLK)),true));
   });
   return s;
 }
 
 function buildSld(sp) {
   const bm = sp.bm;
-  let s = drawFrame(sp, 'SINGLE-LINE DIAGRAM (IEC 60617)', 9, 'R10');
-  s += Txt(45, 48, 'SINGLE-LINE DIAGRAM (IEC 60617) & PRODUCT SPECIFICATION SCHEDULE', 10, C.BLK, true);
+  let s = drawFrame(sp, t('sh_sld'), 9, 'R10');
+  s += Txt(45, 48, t('sh_sld'), 9.8, C.BLK, true);
   const sldCb = (px, py, tag, l1, l2='', isMpcb=false) => {
     let o = L(px,py-14,px,py-6,C.BLK,1.2)+L(px-3,py-9,px+3,py-3,C.BLK,1.0)+L(px-3,py-3,px+3,py-9,C.BLK,1.0)+L(px,py+8,px-6,py-6,C.BLK,1.2)+L(px,py+8,px,py+16,C.BLK,1.2);
     if (isMpcb) o += R(px-10,py-3,5,8,C.BLK,'none',0.8)+L(px-5,py+1,px-2,py+1,C.BLK,0.7);
@@ -1228,7 +1488,8 @@ function buildSld(sp) {
 }
 
 function buildPowerSheet(sp, g, sheetNo) {
-  let s = drawFrame(sp, 'COLLECTION POWER SUPPLY', sheetNo, `R${String(sheetNo+1).padStart(2,'0')}`);
+  const fStart = g*4+1, fEnd = Math.min((g+1)*4, sp.n);
+  let s = drawFrame(sp, t('sh_power', {a: fStart, b: fEnd}), sheetNo, `R${String(sheetNo+1).padStart(2,'0')}`);
   const mWire = sp.mWireS, peWire = sp.peS, subW = sp.subW;
   let busY;
   s += Txt(420, 48, 'MATERIAL: VSF 450/750V Cu/PVC | VCT 450/750V 4C Flex | PE: Green/Yellow', 5.8, C.BLU, true);
@@ -1331,7 +1592,7 @@ function buildProtection(sp, sheetNo) {
   s += Txt(586,213,'1',4.8,C.GRY)+Txt(586,243,'2',4.8,C.GRY)+L(600,236,600,266,C.BLK,0.8)+L(600,266,555,266,C.BLK,0.8)+L(555,266,555,92,C.BLK,0.8)+Dot(555,92,C.BLK,1.8)+Txt(560,262,'2 (L1)',5.0,C.GRY);
 
   // OVERLOAD FAULT LOOP: QFR1 .. QFRn NC (11-12) IN SERIES (auto-wraps to 2 clean rows when n > 16!)
-  s += Txt(170,310,`OVERLOAD FAULT LOOP (QFR1 .. QFR${sp.n} NC 11-12 IN SERIES -> XR4 01/02)`,8,C.RED,true);
+  s += Txt(170,310,t('pr_loop', {n: sp.n}),7.5,C.RED,true);
   const perRow = sp.n <= 16 ? sp.n : Math.ceil(sp.n / 2);
   const nRows = sp.n <= 16 ? 1 : 2;
   const startX = 185, stepX = Math.min(48, 555.0 / Math.max(1, perRow));
@@ -1360,14 +1621,14 @@ function buildProtection(sp, sheetNo) {
       s += L(rowLastX,yBot,rowLastX,yBot+10,C.BLK,0.9) + L(rowLastX,yBot+10,170,yBot+10,C.BLK,0.9) + Txt(154,yBot+12,'02',6.5,C.BLK,true);
     }
   }
-  s += Txt(170,480,'01 / 02 -> XR4/AL OVERLOAD FAULT | WIRE: VSF 1x1.0 sq.mm (NORMAL = NC CLOSED | TRIP = NO OPEN)',7,C.RED,true);
+  s += Txt(170,480,t('pr_note'),6.8,C.RED,true);
   return s;
 }
 
 function build24vIso(sp, sheetNo, isoPage=0) {
   const isoStart = isoPage * 4, isoEnd = Math.min((isoPage + 1) * 4, sp.isoCnt);
   const ecStart = isoStart * 4 + 1, ecEnd = Math.min(isoEnd * 4, sp.nEc);
-  let s = drawFrame(sp, `24VDC & 0-10V ISOLATORS (ISO${isoStart+1}-${isoEnd})`, sheetNo, `R${String(sheetNo+1).padStart(2,'0')}`);
+  let s = drawFrame(sp, t('sh_iso', {a: isoStart+1, b: isoEnd}), sheetNo, `R${String(sheetNo+1).padStart(2,'0')}`);
   if (isoPage === 0) {
     // AC supply L3, N at top
     s += Txt(45,56,'L3',6.5,C.BLK,true)+L(62,54,790,54)+Txt(45,70,'N',6.5,C.BLK,true)+L(62,68,790,68);
@@ -1375,9 +1636,9 @@ function build24vIso(sp, sheetNo, isoPage=0) {
     s += L(91,90,95,104,C.BLK,1.0)+L(111,90,115,104,C.BLK,1.0)+L(82,97,113,97,C.BLK,0.6,'2 2')+Txt(122,95,'MCB4 2P 6AT',6.5,C.BLK,true)+Txt(122,104,'VSF 1x1.0 (220V)',4.9,C.GRY);
 
     // FUNCTION legend box
-    s += R(205,74,195,42,C.BLK,'#f8fafc',0.7,'3 2')+Txt(212,84,'FUNCTION (SS1 4-STEP)',5.6,C.BLU,true);
-    s += Txt(212,93,'1. Motor Running at 100%  |  2. Manual Speed Volume',4.9,C.BLK);
-    s += Txt(212,102,'3. External Controller 0-10V  |  4. Motor Stopped',4.9,C.BLK);
+    s += R(205,74,210,42,C.BLK,'#f8fafc',0.7,'3 2')+Txt(212,84,t('iso_fn'),5.6,C.BLU,true);
+    s += Txt(212,93,t('iso_f1'),4.8,C.BLK);
+    s += Txt(212,102,t('iso_f2'),4.8,C.BLK);
     s += Txt(212,111,'Cable: VSF 1x1.0 (24V) / LIY-CY 2x0.75 (0-10V)',4.8,C.GRY);
 
     // SPS1 24VDC
@@ -1471,14 +1732,14 @@ function build24vIso(sp, sheetNo, isoPage=0) {
 
 function buildLadderSheet(sp, g, sheetNo) {
   const fStart = g*4+1, fEnd = Math.min((g+1)*4, sp.n);
-  let s = drawFrame(sp, `COLLECTION CONTROL (FANS ${fStart}-${fEnd})`, sheetNo, `R${String(sheetNo+1).padStart(2,'0')}`);
+  let s = drawFrame(sp, t('sh_ladder', {a: fStart, b: fEnd}), sheetNo, `R${String(sheetNo+1).padStart(2,'0')}`);
   const fans = []; for(let f=fStart;f<=fEnd;f++) fans.push(f);
   const firstFx = 190, lastFx = 190 + (fans.length-1)*150, lastManX = lastFx - 35, lastOvlX = lastFx + 62;
 
-  s += R(140,48,lastFx+75-140,56,C.BLK,'none',0.8,'4 2')+Txt(150,61,'EXTERNAL CONTROLLER (PLC / SMART PIG DRY CONTACTS) | VSF 1x1.0 sq.mm',6.6,C.GRY,true)+L(firstFx,70,lastFx,70,C.BLK,0.7);
+  s += R(140,48,lastFx+75-140,56,C.BLK,'none',0.8,'4 2')+Txt(150,61,t('ld_ext'),6.4,C.GRY,true)+L(firstFx,70,lastFx,70,C.BLK,0.7);
   s += Txt(40,133,sp.ctrlV==='24VDC'?'+24V':'L1-F',7,C.RED,true)+L(72,130,117,130,C.RED,0.9)+L(117,130,117,138,C.RED,0.9)+R(110,138,14,20)+L(117,138,117,158,C.BLK,0.7);
   s += Txt(128,148,`FUR${g+3} 1P 2A`,7,C.BLK,true)+Txt(128,158,`VSF 1x1.0 (${sp.ctrlV})`,5.2,C.GRY)+L(117,158,117,168,C.RED,0.9)+L(117,168,lastOvlX,168,C.RED,0.9);
-  s += Txt(40,458,sp.ctrlV==='24VDC'?'0V':'N',7,C.BLU,true)+L(72,455,lastOvlX,455,C.BLU,1.0)+Txt(76,449,`Return: VSF 1x1.0 sq.mm (${sp.ctrlV==='24VDC'?'0V Blue':'N Blue'})`,5.2,C.BLU);
+  s += Txt(40,458,sp.ctrlV==='24VDC'?'0V':'N',7,C.BLU,true)+L(72,455,lastOvlX,455,C.BLU,1.0)+Txt(76,449,t('ld_ret', {v: sp.ctrlV==='24VDC'?'0V Blue':'N Blue'}),5.2,C.BLU);
 
   fans.forEach((fnum) => {
     const fx = 190 + (fnum - fStart)*150, hasRy = sp.nEc > 0;
@@ -1513,7 +1774,7 @@ function buildLadderSheet(sp, g, sheetNo) {
 }
 
 function buildTerminals(sp, sheetNo) {
-  let s = drawFrame(sp, 'COLLECTION TERMINALS', sheetNo, 'END');
+  let s = drawFrame(sp, t('sh_term'), sheetNo, 'END');
   s += drawTerminalStrip(65, 85, 'XR1', ['MCB1-1','MCB1-3','MCB1-5','N-BAR','PE-BAR'], ['PWR L1','PWR L2','PWR L3','NEUTRAL','GROUND (PE)'], 13);
 
   const xr2Top=[], xr2Bot=[];
@@ -1554,10 +1815,10 @@ function buildTerminals(sp, sheetNo) {
     s += drawTerminalStrip(195, 466, 'XR4B', xr4Top.slice(mid4), xr4Bot.slice(mid4), Math.min(12.0, 380.0 / (xr4Top.length - mid4)));
   }
 
-  s += R(52,230,93,115,C.GRN,'#f2fcf5',0.8)+Txt(58,246,'BUSBARS (R07)',6.8,C.GRN,true)+Txt(58,264,`PE-BAR: ${sp.busSize}`,5.8,C.GRN,true)+Txt(58,276,`Earth (${sp.busAmp})`,5.6);
-  s += Txt(58,294,`N-BAR: ${sp.busSize}`,5.8,C.BLU,true)+Txt(58,306,'Neutral Busbar',5.6)+Txt(58,326,'All F1..Fn VCT 4C',5.5,C.GRY)+Txt(58,336,'include PE wire!',5.5,C.GRN,true);
+  s += R(52,230,93,115,C.GRN,'#f2fcf5',0.8)+Txt(58,246,t('tm_bus'),6.6,C.GRN,true)+Txt(58,264,`PE-BAR: ${sp.busSize}`,5.8,C.GRN,true)+Txt(58,276,`Earth (${sp.busAmp})`,5.6);
+  s += Txt(58,294,`N-BAR: ${sp.busSize}`,5.8,C.BLU,true)+Txt(58,306,'Neutral Busbar',5.6)+Txt(58,326,'All F1..Fn VCT 4C',5.5,C.GRY)+Txt(58,336,t('tm_pe_note'),5.5,C.GRN,true);
 
-  s += R(610,48,192,432,C.BLK,C.BG,0.8)+Txt(620,66,'LEGEND & PRODUCT SPECS',8,C.BLU,true);
+  s += R(610,48,192,432,C.BLK,C.BG,0.8)+Txt(620,66,t('tm_leg'),7.5,C.BLU,true);
   const legItems = [
     `${sp.mainType} = ${sp.mainMod}`,`QFR_EC = ${sp.bm.mpcb_ec} + Aux 1NO+2NC`,`QFR_AC = ${sp.bm.mpcb_ac} + Aux 1NO+2NC`,`KMR = ${sp.contMod}`,
     `PPR = ${sp.pprMod}`,`SPS = ${sp.spsSpec}`,'ISO = 4-Ch 0-10V Isolator','RY  = Control Relay 24V/220V','SAR = Selector MAN-0-AUT',
@@ -1590,11 +1851,11 @@ function renderAll() {
 
   // Render Top Metrics
   document.getElementById('topMetrics').innerHTML = `
-    <div class="metric-pill">รวม: <b>${sp.n} ตัว</b> (${sp.nEc} EC + ${sp.nAc} AC)</div>
-    <div class="metric-pill">โหลด: <b>${sp.totalKw} kW</b> / <b>${sp.totalAmp} A</b> (125%: ${sp.iDesign}A)</div>
-    <div class="metric-pill">เมน: <b>${sp.mainBrk}AT</b> | ตู้: <b>${sp.cabSz}</b></div>
-    <div class="metric-pill">ลมรวม: <b>${sp.totalCfm.toLocaleString()} CFM</b></div>
-    ${sp.hasPm ? `<div class="metric-pill">มิเตอร์: <b>PM1 (${sp.hasRs485 ? 'RS485' : 'Local'})</b></div>` : ''}
+    <div class="metric-pill">${t('m_total')}: <b>${sp.n} ${t('fan_unit')}</b> (${sp.nEc} EC + ${sp.nAc} AC)</div>
+    <div class="metric-pill">${t('m_load')}: <b>${sp.totalKw} kW</b> / <b>${sp.totalAmp} A</b> (125%: ${sp.iDesign}A)</div>
+    <div class="metric-pill">${t('m_main')}: <b>${sp.mainBrk}AT</b> | ${t('m_cab')}: <b>${sp.cabSz}</b></div>
+    <div class="metric-pill">${t('m_air')}: <b>${sp.totalCfm.toLocaleString()} CFM</b></div>
+    ${sp.hasPm ? `<div class="metric-pill">${t('m_meter')}: <b>PM1 (${sp.hasRs485 ? 'RS485' : 'Local'})</b></div>` : ''}
   `;
 
   // Render Sheet Tabs
@@ -1606,7 +1867,7 @@ function renderAll() {
   const scroll = document.getElementById('canvasScroll');
   scroll.innerHTML = sheets.map((svgInner, i) => `
     <div class="pdf-sheet ${(!state.showAll && i!==state.activeSheet)?'hidden-preview':''}" data-idx="${i}">
-      <svg viewBox="0 0 842 595" xmlns="http://www.w3.org/2000/svg">${svgInner}</svg>
+      <svg viewBox="0 0 842 595" font-family="Sarabun, Tahoma, 'Leelawadee UI', 'Segoe UI', 'Microsoft YaHei', 'PingFang SC', Arial, sans-serif" data-cad-font="KSP-Font.shx" xmlns="http://www.w3.org/2000/svg">${svgInner}</svg>
     </div>
   `).join('');
 
@@ -1628,7 +1889,7 @@ function applyZoom() {
 
 function goSheet(i) { state.activeSheet = i; state.showAll = false; renderAll(); }
 function stepSheet(d) { state.activeSheet = Math.max(0, Math.min(computeSpec().totalSheets - 1, state.activeSheet + d)); state.showAll = false; renderAll(); }
-function toggleAllView() { state.showAll = !state.showAll; document.getElementById('btnAllView').textContent = state.showAll ? 'ดูทีละหน้า' : 'ดูทุกหน้า'; renderAll(); }
+function toggleAllView() { state.showAll = !state.showAll; document.getElementById('btnAllView').textContent = state.showAll ? t('ui_viewone') : t('ui_viewall'); renderAll(); }
 
 function setMode(m) {
   state.mode = m;
@@ -1695,6 +1956,7 @@ function printFullReport() {
 
 function savePreset() {
   localStorage.setItem('ksp_offline_studio_v1', JSON.stringify({
+    lang: state.lang,
     ec: document.getElementById('inEcCount').value, ac: document.getElementById('inAcCount').value,
     bkey: state.bkey, cab: document.getElementById('selCab').value,
     ctrlV: document.getElementById('selCtrlV').value, ppr: document.getElementById('selPpr').value,
@@ -1703,7 +1965,7 @@ function savePreset() {
     customer: document.getElementById('inCustomer').value, code: document.getElementById('inCode').value,
     draftman: document.getElementById('inDraftman').value, approved: document.getElementById('inApproved').value
   }));
-  alert('บันทึกค่า Preset แบบ Offline เรียบร้อยแล้ว');
+  alert(t('saved_msg'));
 }
 
 function resetPreset() {
@@ -1715,6 +1977,7 @@ function loadSavedPreset() {
   try {
     if (location.hash && location.hash.length > 2) {
       const p = new URLSearchParams(location.hash.slice(1));
+      if (p.get('lang') && I18N[p.get('lang')]) state.lang = p.get('lang');
       if (p.has('ec')) document.getElementById('inEcCount').value = p.get('ec');
       if (p.has('ac')) document.getElementById('inAcCount').value = p.get('ac');
       if (p.get('ecMod')) document.getElementById('selEcModel').value = p.get('ecMod');
@@ -1730,6 +1993,7 @@ function loadSavedPreset() {
     const raw = localStorage.getItem('ksp_offline_studio_v1');
     if (!raw) return;
     const d = JSON.parse(raw);
+    if (d.lang && I18N[d.lang]) state.lang = d.lang;
     if (d.ec !== undefined) document.getElementById('inEcCount').value = d.ec;
     if (d.ac !== undefined) document.getElementById('inAcCount').value = d.ac;
     if (d.cab) document.getElementById('selCab').value = d.cab;
@@ -1789,10 +2053,11 @@ function exportCsvBom() {
 window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('uiLogo').src = KSP_LOGO_B64;
   document.getElementById('fanPresets').innerHTML = [4,6,8,10,12,14,16,18,20,24,28,32].map(n =>
-    `<button class="chip ${n===8?'active':''}" data-n="${n}" onclick="setPresetTotal(${n})">${n} ตัว</button>`
+    `<button class="chip ${n===8?'active':''}" data-n="${n}" onclick="setPresetTotal(${n})">${n} ${t('fan_unit')}</button>`
   ).join('');
   ['inCustomer','inCode','inDate','inDraftman','inApproved'].forEach(id => document.getElementById(id).addEventListener('input', renderAll));
   loadSavedPreset();
+  applyUiLanguage();
   renderAll();
 });
 window.addEventListener('resize', () => { if(document.getElementById('selZoom').value==='fit') applyZoom(); });
