@@ -616,7 +616,19 @@ function computeSpec() {
   let ctrlV = document.getElementById('selCtrlV').value;
   if (ctrlV === 'auto') ctrlV = nEc > 0 ? '24VDC' : '220VAC';
   const contMod = ctrlV === '24VDC' ? bm.cont_24 : bm.cont_220;
-  const mainMod = mainBrk >= 50 ? `${bm.mccb} 3P ${mainBrk}AT` : `${bm.mcb} 3P ${mainBrk}AT`;
+  const isMccb = mainBrk >= 50;
+  const mainType = isMccb ? 'MCCB' : 'MCB';
+  const mainIcu = isMccb ? (bm.icu.includes('/') ? bm.icu.split('/')[1] : bm.icu) : bm.icu.split('/')[0];
+  const mainMod = isMccb ? `${bm.mccb} 3P ${mainBrk}AT` : `${bm.mcb} 3P ${mainBrk}AT`;
+  const spsSpec = (nEc > 0 && n > 20) ? bm.sps.replace('120', '240').replace('5A', '10A') : bm.sps;
+  const isoPages = nEc > 0 ? Math.ceil(isoCnt / 4) : 0;
+
+  let mWire='VSF 1x10 sq.mm', mWireS='VSF 1x10', mIz='63 A', peWire='VSF 1x10 sq.mm (G/Y)', peS='1x10', subW='VSF 1x4 sq.mm', subWS='VSF 1x4', subIz='34 A', busSize='15x3 mm Cu', busAmp='210 A';
+  if (mainBrk > 160) { mWire='VSF 1x120 sq.mm'; mWireS='VSF 1x120'; mIz='290 A'; peWire='VSF 1x70 sq.mm (G/Y)'; peS='1x70'; subW='VSF 1x6 sq.mm'; subWS='VSF 1x6'; subIz='44 A'; busSize='20x5 mm Cu'; busAmp='355 A'; }
+  else if (mainBrk > 100) { mWire='VSF 1x70 sq.mm'; mWireS='VSF 1x70'; mIz='215 A'; peWire='VSF 1x35 sq.mm (G/Y)'; peS='1x35'; subW='VSF 1x6 sq.mm'; subWS='VSF 1x6'; subIz='44 A'; }
+  else if (mainBrk > 63) { mWire='VSF 1x35 sq.mm'; mWireS='VSF 1x35'; mIz='138 A'; peWire='VSF 1x16 sq.mm (G/Y)'; peS='1x16'; subW='VSF 1x6 sq.mm'; subWS='VSF 1x6'; subIz='44 A'; }
+  else if (mainBrk > 32) { mWire='VSF 1x16 sq.mm'; mWireS='VSF 1x16'; mIz='85 A'; peWire='VSF 1x16 sq.mm (G/Y)'; peS='1x16'; subW='VSF 1x4 / 1x6'; subWS='VSF 1x4'; subIz='34-44 A'; }
+
   const pprMod = document.getElementById('selPpr').value;
   const hasPm = !!state.hasPm;
   const hasRs485 = hasPm && !!state.useRs485 && nEc > 0;
@@ -657,14 +669,16 @@ function computeSpec() {
   const selCab = document.getElementById('selCab').value;
   const cabSz = selCab === 'auto' ? autoCab : selCab;
   const warnEl = document.getElementById('cabWarn');
+  const warns = [];
   if (selCab !== 'auto' && n > (CAB_MAX[cabSz] || 12)) {
-    warnEl.style.display = 'block';
-    warnEl.textContent = `⚠️ ตู้ ${cabSz} mm รองรับได้ ~${CAB_MAX[cabSz]} ตัว แต่คุณเลือก ${n} ตัว แนะนำเลือก ${autoCab} mm`;
-  } else {
-    warnEl.style.display = 'none';
+    warns.push(`⚠️ ตู้ ${cabSz} mm รองรับได้ ~${CAB_MAX[cabSz]} ตัว แต่เลือก ${n} ตัว (แนะนำ ${autoCab})`);
   }
+  if (nEc > 0 && ecFan.amp > 4.0) warns.push(`⚠️ กระแส EC (${ecFan.amp}A) เกินช่วง MPCB EC (2.5-4.0A) ควรปรับพิกัด MPCB`);
+  if (nAc > 0 && acFan.amp > 6.3) warns.push(`⚠️ กระแส AC (${acFan.amp}A) เกินช่วง MPCB AC (4.0-6.3A) ควรปรับพิกัด MPCB`);
+  if (warns.length) { warnEl.style.display = 'block'; warnEl.innerHTML = warns.join('<br>'); }
+  else { warnEl.style.display = 'none'; }
 
-  const totalSheets = 8 + 1 + grpCnt + 1 + (hasIso ? 1 : 0) + grpCnt + 1;
+  const totalSheets = 8 + 1 + grpCnt + 1 + isoPages + grpCnt + 1;
   const customCode = document.getElementById('inCode').value.trim();
   const codeNo = customCode || `KSP-${bm.codeTag}-${mode.slice(0,3).toUpperCase()}-${String(n).padStart(2,'0')}`;
 
@@ -682,13 +696,15 @@ function computeSpec() {
   let sCur = 10;
   for (let g = 0; g < grpCnt; g++) sheetList.push([`R${String(sCur++).padStart(2,'0')}`, `POWER WIRING (FANS ${g*4+1}-${Math.min((g+1)*4,n)})`]);
   sheetList.push([`R${String(sCur++).padStart(2,'0')}`, 'PROTECTION, PHASE RELAY & FAULT LOOP']);
-  if (hasIso) sheetList.push([`R${String(sCur++).padStart(2,'0')}`, '24VDC POWER SUPPLY & 0-10V ISOLATORS']);
+  for (let ip = 0; ip < isoPages; ip++) sheetList.push([`R${String(sCur++).padStart(2,'0')}`, `24VDC & 0-10V ISOLATORS (ISO${ip*4+1}-${Math.min((ip+1)*4,isoCnt)})`]);
   for (let g = 0; g < grpCnt; g++) sheetList.push([`R${String(sCur++).padStart(2,'0')}`, `CONTROL LADDER (FANS ${g*4+1}-${Math.min((g+1)*4,n)})`]);
   sheetList.push([`R${String(sCur).padStart(2,'0')}`, 'COLLECTION TERMINALS (XR1-XR4) & LEGEND']);
 
   return {
     n, nEc, nAc, mode, ecFan, acFan, bm, totalKw, totalAmp, totalCfm, iDesign,
-    mainBrk, grpCnt, isoCnt, hasIso, ctrlV, contMod, mainMod, pprMod, hasPm, hasRs485, pmMod, ctRatio, cabSz,
+    mainBrk, mainType, mainIcu, grpCnt, isoCnt, isoPages, hasIso, ctrlV, contMod, mainMod, spsSpec, pprMod,
+    mWire, mWireS, mIz, peWire, peS, subW, subWS, subIz, busSize, busAmp,
+    hasPm, hasRs485, pmMod, ctRatio, cabSz,
     totalSheets, codeNo, sheetList,
     customer: document.getElementById('inCustomer').value.trim(),
     dateStr: document.getElementById('inDate').value.trim() || '2026-11',
@@ -903,7 +919,8 @@ function buildBom(sp) {
   s += R(42,70,240,14,C.BLK,C.BG,0.6);
   for(let i=1;i<bCols.length-1;i++) s += L(bCols[i],70,bCols[i],312,C.BLK,0.5);
   ['IT','CIRCUIT BREAKER','Ic','MODEL','NAME PLATE'].forEach((h,i)=>s+=Txt(bCols[i]+3,80,h,5.5,C.BLK,true));
-  const bRows = [['M', `MCCB 3P ${sp.mainBrk}AT`, bm.icu.split('/')[0], bm.mccb.split(' ').pop(), 'MAIN CB']];
+  const mainModShort = sp.mainBrk >= 50 ? bm.mccb.split(' ').pop() : bm.mcb.split(' ').pop();
+  const bRows = [['M', `${sp.mainType} 3P ${sp.mainBrk}AT`, sp.mainIcu, mainModShort, 'MAIN CB']];
   for (let g=0;g<sp.grpCnt;g++) bRows.push([`F${g+1}`,`MCB 3P ${sp.nAc>0?'25AT':'20AT'}`,'6kA',bm.mcb.split(' ').pop(),`FAN ${g*4+1}-${Math.min((g+1)*4,sp.n)}`]);
   bRows.push(['C1','MCB 2P 6AT','6kA',bm.mcb.split(' ').pop(),`CONTROL ${sp.ctrlV}`]);
   bRows.slice(0,12).forEach((r,idx)=>{ const ry=84+idx*18.5; s+=L(42,ry+18.5,282,ry+18.5,C.GRY,0.35); r.forEach((v,ci)=>s+=Txt(bCols[ci]+3,ry+12,v.slice(0,16),5.2)); });
@@ -944,21 +961,22 @@ function buildBom(sp) {
   ];
   if (sp.nEc>0) cRows.push([`MPCB EC ${bm.mpcb_ec} + Link`, String(sp.nEc), 'SET', bm.mpcb_ec.split(' ')[0]]);
   if (sp.nAc>0) cRows.push([`MPCB AC ${bm.mpcb_ac} + Link`, String(sp.nAc), 'SET', bm.mpcb_ac.split(' ')[0]]);
+  cRows.push(['Aux Contact 1NO+2NC (Fault+OVL)', String(sp.n), 'PCS', bm.mpcb_ec.split(' ')[0]]);
   cRows.push([`Relay ${sp.ctrlV} + Socket`, String(sp.nEc>0 ? Math.ceil(sp.n/2)+1 : 1), 'SET', 'OMRON/IDEC']);
   if (sp.nEc>0) {
-    cRows.push([`Power Supply ${bm.sps}`, '1', 'PCS', bm.sps.split(' ')[0]]);
+    cRows.push([`Power Supply ${sp.spsSpec}`, '1', 'PCS', sp.spsSpec.split(' ')[0]]);
     cRows.push(['4-Ch 0-10V Isolator (ISO)', String(sp.isoCnt), 'PCS', 'KSP STD']);
     cRows.push(['4-Step SS1 + Speed Vol SIG1', '1', 'SET', 'KSP STD']);
   }
   cRows.push(['Exhaust Fan 4" + TS1 Thermo', '1', 'SET', 'KSP STD']);
-  cRows.push([`Terminals XR1(5P)+XR2(${sp.n*4}P)`, '1', 'LOT', 'KSP STD']);
-  cRows.push(['Cu Earth (PE-BAR) & N-BAR', '2', 'BAR', 'COPPER']);
-  cRows.slice(0,12).forEach((r,idx)=>{ const ry=84+idx*18.5; s+=L(530,ry+18.5,800,ry+18.5,C.GRY,0.35); s+=Txt(cCols[0]+3,ry+12,String(idx+1),5.2); r.forEach((v,ci)=>s+=Txt(cCols[ci+1]+3,ry+12,v.slice(0,26),5.2)); });
+  cRows.push([`Terminals XR1(5P)+XR2(${sp.n*4}P)+XR3/4`, '1', 'LOT', 'KSP STD']);
+  cRows.push([`PE-BAR & N-BAR (${sp.busSize})`, '2', 'BAR', 'COPPER']);
+  cRows.slice(0,12).forEach((r,idx)=>{ const ry=84+idx*18.5; s+=L(530,ry+18.5,800,ry+18.5,C.GRY,0.35); s+=Txt(cCols[0]+3,ry+12,String(idx+1),5.2); r.forEach((v,ci)=>s+=Txt(cCols[ci+1]+3,ry+12,v.slice(0,26),5.0)); });
 
   // Bottom Busbar Equipment & Rating
   s += R(42,320,273,172,C.BLK,'none',0.8)+R(42,320,273,16,C.BLK,C.BG,0.7)+Txt(115,331,'BUSBAR EQUIPMENT',7,C.BLK,true);
-  [['1','MAIN L1/L2/L3 BUS',`${sp.mainBrk}A`,'Comb / Cable'],['2','NEUTRAL BUSBAR (N-BAR)','100%','15x3 mm Cu'],
-   ['3','GROUND BUSBAR (PE-BAR)','100%','15x3 mm Cu'],['4',`BRANCH BUS (${bm.bus})`,`${sp.grpCnt} PCS`,'4-Slot Comb'],
+  [['1','MAIN L1/L2/L3 BUS',`${sp.mainBrk}A`,sp.mainBrk>160?'20x5 mm Cu':'Comb / Cable'],['2','NEUTRAL BUSBAR (N-BAR)','100%',`${sp.busSize}`],
+   ['3','GROUND BUSBAR (PE-BAR)','100%',`${sp.busSize}`],['4',`BRANCH BUS (${bm.bus})`,`${sp.grpCnt} PCS`,'4-Slot Comb'],
    ['5','DOOR EARTH STRAP','1 PCS','Braided Cu']].forEach(([bi,bn,ba,bs],idx)=>{
      const ry=344+idx*24; s+=L(42,ry+20,315,ry+20,C.GRY,0.35)+Txt(48,ry+13,bi,5.8)+Txt(65,ry+13,bn,5.8,bn.includes('GROUND')?C.GRN:C.BLK,true)+Txt(185,ry+13,ba,5.8,C.BLU,true)+Txt(235,ry+13,bs,5.8);
   });
@@ -1102,10 +1120,9 @@ function buildLoadCalc(sp) {
   const acKw = (sp.nAc*sp.acFan.kw).toFixed(2), acAmp = (sp.nAc*sp.acFan.amp).toFixed(2), acCfm = sp.nAc*sp.acFan.cfm;
   const m3hr = Math.round(sp.totalCfm * 1.699);
 
-  let mWire='VSF 1x10 sq.mm', mIz='63 A', peWire='VSF 1x10 sq.mm (G/Y)', subW='VSF 1x4 sq.mm', subIz='34 A';
-  if (sp.mainBrk > 100) { mWire='VSF 1x50 sq.mm'; mIz='168 A'; peWire='VSF 1x25 sq.mm (G/Y)'; subW='VSF 1x6 sq.mm'; subIz='44 A'; }
-  else if (sp.mainBrk > 63) { mWire='VSF 1x25 / 1x35 sq.mm'; mIz='115-138 A'; peWire='VSF 1x16 sq.mm (G/Y)'; subW='VSF 1x6 sq.mm'; subIz='44 A'; }
-  else if (sp.mainBrk > 32) { mWire='VSF 1x16 sq.mm'; mIz='85 A'; peWire='VSF 1x16 sq.mm (G/Y)'; subW='VSF 1x4 / 1x6 sq.mm'; subIz='34-44 A'; }
+  const mWire = sp.mWire, mIz = sp.mIz, peWire = sp.peWire, subW = sp.subW, subIz = sp.subIz;
+  const maxGrpAmp = (Math.min(4, sp.n) * (sp.nAc > 0 && sp.nEc > 0 ? Math.max(sp.ecFan.amp, sp.acFan.amp) : (sp.nAc > 0 ? sp.acFan.amp : sp.ecFan.amp))).toFixed(1);
+  const fanAmpRng = (sp.nEc > 0 && sp.nAc > 0) ? `${Math.min(sp.ecFan.amp, sp.acFan.amp)} - ${Math.max(sp.ecFan.amp, sp.acFan.amp)} A` : `${sp.nEc > 0 ? sp.ecFan.amp : sp.acFan.amp} A`;
 
   s += R(42,56,373,192,C.BLK,'none',0.8)+R(42,56,373,18,C.BLK,C.BG,0.7)+Txt(52,69,'1. CONNECTED LOAD & CURRENT CALCULATION (3PH 380V 50Hz)',7,C.BLU,true);
   [[`EC Fan Motors (${sp.ecFan.kw}kW / ${sp.ecFan.amp}A)`,`${sp.nEc} Units | ${ecKw} kW | ${ecAmp} A | ${ecCfm.toLocaleString()} CFM`],
@@ -1126,8 +1143,8 @@ function buildLoadCalc(sp) {
    ['EC Motor MPCB (QFR_EC)',`${sp.bm.mpcb_ec} (2.5-4.0A, Set ${sp.ecFan.amp}A)`],
    ['AC Motor MPCB (QFR_AC)',`${sp.bm.mpcb_ac} (4.0-6.3A, Set ${sp.acFan.amp}A)`],
    ['Control Breaker (MCB4)','2P 6AT (Protects 24VDC Supply & Ctrl)'],
-   ['Neutral & Ground Busbars',`N-BAR & PE-BAR 15x3mm Cu (210A >= ${sp.mainBrk}A)`],
-   ['Control / Phase Relay',`${sp.ctrlV} | ${sp.pprMod} (200-450V)`]
+   ['Neutral & Ground Busbars',`N-BAR & PE-BAR ${sp.busSize} (${sp.busAmp} >= ${sp.mainBrk}A)`],
+   ['Control / Phase Relay',`${sp.ctrlV} (${sp.nEc>0?sp.spsSpec:'Direct'}) | ${sp.pprMod}`]
   ].forEach(([k,v],idx)=>{
     const ry=74+idx*24.5; s+=L(425,ry+24.5,800,ry+24.5,C.GRY,0.35);
     s+=Txt(432,ry+16,k,6.2,C.BLK,true)+Txt(555,ry+16,v.slice(0,48),5.8,k.includes('Ground')?C.GRN:C.BLK);
@@ -1140,10 +1157,10 @@ function buildLoadCalc(sp) {
   ['CIRCUIT / PATH','CABLE TYPE & SIZE','CORE / COLOR CODE','LOAD (A)','AMPACITY Iz','TERMINAL / BAR','APPLICATION NOTE'].forEach((h,i)=>s+=Txt(cCols[i]+4,287,h,5.5,C.BLK,true));
   [['Main Incomer (XR1->MCB1)',mWire,'L1:Br L2:Bk L3:Gy N:Bu',`${sp.totalAmp} A`,mIz,'XR1 (Pin 1-4)','3PH+N PVC 70C'],
    ['Earth Ground (PE)',peWire,'Green / Yellow (PE)',`${sp.mainBrk}A Fault`,'PE >= S/2','XR1-5 & PE-BAR','Bonded to Frame & Doors'],
-   ['Sub-Feeder (MCB1->MCB2..)',subW,'L1:Br L2:Bk L3:Gy',`${sp.nAc>0?'19.6':'12.3'} A`,subIz,'Bus / DIN MCB','Per 4-Fan Sub-Group'],
-   ['Group Bus (MCB2..->QFR)',`${sp.bm.bus} / 2.5mm2`,'4-Slot Comb + L1-L3',`${sp.nAc>0?sp.acFan.amp:sp.ecFan.amp} A`,'24-63 A','QFR Top Input','Brand Comb Busbar'],
-   ['Internal Motor (KMR->XR2)','VSF 1x2.5 + PE 2.5','U:Br V:Bk W:Gy PE:G/Y','3.1 - 4.9 A','24 A','XR2 (4P/Fan)','450/750V Flex Copper'],
-   ['Field Motor (XR2->Fans)','VCT 4x2.5 sq.mm','4C (U, V, W, PE)','3.1 - 4.9 A','24 A','XR2 -> MR1..n','Includes PE Earth Wire!'],
+   ['Sub-Feeder (MCB1->MCB2..)',subW,'L1:Br L2:Bk L3:Gy',`${maxGrpAmp} A`,subIz,'Bus / DIN MCB','Per 4-Fan Sub-Group'],
+   ['Group Bus (MCB2..->QFR)',`${sp.bm.bus} / 2.5mm2`,'4-Slot Comb + L1-L3',fanAmpRng,'24-63 A','QFR Top Input','Brand Comb Busbar'],
+   ['Internal Motor (KMR->XR2)','VSF 1x2.5 + PE 2.5','U:Br V:Bk W:Gy PE:G/Y',fanAmpRng,'24 A','XR2 (4P/Fan)','450/750V Flex Copper'],
+   ['Field Motor (XR2->Fans)','VCT 4x2.5 sq.mm','4C (U, V, W, PE)',fanAmpRng,'24 A','XR2 -> MR1..n','Includes PE Earth Wire!'],
    ['AC Control & Phase Relay','VSF 1x1.0 sq.mm','Br/Bk/Gy/Bu (220V)','< 1.0 A','12 A','FUR1/PPR1/VF1','Protected by FUR1/2'],
    [sp.hasRs485 ? 'DC Control, 0-10V & RS485' : (sp.hasPm ? 'Control, Signal & CT Wire' : 'DC Control & 0-10V Signal'),
     sp.hasRs485 ? 'VSF 1.0 + LIY-CY + Belden' : (sp.hasPm ? (sp.nEc>0 ? 'VSF 1.0 + LIY-CY + CT 2.5' : 'VSF 1.0 + CT 2.5 sq.mm') : 'VSF 1.0 + LIY-CY 2x0.75'),
@@ -1159,6 +1176,7 @@ function buildLoadCalc(sp) {
 }
 
 function buildSld(sp) {
+  const bm = sp.bm;
   let s = drawFrame(sp, 'SINGLE-LINE DIAGRAM (IEC 60617)', 9, 'R10');
   s += Txt(45, 48, 'SINGLE-LINE DIAGRAM (IEC 60617) & PRODUCT SPECIFICATION SCHEDULE', 10, C.BLK, true);
   const sldCb = (px, py, tag, l1, l2='', isMpcb=false) => {
@@ -1172,45 +1190,46 @@ function buildSld(sp) {
   const sldCont = (px, py, tag, spec) => L(px,py-12,px,py-5,C.BLK,1.2)+Cir(px,py-5,1.5,C.BLK,'#fff',0.8)+L(px,py+7,px-5,py-4,C.BLK,1.2)+L(px,py+7,px,py+14,C.BLK,1.2)+Txt(px+8,py,tag,6.2,C.BLK,true)+Txt(px+8,py+8,spec,5.4,C.GRY);
   const sldSlash = (px, py, nc=3, lbl='') => [-3,0,3].map(o=>L(px-4+o,py+3,px+4+o,py-3,C.BLK,0.8)).join('')+Txt(px+7,py+2,lbl?`${nc} | ${lbl}`:String(nc),5.2,C.GRY);
 
-  const mWireSld = sp.mainBrk > 100 ? 'VSF 1x50+PE25' : (sp.mainBrk > 63 ? 'VSF 1x25+PE16' : (sp.mainBrk > 32 ? 'VSF 1x16+PE16' : 'VSF 1x10+PE10'));
-  const subWSld = sp.mainBrk > 63 ? 'VSF 1x6' : 'VSF 1x4';
+  const mWireSld = `${sp.mWireS}+PE${sp.peS.replace('1x','')}`;
+  const subWSld = sp.subWS;
   s += Txt(100,68,'3~ 380V 50Hz + N + PE (XR1 5P)',7.5,C.BLK,true)+L(150,74,150,96,C.BLK,1.6)+sldSlash(150,84,4,mWireSld);
-  s += sldCb(150,110,`MCB1: ${sp.mainMod}`,`Icu: ${sp.bm.icu} | ${sp.totalKw}kW (${sp.totalAmp}A)`,`Airflow @50Pa: ${sp.totalCfm.toLocaleString()} CFM`);
+  s += sldCb(150,110,`MCB1: ${sp.mainMod}`,`Icu: ${sp.mainIcu} | ${sp.totalKw}kW (${sp.totalAmp}A)`,`Airflow @50Pa: ${sp.totalCfm.toLocaleString()} CFM`);
   s += L(150,126,150,200,C.BLK,1.6)+Dot(150,158,C.BLK,2.2)+L(150,158,sp.nEc>0?650:460,158,C.BLK,1.1);
   if (sp.hasPm) {
     s += Cir(150, 178, 5, C.BLU, 'none', 0.9) + L(155, 178, 250, 178, C.BLU, 0.8) + R(250, 165, 162, 23, C.BLU, '#f0f7ff', 0.8);
     s += Txt(256, 175, `PM1: ${sp.pmMod}`, 5.8, C.BLU, true) + Txt(256, 184, sp.hasRs485 ? `CT 3x ${sp.ctRatio} (2.5mm2) | Belden 9841` : `CT 3x ${sp.ctRatio} (VSF 2.5) | Local`, 5.0, C.GRY);
   }
   s += Dot(460,158,C.BLK,2.0)+L(460,158,460,116,C.BLK,0.9)+R(455,130,10,16,C.BLK,'#fff',0.9)+Txt(469,138,'FUR1 3P 6A',5.5)+Txt(469,146,'VSF 1x1.0',4.8,C.GRY);
-  s += R(435,82,160,34,C.RED,'none',0.9)+Txt(442,95,`PPR1: ${sp.pprMod}`,7,C.RED,true)+Txt(442,107,'VF1 + TS1 (35C) + HLR1-3',5.8,C.GRY);
+  s += R(435,82,160,34,C.RED,'none',0.9)+Txt(442,95,`PPR1: ${sp.pprMod}`,7,C.RED,true)+Txt(442,107,'VF1 + TS1 (35C) + HLR1-3 + PH.FLT',5.6,C.GRY);
   if (sp.nEc>0) {
     s += Dot(650,158,C.BLK,2.0)+L(650,158,650,154,C.BLK,0.9)+L(650,124,650,116,C.BLK,0.9)+sldCb(650,138,'MCB4','2P 6AT | VSF 1x1.0');
-    s += R(620,82,170,34,C.BLU,'none',0.9)+Txt(627,95,`SPS1: ${sp.bm.sps}`,7,C.BLU,true)+Txt(627,107,`ISO1..${sp.isoCnt} (LIY-CY) + SS1 + RY`,5.6,C.GRY);
+    s += R(620,82,170,34,C.BLU,'none',0.9)+Txt(627,95,`SPS1: ${sp.spsSpec}`,7,C.BLU,true)+Txt(627,107,`ISO1..${sp.isoCnt} (LIY-CY) + SS1 + RY`,5.6,C.GRY);
   }
   s += Dot(150,200,C.BLK,2.5)+L(75,200,775,200,C.BLK,2.2)+Txt(sp.hasPm ? 465 : 255,193,`MAIN DISTRIBUTION BUSBAR (${sp.grpCnt} GROUPS x 4 FANS)`,7,C.BLK,true);
   const gw = Math.min(145, 680.0 / Math.max(1, sp.grpCnt));
   for (let g=0;g<sp.grpCnt;g++) {
-    const gx = 95 + g * gw, fs = g*4+1, fe = Math.min((g+1)*4, sp.n), cg = fe-fs+1, isEcG = g*4 < sp.nEc;
+    const gx = 95 + g * gw, fs = g*4+1, fe = Math.min((g+1)*4, sp.n), cg = fe-fs+1;
+    const ecInG = Math.max(0, Math.min(fe, sp.nEc) - fs + 1), acInG = cg - ecInG;
+    const grpSpec = (ecInG > 0 && acInG > 0) ? `${ecInG}xEC+${acInG}xAC` : `${cg}x ${ecInG>0?`EC ${sp.ecFan.kw}kW`:`AC ${sp.acFan.kw}kW`}`;
+    const qfrSpec = (ecInG > 0 && acInG > 0) ? `${bm.mpcb_ec}/${bm.mpcb_ac.split('-').pop()}` : (ecInG>0?bm.mpcb_ec:bm.mpcb_ac);
     s += Dot(gx,200,C.BLK,2.2)+L(gx,200,gx,222,C.BLK,1.1);
-    s += sldCb(gx,236,`MCB${g+2}: ${sp.bm.mcb}`,`3P ${sp.nAc>0?'25AT':'20AT'}`,`${sp.bm.bus} (F${fs}..${fe})`);
+    s += sldCb(gx,236,`MCB${g+2}: ${bm.mcb}`,`3P ${acInG>0?'25AT':'20AT'}`,`${bm.bus} (F${fs}..${fe})`);
     s += L(gx,252,gx,274,C.BLK,1.1)+sldSlash(gx,263,3,subWSld);
-    s += sldCb(gx,288,`QFR${fs}..${fe}`,isEcG?sp.bm.mpcb_ec:sp.bm.mpcb_ac,`Link: ${sp.bm.link}`,true);
+    s += sldCb(gx,288,`QFR${fs}..${fe}`,qfrSpec,`Link: ${bm.link}`,true);
     s += L(gx,304,gx,322,C.BLK,1.1)+sldCont(gx,334,`KMR${fs}..${fe}`,sp.contMod)+L(gx,348,gx,370,C.BLK,1.1)+sldSlash(gx,359,4,'XR2');
     s += Cir(gx,384,13,C.BLK,'none',1.1)+Txt(gx,386,'M',8,C.BLK,true,'middle')+Txt(gx,394,'3~',5.5,C.BLK,false,'middle');
-    s += Txt(gx+16,382,`${cg}x ${isEcG?`EC ${sp.ecFan.kw}kW`:`AC ${sp.acFan.kw}kW`}`,5.8,isEcG?C.BLU:C.GRN,true)+Txt(gx+16,392,'VCT 4x2.5 (U,V,W,PE)',5.2,C.GRY);
+    s += Txt(gx+16,382,grpSpec,5.6,ecInG>0?(acInG>0?C.RED:C.BLU):C.GRN,true)+Txt(gx+16,392,'VCT 4x2.5 (U,V,W,PE)',5.0,C.GRY);
   }
   s += R(45,425,750,70,C.BLK,C.BG,0.9)+Txt(55,440,`PRODUCT & ENCLOSURE SCHEDULE (${sp.bm.label})`,8,C.BLU,true);
-  s += Txt(55,455,`- Cabinet: ${sp.cabSz} mm (IP55 RAL 7035 1.5mm) | Main: ${sp.mainMod} | Branch: ${sp.grpCnt}x ${sp.bm.mcb}`,7);
-  s += Txt(55,469,`- EC Starters (${sp.nEc}x): ${sp.bm.mpcb_ec} + ${sp.contMod} | AC Starters (${sp.nAc}x): ${sp.bm.mpcb_ac} + ${sp.contMod}`,7);
-  s += Txt(55,483,`- Control: ${sp.ctrlV} | Isolators: ${sp.isoCnt}x 4-Ch | Phase Relay: ${sp.pprMod}${sp.hasPm ? ` | PM1: ${sp.pmMod} (${sp.hasRs485 ? 'RS485' : 'Local'})` : ''}`,7,C.RED,true);
+  s += Txt(55,455,`- Cabinet: ${sp.cabSz} mm (IP55 RAL 7035 1.5mm) | Main: ${sp.mainMod} (${sp.mainIcu}) | Branch: ${sp.grpCnt}x ${bm.mcb}`,7);
+  s += Txt(55,469,`- EC Starters (${sp.nEc}x): ${bm.mpcb_ec} + ${sp.contMod} + Aux | AC Starters (${sp.nAc}x): ${bm.mpcb_ac} + ${sp.contMod} + Aux`,7);
+  s += Txt(55,483,`- Control: ${sp.ctrlV} (${sp.nEc>0?sp.spsSpec:'Direct'}) | Isolators: ${sp.isoCnt}x 4-Ch | Phase Relay: ${sp.pprMod}${sp.hasPm ? ` | PM1: ${sp.pmMod} (${sp.hasRs485 ? 'RS485' : 'Local'})` : ''}`,7,C.RED,true);
   return s;
 }
 
 function buildPowerSheet(sp, g, sheetNo) {
   let s = drawFrame(sp, 'COLLECTION POWER SUPPLY', sheetNo, `R${String(sheetNo+1).padStart(2,'0')}`);
-  const mWire = sp.mainBrk > 100 ? 'VSF 1x50' : (sp.mainBrk > 63 ? 'VSF 1x25' : (sp.mainBrk > 32 ? 'VSF 1x16' : 'VSF 1x10'));
-  const peWire = sp.mainBrk > 100 ? '1x25' : (sp.mainBrk > 32 ? '1x16' : '1x10');
-  const subW = sp.mainBrk > 63 ? 'VSF 1x6 sq.mm' : 'VSF 1x4 sq.mm';
+  const mWire = sp.mWireS, peWire = sp.peS, subW = sp.subW;
   let busY;
   s += Txt(420, 48, 'MATERIAL: VSF 450/750V Cu/PVC | VCT 450/750V 4C Flex | PE: Green/Yellow', 5.8, C.BLU, true);
   if (g === 0) {
@@ -1260,163 +1279,184 @@ function buildPowerSheet(sp, g, sheetNo) {
 function buildProtection(sp, sheetNo) {
   let s = drawFrame(sp, 'PROTECTION & FAULT LOOP', sheetNo, `R${String(sheetNo+1).padStart(2,'0')}`);
   const nxt = `R${String(sheetNo+1).padStart(2,'0')}A/01`;
-  // Top power rails N, L3, L2, L1
-  [['N','R01B/16'],['L3','R02D/16'],['L2','R02D/16'],['L1','R02D/16']].forEach(([lbl,ref], i)=>{
+  // Top power rails N, L3, L2, L1 (referenced accurately to Power Sheet R10)
+  [['N','R10B/01'],['L3','R10D/01'],['L2','R10D/01'],['L1','R10D/01']].forEach(([lbl,ref], i)=>{
     const ly=56+i*12;
-    s+=Txt(115,ly+3,ref,5.2,C.GRY)+Txt(152,ly+3,lbl,6.5,C.BLK,true)+L(170,ly,725,ly,C.BLK,0.9);
+    s+=Txt(115,ly+3,ref,5.2,C.GRY)+Txt(152,ly+3,lbl,6.5,C.BLK,true)+L(170,ly,735,ly,C.BLK,0.9);
   });
-  s += Txt(730,59,nxt,5.8,C.BLU,true);
+  s += Txt(740,59,nxt,5.8,C.BLU,true);
 
-  // FUR1 3P 6A (3 individual IEC fuse symbols) + VSF 1x2.5 label
+  // FUR1 3P 6A (3 individual IEC fuse symbols)
   for(let i=0;i<3;i++){
-    const fxi=210+i*16, fyt=92-i*12;
+    const fxi=206+i*15, fyt=92-i*12;
     s+=Dot(fxi,fyt,C.BLK,1.8)+L(fxi,fyt,fxi,115,C.BLK,0.8);
     s+=R(fxi-4,115,8,20,C.BLK,'#fff',0.8)+L(fxi,115,fxi,135,C.BLK,0.7);
     s+=Txt(fxi-8,113,String(1+i*2),4.8,C.GRY)+Txt(fxi-8,142,String(2+i*2),4.8,C.GRY);
     s+=L(fxi,135,fxi,185,C.BLK,0.8);
   }
-  s += L(204,104,248,108,C.BLK,0.7) + Txt(148,154,'VSF 1x1.0 (Cu/PVC)',5.1,C.BLU,true);
-  s += Txt(174,125,'FUR1',6.3,C.BLK,true)+Txt(174,134,'3P 6A',5.6,C.GRY);
+  s += L(200,104,242,108,C.BLK,0.7) + Txt(142,154,'VSF 1x1.0 (Cu/PVC)',5.1,C.BLU,true);
+  s += Txt(168,125,'FUR1',6.3,C.BLK,true)+Txt(168,134,'3P 6A',5.6,C.GRY);
 
-  // PPR1 terminal block & relay
-  s += Dot(274,56,C.BLK,1.8)+L(274,56,274,185,C.BLK,0.8);
-  s += R(200,185,94,62,C.RED,'#fff',1.1);
-  ['L1','L2','L3','11','21'].forEach((t,k)=> s += Txt(206+k*17,194,t,4.8,C.BLK,true));
-  ['12','14','22','24','N'].forEach((t,k)=> s += Txt(206+k*17,243,t,4.8,C.BLK,true));
-  s += Txt(207,212,'PPR1',7.5,C.RED,true)+Txt(207,223,sp.pprMod,5.8)+Txt(207,232,'UV:200V / OV:450V',5.2,C.GRY);
-  // PPR1 output wires 1 & 2
-  s += L(210,247,210,282,C.BLK,0.9)+L(210,282,725,282,C.BLK,0.9)+Txt(730,285,nxt,5.8,C.BLU,true)+Txt(214,279,'1  (VSF 1x1.0 sq.mm)',5.2,C.BLU,true);
-  s += L(255,247,255,266,C.BLK,0.9)+L(255,266,600,266,C.BLK,0.9)+Txt(259,263,'2  (VSF 1x1.0 sq.mm)',5.2,C.GRY);
+  // PPR1 terminal block & relay (including L1 -> 11 common -> 14 NO Phase-OK & 12 NC PH.FLT lamp!)
+  s += Dot(254,92,C.BLK,1.8)+L(254,92,254,185,C.BLK,0.8); // L1 -> pin 11 common
+  s += Dot(274,56,C.BLK,1.8)+L(274,56,274,185,C.BLK,0.8); // N -> pin N
+  s += R(198,185,92,62,C.RED,'#fff',1.1);
+  ['L1','L2','L3','11','N'].forEach((t,k)=> s += Txt(204+k*17,194,t,4.8,C.BLK,true));
+  ['14','12','21','22','24'].forEach((t,k)=> s += Txt(204+k*17,243,t,4.8,C.BLK,true));
+  s += Txt(205,212,'PPR1',7.5,C.RED,true)+Txt(205,223,sp.pprMod,5.8)+Txt(205,232,'UV:200V / OV:450V',5.2,C.GRY);
+  // PPR1 pin 14 (NO Phase-OK) -> wire 1 -> Next sheet (Control Supply interlock)
+  s += L(208,247,208,284,C.BLK,0.9)+L(208,284,735,284,C.BLK,0.9)+Txt(740,287,nxt,5.8,C.BLU,true)+Txt(212,281,'1  (Phase-OK -> Ctrl, VSF 1x1.0)',5.1,C.BLU,true);
+  // PPR1 pin 12 (NC Phase-Fault) -> HLR_PH (PH.FLT Yellow) -> N return bus
+  s += L(226,247,226,266,C.BLK,0.9)+L(226,266,306,266,C.BLK,0.9)+L(306,266,306,245,C.BLK,0.9);
+  s += Cir(306,234,10,C.OYL,'#fff',0.9)+L(300,228,312,240,C.OYL,0.7)+L(312,228,300,240,C.OYL,0.7);
+  s += Txt(319,233,'PH.FLT',6.2,C.OYL,true)+Txt(319,242,'PPR Fault (Y)',5.0,C.GRY);
+  s += L(306,224,306,165,C.BLK,0.8)+Dot(306,165,C.BLK,1.8);
 
-  // HLR1, HLR2, HLR3 with X1/X2
-  s += Dot(330,56,C.BLK,1.8)+L(330,56,330,165,C.BLK,0.8)+L(330,165,495,165,C.BLK,0.8)+Txt(395,175,'VSF 1x1.0 sq.mm (Pilot Lamps)',5.0,C.GRY);
+  // HLR1, HLR2, HLR3 with X1/X2 (connected to Neutral bus y=165)
+  s += Dot(330,56,C.BLK,1.8)+L(330,56,330,165,C.BLK,0.8)+L(306,165,500,165,C.BLK,0.8)+Txt(395,175,'VSF 1x1.0 sq.mm (Pilot Lamps)',5.0,C.GRY);
   for(let i=0;i<3;i++){
-    const hx=365+i*65, hyt=92-i*12;
+    const hx=370+i*65, hyt=92-i*12;
     s += Dot(hx,hyt,C.BLK,1.8)+L(hx,hyt,hx,111,C.BLK,0.8)+Cir(hx,122,11)+L(hx-7,115,hx+7,129,C.BLK,0.7)+L(hx+7,115,hx-7,129,C.BLK,0.7);
     s += Txt(hx-12,112,'X1',4.8,C.GRY)+Txt(hx-12,138,'X2',4.8,C.GRY)+Txt(hx+14,125,`HLR${i+1}`,7,C.BLK,true)+L(hx,133,hx,165,C.BLK,0.8);
     if(i<2) s += Dot(hx,165,C.BLK,1.8);
   }
 
-  // VF1 (FAN) + TS1 + FUR2 1P 2A
+  // VF1 (FAN) + TS1 + FUR2 1P 2A (fed from L1 via PPR1 or direct L1)
   s += Dot(600,56,C.BLK,1.8)+L(600,56,600,104,C.BLK,0.8)+Txt(604,102,'N',5.0,C.GRY);
   s += Cir(600,120,16,C.BLK,'none',1.0)+Txt(600,123,'VF1',7.5,C.BLK,true,'middle')+Txt(604,144,'L',5.0,C.GRY);
   s += L(600,136,600,170,C.BLK,0.8)+Txt(604,158,'4  (VSF 1x1.0 sq.mm)',5.0,C.GRY);
-  // TS1 contact
   s += L(600,170,606,170,C.BLK,0.8)+L(605,169,600,188,C.BLK,0.9)+R(583,174,9,9,C.BLK,'none',0.6)+L(592,178,602,178,C.BLK,0.5,'2 1')+Txt(614,182,'TS1 (35C)',6.2,C.BLK,true);
   s += L(600,188,600,214,C.BLK,0.8)+Txt(604,205,'3',5.2,C.GRY);
-  // FUR2 1P 2A
   s += R(595,214,10,22,C.BLK,'#fff',0.8)+L(600,214,600,236,C.BLK,0.7)+Txt(613,227,'FUR2 1P 2A',6.0,C.BLK,true);
-  s += Txt(586,213,'1',4.8,C.GRY)+Txt(586,243,'2',4.8,C.GRY)+L(600,236,600,266,C.BLK,0.8)+Dot(600,266,C.BLK,1.8);
+  s += Txt(586,213,'1',4.8,C.GRY)+Txt(586,243,'2',4.8,C.GRY)+L(600,236,600,266,C.BLK,0.8)+L(600,266,555,266,C.BLK,0.8)+L(555,266,555,92,C.BLK,0.8)+Dot(555,92,C.BLK,1.8)+Txt(560,262,'2 (L1)',5.0,C.GRY);
 
-  // OVERLOAD FAULT LOOP: QFR1 .. QFRn NC (11-12) IN SERIES!
-  s += Txt(170,316,`OVERLOAD FAULT LOOP (QFR1 .. QFR${sp.n} NC 11-12 IN SERIES -> XR4 01/02)`,8,C.RED,true);
-  const stepX = Math.min(48, 560.0 / Math.max(1, sp.n));
-  const startX = 185, lastQx = startX + (sp.n-1)*stepX;
-  // Incoming 01 to QFR1 pin 11
-  s += Txt(154,344,'01',6.5,C.BLK,true) + L(170,342,startX,342,C.BLK,0.9);
-  for(let i=0;i<sp.n;i++){
-    const qx = startX + i*stepX;
-    // Vertical leg through NC contact (11-12)
-    s += L(qx,342,qx,364,C.BLK,0.9) + L(qx,364,qx+6,364,C.BLK,0.9); // NC fixed bar at 11
-    s += L(qx+5,363,qx,386,C.BLK,1.0); // NC blade touching bar (closed in normal state)
-    s += L(qx,386,qx,412,C.BLK,0.9);
-    // Thermal-magnetic actuator symbol on left of QFR contact
-    s += R(qx-13,371,6,7,C.BLK,'none',0.6) + L(qx-7,374,qx+2,374,C.BLK,0.5,'2 1');
-    s += Txt(qx-12,358,'11',5.0,C.GRY) + Txt(qx-12,396,'12',5.0,C.GRY);
-    s += Txt(qx+4,358,`QFR${i+1}`,5.2,C.BLK,true);
-    // Series jumper from bottom of i (12) to top of i+1 (11)
-    if (i < sp.n - 1) {
-      const nx = startX + (i+1)*stepX;
-      s += L(qx,412,qx+stepX*0.45,412,C.BLK,0.8) + L(qx+stepX*0.45,412,qx+stepX*0.45,342,C.BLK,0.8) + L(qx+stepX*0.45,342,nx,342,C.BLK,0.8);
+  // OVERLOAD FAULT LOOP: QFR1 .. QFRn NC (11-12) IN SERIES (auto-wraps to 2 clean rows when n > 16!)
+  s += Txt(170,310,`OVERLOAD FAULT LOOP (QFR1 .. QFR${sp.n} NC 11-12 IN SERIES -> XR4 01/02)`,8,C.RED,true);
+  const perRow = sp.n <= 16 ? sp.n : Math.ceil(sp.n / 2);
+  const nRows = sp.n <= 16 ? 1 : 2;
+  const startX = 185, stepX = Math.min(48, 555.0 / Math.max(1, perRow));
+  const rowH = nRows === 1 ? 82 : 64;
+  s += Txt(154,328,'01',6.5,C.BLK,true) + L(170,326,startX,326,C.BLK,0.9);
+  for (let rr=0; rr<nRows; rr++) {
+    const yTop = 326 + rr * rowH;
+    const iStart = rr * perRow, iEnd = Math.min((rr+1)*perRow, sp.n);
+    for (let i=iStart; i<iEnd; i++) {
+      const col = i - iStart, qx = startX + col * stepX;
+      const yC1 = yTop + (nRows===1?24:16), yC2 = yC1 + (nRows===1?22:18), yBot = yTop + rowH - 12;
+      s += L(qx,yTop,qx,yC1,C.BLK,0.9) + L(qx,yC1,qx+5,yC1,C.BLK,0.9) + L(qx+4,yC1-1,qx,yC2,C.BLK,1.0) + L(qx,yC2,qx,yBot,C.BLK,0.9);
+      s += R(qx-11,yC1+5,5,6,C.BLK,'none',0.6) + L(qx-6,yC1+8,qx+2,yC1+8,C.BLK,0.5,'2 1');
+      s += Txt(qx-11,yC1-4,'11',4.6,C.GRY) + Txt(qx-11,yC2+8,'12',4.6,C.GRY) + Txt(qx+3,yC1-4,`QFR${i+1}`,4.8,C.BLK,true);
+      if (i < iEnd - 1) {
+        const nx = startX + (col+1)*stepX;
+        s += L(qx,yBot,qx+stepX*0.45,yBot,C.BLK,0.8) + L(qx+stepX*0.45,yBot,qx+stepX*0.45,yTop,C.BLK,0.8) + L(qx+stepX*0.45,yTop,nx,yTop,C.BLK,0.8);
+      }
+    }
+    const rowLastX = startX + (iEnd - iStart - 1)*stepX, yBot = yTop + rowH - 12;
+    if (nRows === 2 && rr === 0) {
+      // Drop from end of Row 1 down to start of Row 2
+      const dropX = rowLastX + 18, yNext = 326 + rowH;
+      s += L(rowLastX,yBot,dropX,yBot,C.BLK,0.8) + L(dropX,yBot,dropX,yNext-6,C.BLK,0.8) + L(dropX,yNext-6,startX,yNext-6,C.BLK,0.8) + L(startX,yNext-6,startX,yNext,C.BLK,0.8);
+    } else {
+      s += L(rowLastX,yBot,rowLastX,yBot+10,C.BLK,0.9) + L(rowLastX,yBot+10,170,yBot+10,C.BLK,0.9) + Txt(154,yBot+12,'02',6.5,C.BLK,true);
     }
   }
-  // Outgoing 02 from last QFR pin 12 back to XR4/AL
-  s += L(lastQx,412,lastQx,426,C.BLK,0.9) + L(lastQx,426,170,426,C.BLK,0.9) + Txt(154,428,'02',6.5,C.BLK,true);
-  s += Txt(170,446,'01 / 02 -> XR4/AL OVERLOAD FAULT | WIRE: VSF 1x1.0 sq.mm (NORMAL = NC CLOSED | TRIP = NO OPEN)',7,C.RED,true);
+  s += Txt(170,480,'01 / 02 -> XR4/AL OVERLOAD FAULT | WIRE: VSF 1x1.0 sq.mm (NORMAL = NC CLOSED | TRIP = NO OPEN)',7,C.RED,true);
   return s;
 }
 
-function build24vIso(sp, sheetNo) {
-  let s = drawFrame(sp, '24VDC & 0-10V ISOLATORS', sheetNo, `R${String(sheetNo+1).padStart(2,'0')}`);
-  // AC supply L3, N at top
-  s += Txt(45,56,'L3',6.5,C.BLK,true)+L(62,54,790,54)+Txt(45,70,'N',6.5,C.BLK,true)+L(62,68,790,68);
-  s += Dot(95,54)+Dot(115,68)+L(95,54,95,90)+L(115,68,115,90)+L(95,104,95,110)+L(115,104,115,110);
-  s += L(91,90,95,104,C.BLK,1.0)+L(111,90,115,104,C.BLK,1.0)+L(82,97,113,97,C.BLK,0.6,'2 2')+Txt(122,95,'MCB4 2P 6AT',6.5,C.BLK,true)+Txt(122,104,'VSF 1x1.0 (220V)',4.9,C.GRY);
+function build24vIso(sp, sheetNo, isoPage=0) {
+  const isoStart = isoPage * 4, isoEnd = Math.min((isoPage + 1) * 4, sp.isoCnt);
+  const ecStart = isoStart * 4 + 1, ecEnd = Math.min(isoEnd * 4, sp.nEc);
+  let s = drawFrame(sp, `24VDC & 0-10V ISOLATORS (ISO${isoStart+1}-${isoEnd})`, sheetNo, `R${String(sheetNo+1).padStart(2,'0')}`);
+  if (isoPage === 0) {
+    // AC supply L3, N at top
+    s += Txt(45,56,'L3',6.5,C.BLK,true)+L(62,54,790,54)+Txt(45,70,'N',6.5,C.BLK,true)+L(62,68,790,68);
+    s += Dot(95,54)+Dot(115,68)+L(95,54,95,90)+L(115,68,115,90)+L(95,104,95,110)+L(115,104,115,110);
+    s += L(91,90,95,104,C.BLK,1.0)+L(111,90,115,104,C.BLK,1.0)+L(82,97,113,97,C.BLK,0.6,'2 2')+Txt(122,95,'MCB4 2P 6AT',6.5,C.BLK,true)+Txt(122,104,'VSF 1x1.0 (220V)',4.9,C.GRY);
 
-  // FUNCTION legend box (matching original)
-  s += R(205,74,195,42,C.BLK,'#f8fafc',0.7,'3 2')+Txt(212,84,'FUNCTION (SS1 4-STEP)',5.6,C.BLU,true);
-  s += Txt(212,93,'1. Motor Running at 100%  |  2. Manual Speed Volume',4.9,C.BLK);
-  s += Txt(212,102,'3. External Controller 0-10V  |  4. Motor Stopped',4.9,C.BLK);
-  s += Txt(212,111,'Cable: VSF 1x1.0 (24V) / LIY-CY 2x0.75 (0-10V)',4.8,C.GRY);
+    // FUNCTION legend box
+    s += R(205,74,195,42,C.BLK,'#f8fafc',0.7,'3 2')+Txt(212,84,'FUNCTION (SS1 4-STEP)',5.6,C.BLU,true);
+    s += Txt(212,93,'1. Motor Running at 100%  |  2. Manual Speed Volume',4.9,C.BLK);
+    s += Txt(212,102,'3. External Controller 0-10V  |  4. Motor Stopped',4.9,C.BLK);
+    s += Txt(212,111,'Cable: VSF 1x1.0 (24V) / LIY-CY 2x0.75 (0-10V)',4.8,C.GRY);
 
-  // SPS1 24VDC
-  s += R(72,110,80,55,C.BLU,'none',1.1)+Txt(92,120,'L',5.8,C.BLK,true)+Txt(112,120,'N',5.8,C.BLK,true)+Txt(78,134,'SPS1 24VDC',7.2,C.BLU,true)+Txt(78,145,sp.bm.sps.slice(0,18),5.0,C.GRY)+Txt(82,160,'+24V',6.0,C.RED,true)+Txt(122,160,'0V',6.0,C.BLU,true);
-  // 24V & 0-10V main buses
-  s += L(72,265,795,265,C.RED,1.0)+L(72,280,795,280,C.BLU,1.0)+L(72,295,795,295,C.GRN,1.0)+L(72,308,795,308,C.BLK,0.9);
-  s += Txt(42,268,'+24V',6.5,C.RED,true)+Txt(42,283,'0V',6.5,C.BLU,true)+Txt(42,298,'0-10V+',6,C.GRN,true)+Txt(42,311,'0-10V-',6,C.BLK,true);
-  s += Txt(425,291,'LIY-CY 2x0.75 sq.mm (Shielded 0-10V)',5.0,C.GRN,true);
-  s += L(92,165,92,265,C.RED,1.0)+Dot(92,265,C.RED,1.8)+L(128,165,128,280,C.BLU,1.0)+Dot(128,280,C.BLU,1.8);
-  s += Txt(425,258,'VSF 1x1.5 sq.mm (24VDC: Rd+ / Bu-)',4.9,C.RED,true);
+    // SPS1 24VDC
+    s += R(72,110,80,55,C.BLU,'none',1.1)+Txt(92,120,'L',5.8,C.BLK,true)+Txt(112,120,'N',5.8,C.BLK,true)+Txt(78,134,'SPS1 24VDC',7.2,C.BLU,true)+Txt(78,145,sp.spsSpec.slice(0,18),5.0,C.GRY)+Txt(82,160,'+24V',6.0,C.RED,true)+Txt(122,160,'0V',6.0,C.BLU,true);
+    // 24V & 0-10V main buses
+    s += L(72,265,795,265,C.RED,1.0)+L(72,280,795,280,C.BLU,1.0)+L(72,295,795,295,C.GRN,1.0)+L(72,308,795,308,C.BLK,0.9);
+    s += Txt(42,268,'+24V',6.5,C.RED,true)+Txt(42,283,'0V',6.5,C.BLU,true)+Txt(42,298,'0-10V+',6,C.GRN,true)+Txt(42,311,'0-10V-',6,C.BLK,true);
+    s += Txt(188,291,'LIY-CY 2x0.75 (0-10V)',4.9,C.GRN,true);
+    s += L(92,165,92,265,C.RED,1.0)+Dot(92,265,C.RED,1.8)+L(128,165,128,280,C.BLU,1.0)+Dot(128,280,C.BLU,1.8);
+    s += Txt(455,258,'VSF 1x1.5 (24VDC: Rd+/Bu-)',4.9,C.RED,true);
 
-  // RY1 (24VDC) + P24 Fault HLR4
-  s += R(148,195,28,20)+Txt(152,208,'RY1',6.2,C.BLK,true)+L(155,215,155,265,C.RED,0.8)+Dot(155,265,C.RED,1.8)+L(169,215,169,280,C.BLU,0.8)+Dot(169,280,C.BLU,1.8);
-  s += Dot(465,54)+L(465,54,465,82,C.BLK,0.8)+L(465,82,471,82,C.BLK,0.8)+L(470,81,465,98,C.BLK,0.9)+Txt(474,93,'RY1(11-12)',5.2,C.GRY);
-  s += L(465,98,465,116,C.BLK,0.8)+Cir(465,126,10,C.RED,'none',0.9)+Txt(478,129,'HLR4 (P24 FAULT)',6.2,C.RED,true)+L(465,136,465,152,C.BLK,0.8)+L(465,152,435,152,C.BLK,0.8)+L(435,152,435,68,C.BLK,0.8)+Dot(435,68);
+    // RY1 (24VDC) + P24 Fault HLR4
+    s += R(148,195,28,20)+Txt(152,208,'RY1',6.2,C.BLK,true)+L(155,215,155,265,C.RED,0.8)+Dot(155,265,C.RED,1.8)+L(169,215,169,280,C.BLU,0.8)+Dot(169,280,C.BLU,1.8);
+    s += Dot(465,54)+L(465,54,465,82,C.BLK,0.8)+L(465,82,471,82,C.BLK,0.8)+L(470,81,465,98,C.BLK,0.9)+Txt(474,93,'RY1(11-12)',5.2,C.GRY);
+    s += L(465,98,465,116,C.BLK,0.8)+Cir(465,126,10,C.RED,'none',0.9)+Txt(478,129,'HLR4 (P24 FAULT)',6.2,C.RED,true)+L(465,136,465,152,C.BLK,0.8)+L(465,152,435,152,C.BLK,0.8)+L(435,152,435,68,C.BLK,0.8)+Dot(435,68);
 
-  // SIG1 (Manual Speed Volume) powered by +24V/0V
-  s += R(212,122,82,42,C.BLK,'#fff',0.9)+Txt(218,135,'SIG1 (0-10V)',6.8,C.BLK,true)+Txt(218,146,'MANUAL VOLUME',5.5,C.GRY)+Txt(230,160,'+',6.8,C.GRN,true)+Txt(276,160,'-',6.8,C.BLK,true);
-  s += L(212,135,194,135,C.RED,0.7)+L(194,135,194,265,C.RED,0.7)+Dot(194,265,C.RED,1.5);
-  s += L(212,148,202,148,C.BLU,0.7)+L(202,148,202,280,C.BLU,0.7)+Dot(202,280,C.BLU,1.5);
+    // SIG1 (Manual Speed Volume) powered by +24V/0V
+    s += R(212,122,82,42,C.BLK,'#fff',0.9)+Txt(218,135,'SIG1 (0-10V)',6.8,C.BLK,true)+Txt(218,146,'MANUAL VOLUME',5.5,C.GRY)+Txt(230,160,'+',6.8,C.GRN,true)+Txt(276,160,'-',6.8,C.BLK,true);
+    s += L(212,135,194,135,C.RED,0.7)+L(194,135,194,265,C.RED,0.7)+Dot(194,265,C.RED,1.5);
+    s += L(212,148,202,148,C.BLU,0.7)+L(202,148,202,280,C.BLU,0.7)+Dot(202,280,C.BLU,1.5);
 
-  // EXT CONTROLLER (XR3: 17, 18)
-  s += R(326,122,98,42,C.BLK,'none',0.9,'3 2')+Txt(332,135,'CTRL1 (EXT 0-10V)',6.3,C.BLK,true)+Txt(332,146,'XR3 TERMINALS',5.5,C.BLU)+Txt(342,160,'+',6.8,C.GRN,true)+Txt(404,160,'-',6.8,C.BLK,true);
-  s += Cir(345,172,2.0,C.BLK,'#fff',0.7)+Cir(408,172,2.0,C.BLK,'#fff',0.7)+Txt(336,174,String(sp.nEc*2+1),4.8,C.BLU)+Txt(398,174,String(sp.nEc*2+2),4.8,C.BLU);
+    // EXT CONTROLLER (XR3)
+    s += R(326,122,98,42,C.BLK,'none',0.9,'3 2')+Txt(332,135,'CTRL1 (EXT 0-10V)',6.3,C.BLK,true)+Txt(332,146,'XR3 TERMINALS',5.5,C.BLU)+Txt(342,160,'+',6.8,C.GRN,true)+Txt(404,160,'-',6.8,C.BLK,true);
+    s += Cir(345,172,2.0,C.BLK,'#fff',0.7)+Cir(408,172,2.0,C.BLK,'#fff',0.7)+Txt(336,174,String(sp.nEc*2+1),4.8,C.BLU)+Txt(398,174,String(sp.nEc*2+2),4.8,C.BLU);
 
-  // SS1 4-STEP CAM SELECTOR SWITCH (IEC Contact Decks + Dashed Mechanical Link!)
-  const ssY = 200;
-  s += Txt(180, ssY+3, 'SS1', 6.5, C.BLK, true);
-  // Notch / cam handle symbol on left: ]--v/--
-  s += L(198,ssY-5,202,ssY-5,C.BLK,0.8)+L(202,ssY-5,202,ssY+5,C.BLK,0.8)+L(198,ssY+5,202,ssY+5,C.BLK,0.8);
-  s += L(202,ssY,210,ssY,C.BLK,0.8)+L(210,ssY,214,ssY+4,C.BLK,0.9)+L(214,ssY+4,218,ssY,C.BLK,0.9)+L(218,ssY,222,ssY,C.BLK,0.8);
-  s += L(210,ssY-5,212,ssY-2,C.BLK,0.6)+L(214,ssY-6,214,ssY-2,C.BLK,0.6)+L(218,ssY-5,216,ssY-2,C.BLK,0.6);
-  // Horizontal dashed mechanical linkage line across all 3 SS1 decks (SIG1 +/-, CTRL1 +/-, RY2..n coil)
-  s += L(222, ssY, 560, ssY, C.BLK, 0.8, '4 2');
+    // SS1 4-STEP CAM SELECTOR SWITCH
+    const ssY = 200;
+    s += Txt(180, ssY+3, 'SS1', 6.5, C.BLK, true);
+    s += L(198,ssY-5,202,ssY-5,C.BLK,0.8)+L(202,ssY-5,202,ssY+5,C.BLK,0.8)+L(198,ssY+5,202,ssY+5,C.BLK,0.8);
+    s += L(202,ssY,210,ssY,C.BLK,0.8)+L(210,ssY,214,ssY+4,C.BLK,0.9)+L(214,ssY+4,218,ssY,C.BLK,0.9)+L(218,ssY,222,ssY,C.BLK,0.8);
+    s += L(210,ssY-5,212,ssY-2,C.BLK,0.6)+L(214,ssY-6,214,ssY-2,C.BLK,0.6)+L(218,ssY-5,216,ssY-2,C.BLK,0.6);
+    s += L(222, ssY, 560, ssY, C.BLK, 0.8, '4 2');
+    // Deck 1: SIG1 +/-
+    s += L(235,164,235,ssY-8,C.GRN,0.9) + L(230,ssY-8,235,ssY+8,C.BLK,1.0) + L(235,ssY+8,235,295,C.GRN,0.9) + Dot(235,295,C.GRN,1.8);
+    s += L(280,164,280,ssY-8,C.BLK,0.9) + L(275,ssY-8,280,ssY+8,C.BLK,1.0) + L(280,ssY+8,280,308,C.BLK,0.9) + Dot(280,308,C.BLK,1.8);
+    s += Txt(238,ssY-10,'+',5.5,C.GRN,true) + Txt(283,ssY-10,'-',5.5,C.BLK,true);
+    // Deck 2: CTRL1 +/-
+    s += L(345,164,345,ssY-8,C.GRN,0.9) + L(340,ssY-8,345,ssY+8,C.BLK,1.0) + L(345,ssY+8,345,295,C.GRN,0.9) + Dot(345,295,C.GRN,1.8);
+    s += L(408,164,408,ssY-8,C.BLK,0.9) + L(403,ssY-8,408,ssY+8,C.BLK,1.0) + L(408,ssY+8,408,308,C.BLK,0.9) + Dot(408,308,C.BLK,1.8);
+    s += Txt(348,ssY-10,'+',5.5,C.GRN,true) + Txt(411,ssY-10,'-',5.5,C.BLK,true);
+    // Deck 3: RY2..RYn Auto-Enable Contact
+    s += Dot(560,265,C.RED,1.5) + L(560,265,560,245,C.RED,0.8) + L(560,245,575,245,C.RED,0.8) + L(575,245,575,ssY+8,C.RED,0.8);
+    s += L(575,ssY-8,575,172,C.RED,0.9) + L(570,ssY-8,575,ssY+8,C.BLK,1.0);
+    s += Txt(579,ssY-12,'7',5.2,C.GRY) + Txt(579,ssY+16,'8',5.2,C.GRY) + Txt(512,ssY-6,'VSF 1x1.0',4.8,C.GRY);
 
-  // Deck 1: SIG1 + (x=235) and - (x=280)
-  s += L(235,164,235,ssY-8,C.GRN,0.9) + L(230,ssY-8,235,ssY+8,C.BLK,1.0) + L(235,ssY+8,235,295,C.GRN,0.9) + Dot(235,295,C.GRN,1.8);
-  s += L(280,164,280,ssY-8,C.BLK,0.9) + L(275,ssY-8,280,ssY+8,C.BLK,1.0) + L(280,ssY+8,280,308,C.BLK,0.9) + Dot(280,308,C.BLK,1.8);
-  s += Txt(238,ssY-10,'+',5.5,C.GRN,true) + Txt(283,ssY-10,'-',5.5,C.BLK,true);
-
-  // Deck 2: CTRL1 + (x=345) and - (x=408)
-  s += L(345,164,345,ssY-8,C.GRN,0.9) + L(340,ssY-8,345,ssY+8,C.BLK,1.0) + L(345,ssY+8,345,295,C.GRN,0.9) + Dot(345,295,C.GRN,1.8);
-  s += L(408,164,408,ssY-8,C.BLK,0.9) + L(403,ssY-8,408,ssY+8,C.BLK,1.0) + L(408,ssY+8,408,308,C.BLK,0.9) + Dot(408,308,C.BLK,1.8);
-  s += Txt(348,ssY-10,'+',5.5,C.GRN,true) + Txt(411,ssY-10,'-',5.5,C.BLK,true);
-
-  // Deck 3: RY2..RYn Auto-Enable Contact (x=560) fed from +24V (wire 7 -> wire 8)
-  s += Dot(560,265,C.RED,1.5) + L(560,265,560,245,C.RED,0.8) + L(560,245,575,245,C.RED,0.8) + L(575,245,575,ssY+8,C.RED,0.8);
-  s += L(575,ssY-8,575,172,C.RED,0.9) + L(570,ssY-8,575,ssY+8,C.BLK,1.0);
-  s += Txt(579,ssY-12,'7',5.2,C.GRY) + Txt(579,ssY+16,'8',5.2,C.GRY) + Txt(512,ssY-6,'VSF 1x1.0',4.8,C.GRY);
-
-  // RY2 .. RYn coils in parallel
-  const ryCnt = Math.ceil(sp.n / 2), ryStep = Math.min(34.0, 210.0 / Math.max(1, ryCnt));
-  const lastRx = 595 + (ryCnt-1)*ryStep + 6;
-  s += L(575,172,lastRx,172,C.RED,0.9);
-  for (let r=0;r<ryCnt;r++) {
-    const rx = 595 + r*ryStep;
-    s += R(rx,195,24,20,C.BLK,'#fff',0.8)+Txt(rx+3,208,`RY${r+2}`,5.8,C.BLK,true);
-    s += L(rx+6,172,rx+6,195,C.RED,0.8)+(r<ryCnt-1?Dot(rx+6,172,C.RED,1.5):'');
-    s += L(rx+18,215,rx+18,280,C.BLU,0.8)+Dot(rx+18,280,C.BLU,1.5);
+    // RY2 .. RYn coils (auto-wraps to 2 clean rows when ryCnt > 7!)
+    const ryCnt = Math.ceil(sp.n / 2), ryPerR = ryCnt <= 7 ? ryCnt : Math.ceil(ryCnt / 2), ryRows = ryCnt <= 7 ? 1 : 2;
+    const ryStep = Math.min(28.0, 195.0 / Math.max(1, ryPerR));
+    for (let rr=0; rr<ryRows; rr++) {
+      const rStart = rr * ryPerR, rEnd = Math.min((rr+1)*ryPerR, ryCnt);
+      const yTop = rr===0 ? 172 : 218, yBox = rr===0 ? 186 : 230, lastX = 595 + (rEnd-rStart-1)*ryStep + 5;
+      if (rr === 0) s += L(575,172,lastX,172,C.RED,0.9);
+      else s += Dot(585,172,C.RED,1.5) + L(585,172,585,yTop,C.RED,0.8) + L(585,yTop,lastX,yTop,C.RED,0.8);
+      for (let r=rStart; r<rEnd; r++) {
+        const rx = 595 + (r-rStart)*ryStep;
+        s += R(rx,yBox,21,16,C.BLK,'#fff',0.75)+Txt(rx+2,yBox+10.5,`RY${r+2}`,4.9,C.BLK,true);
+        s += L(rx+5,yTop,rx+5,yBox,C.RED,0.75)+(r<rEnd-1?Dot(rx+5,yTop,C.RED,1.3):'');
+        s += L(rx+16,yBox+16,rx+16,280,C.BLU,0.75)+Dot(rx+16,280,C.BLU,1.3);
+      }
+    }
+  } else {
+    // Continuation page (ISO5..8)
+    s += Txt(72,95,`CONTINUED FROM PREVIOUS SHEET R${String(sheetNo).padStart(2,'0')} (24VDC & 0-10V BUSBARS FOR EC${ecStart}..${ecEnd})`,8,C.BLU,true);
+    s += L(72,140,795,140,C.RED,1.1)+L(72,160,795,160,C.BLU,1.1)+L(72,180,795,180,C.GRN,1.1)+L(72,200,795,200,C.BLK,1.0);
+    s += Txt(42,143,'+24V',6.5,C.RED,true)+Txt(42,163,'0V',6.5,C.BLU,true)+Txt(42,183,'0-10V+',6,C.GRN,true)+Txt(42,203,'0-10V-',6,C.BLK,true);
+    s += Txt(455,134,'VSF 1x1.5 (24VDC Bus)',5.0,C.RED,true)+Txt(188,174,'LIY-CY 2x0.75 (0-10V Bus)',5.0,C.GRN,true);
   }
 
-  const isoW = Math.min(215, 700.0 / Math.max(1, sp.isoCnt) - 14);
-  for (let k=0;k<sp.isoCnt;k++) {
-    const ix = 80 + k*(isoW+14);
+  const busRedY = isoPage===0 ? 265 : 140, busBluY = isoPage===0 ? 280 : 160, busGrnY = isoPage===0 ? 295 : 180, busBlkY = isoPage===0 ? 308 : 200;
+  const pageIsoCnt = isoEnd - isoStart;
+  const isoW = Math.min(215, 700.0 / Math.max(1, pageIsoCnt) - 14);
+  for (let k=0; k<pageIsoCnt; k++) {
+    const isoId = isoStart + k + 1, ix = 80 + k*(isoW+14);
     s += R(ix,335,isoW,70,C.GRN,'none',1.1)+Txt(ix+8,347,'+24V',5.4,C.RED,true)+Txt(ix+32,347,'-24V',5.4,C.BLU,true)+Txt(ix+62,347,'IN+',5.4,C.GRN,true)+Txt(ix+86,347,'IN-',5.4,C.BLK,true);
-    s += Txt(ix+8,368,`ISO${k+1} (4-CH ISOLATOR)`,6.8,C.GRN,true)+Txt(ix+8,380,'PWR: 24VDC | SIG: 0-10VDC',5.4,C.GRY);
-    s += L(ix+16,265,ix+16,335,C.RED,0.8)+Dot(ix+16,265,C.RED,1.6)+L(ix+40,280,ix+40,335,C.BLU,0.8)+Dot(ix+40,280,C.BLU,1.6);
-    s += L(ix+68,295,ix+68,335,C.GRN,0.8)+Dot(ix+68,295,C.GRN,1.6)+L(ix+92,308,ix+92,335,C.BLK,0.8)+Dot(ix+92,308,C.BLK,1.6);
+    s += Txt(ix+8,368,`ISO${isoId} (4-CH ISOLATOR)`,6.8,C.GRN,true)+Txt(ix+8,380,'PWR: 24VDC | SIG: 0-10VDC',5.4,C.GRY);
+    s += L(ix+16,busRedY,ix+16,335,C.RED,0.8)+Dot(ix+16,busRedY,C.RED,1.6)+L(ix+40,busBluY,ix+40,335,C.BLU,0.8)+Dot(ix+40,busBluY,C.BLU,1.6);
+    s += L(ix+68,busGrnY,ix+68,335,C.GRN,0.8)+Dot(ix+68,busGrnY,C.GRN,1.6)+L(ix+92,busBlkY,ix+92,335,C.BLK,0.8)+Dot(ix+92,busBlkY,C.BLK,1.6);
     for (let ch=0;ch<4;ch++) {
-      const fId = k*4+ch+1;
+      const fId = (isoId-1)*4+ch+1;
       if (fId <= sp.nEc) {
         const cx = ix + 18 + ch*((isoW-36)/3.0);
         s += Txt(cx-7,401,'+',6.2,C.GRN,true)+Txt(cx+2,401,'-',6.2,C.BLK,true);
@@ -1425,7 +1465,7 @@ function build24vIso(sp, sheetNo) {
       }
     }
   }
-  s += Txt(70,495,`XR3 TERMINALS: PIN 1..${sp.nEc*2} (0-10V TO EC1..${sp.nEc}) | PIN ${sp.nEc*2+1}-${sp.nEc*2+2} (EXT CTRL1) | CABLE: LIY-CY 2x0.75 sq.mm SHIELDED`,6.8,C.GRN,true);
+  s += Txt(70,495,`XR3 TERMINALS: PIN ${(ecStart-1)*2+1}..${ecEnd*2} (0-10V TO EC${ecStart}..${ecEnd}) | PIN ${sp.nEc*2+1}-${sp.nEc*2+2} (EXT CTRL1) | CABLE: LIY-CY 2x0.75 sq.mm SHIELDED`,6.8,C.GRN,true);
   return s;
 }
 
@@ -1433,29 +1473,41 @@ function buildLadderSheet(sp, g, sheetNo) {
   const fStart = g*4+1, fEnd = Math.min((g+1)*4, sp.n);
   let s = drawFrame(sp, `COLLECTION CONTROL (FANS ${fStart}-${fEnd})`, sheetNo, `R${String(sheetNo+1).padStart(2,'0')}`);
   const fans = []; for(let f=fStart;f<=fEnd;f++) fans.push(f);
-  const firstFx = 190, lastFx = 190 + (fans.length-1)*150, lastManX = lastFx - 35, lastHlrX = lastFx + 24;
+  const firstFx = 190, lastFx = 190 + (fans.length-1)*150, lastManX = lastFx - 35, lastOvlX = lastFx + 62;
 
-  s += R(140,48,lastFx+70-140,56,C.BLK,'none',0.8,'4 2')+Txt(150,61,'EXTERNAL CONTROLLER (PLC / SMART PIG DRY CONTACTS) | VSF 1x1.0 sq.mm',6.6,C.GRY,true)+L(firstFx,70,lastFx,70,C.BLK,0.7);
+  s += R(140,48,lastFx+75-140,56,C.BLK,'none',0.8,'4 2')+Txt(150,61,'EXTERNAL CONTROLLER (PLC / SMART PIG DRY CONTACTS) | VSF 1x1.0 sq.mm',6.6,C.GRY,true)+L(firstFx,70,lastFx,70,C.BLK,0.7);
   s += Txt(40,133,sp.ctrlV==='24VDC'?'+24V':'L1-F',7,C.RED,true)+L(72,130,117,130,C.RED,0.9)+L(117,130,117,138,C.RED,0.9)+R(110,138,14,20)+L(117,138,117,158,C.BLK,0.7);
-  s += Txt(128,148,`FUR${g+3} 1P 2A`,7,C.BLK,true)+Txt(128,158,`VSF 1x1.0 (${sp.ctrlV})`,5.2,C.GRY)+L(117,158,117,168,C.RED,0.9)+L(117,168,lastManX,168,C.RED,0.9);
-  s += Txt(40,458,sp.ctrlV==='24VDC'?'0V':'N',7,C.BLU,true)+L(72,455,lastHlrX,455,C.BLU,1.0)+Txt(76,449,`Return: VSF 1x1.0 sq.mm (${sp.ctrlV==='24VDC'?'0V Blue':'N Blue'})`,5.2,C.BLU);
+  s += Txt(128,148,`FUR${g+3} 1P 2A`,7,C.BLK,true)+Txt(128,158,`VSF 1x1.0 (${sp.ctrlV})`,5.2,C.GRY)+L(117,158,117,168,C.RED,0.9)+L(117,168,lastOvlX,168,C.RED,0.9);
+  s += Txt(40,458,sp.ctrlV==='24VDC'?'0V':'N',7,C.BLU,true)+L(72,455,lastOvlX,455,C.BLU,1.0)+Txt(76,449,`Return: VSF 1x1.0 sq.mm (${sp.ctrlV==='24VDC'?'0V Blue':'N Blue'})`,5.2,C.BLU);
 
   fans.forEach((fnum) => {
-    const fx = 190 + (fnum - fStart)*150;
+    const fx = 190 + (fnum - fStart)*150, hasRy = sp.nEc > 0;
     s += Dot(fx,70,C.BLK,1.5)+L(fx,70,fx,80,C.BLK,0.8)+R(fx-18,83,6,6,C.BLK,'none',0.7)+L(fx-12,86,fx-2,86,C.BLK,0.6,'2 1');
     s += L(fx-4,80,fx,94,C.BLK,0.9)+L(fx,94,fx,195,C.BLK,0.8)+Txt(fx+6,90,`KC${fnum}`,7,C.BLK,true);
     s += Cir(fx,128,2.2,C.BLK,'#fff',0.8)+Txt(fx+6,131,`XR4:${fnum}`,6.5,C.BLU)+Txt(fx+6,148,String(fnum*4+10),6.5,C.GRY);
-    if (fx-35 < lastManX) s += Dot(fx-35,168,C.RED,1.6);
+    s += Dot(fx-35,168,C.RED,1.6);
     s += L(fx-35,168,fx-35,195,C.RED,0.8)+Txt(fx-33,189,'MAN',6.5,C.BLK,true)+Txt(fx+5,189,'AUT',6.5,C.BLK,true);
     s += L(fx-42,195,fx-28,195,C.BLK,0.8)+L(fx-6,195,fx+8,195,C.BLK,0.8)+L(fx-18,225,fx-35,195,C.BLK,1.0)+Cir(fx-18,225,2.0,C.BLK,'#fff');
     s += L(fx-48,210,fx-26,210,C.BLK,0.6,'2 1')+Txt(fx-50,206,'1 0 2',6,C.GRY)+Txt(fx+10,214,`SAR${fnum}`,7,C.BLK,true)+Txt(fx-12,242,String(fnum*4+6),6.5,C.GRY);
     s += L(fx-18,225,fx-18,265,C.BLK,0.9)+L(fx-24,265,fx-18,285,C.BLK,0.9)+Txt(fx-32,268,'13',6.2,C.GRY)+Txt(fx-32,286,'14',6.2,C.GRY)+Txt(fx-8,278,`QFR${fnum}`,7,C.BLK,true);
-    s += L(fx-18,285,fx-18,325,C.BLK,0.9)+L(fx-24,325,fx-18,345,C.BLK,0.9)+Txt(fx-30,328,'1',6.2,C.GRY)+Txt(fx-30,346,'4',6.2,C.GRY)+Txt(fx-8,338,`RY${Math.floor((fnum-1)/2)+2}`,7,C.BLK,true)+L(fx-18,345,fx-18,385,C.BLK,0.9);
+    if (hasRy) {
+      s += L(fx-18,285,fx-18,325,C.BLK,0.9)+L(fx-24,325,fx-18,345,C.BLK,0.9)+Txt(fx-30,328,'1',6.2,C.GRY)+Txt(fx-30,346,'4',6.2,C.GRY)+Txt(fx-8,338,`RY${Math.floor((fnum-1)/2)+2}`,7,C.BLK,true)+L(fx-18,345,fx-18,385,C.BLK,0.9);
+    } else {
+      s += L(fx-18,285,fx-18,385,C.BLK,0.9);
+    }
     s += R(fx-35,385,33,20,C.BLK,'none',1.0)+L(fx-35,405,fx-2,385,C.BLK,0.6)+Txt(fx-47,391,'A1',6.2,C.GRY)+Txt(fx-47,405,'A2',6.2,C.GRY)+Txt(fx-14,417,`KMR${fnum}`,7,C.BLK,true);
     s += L(fx-18,405,fx-18,455,C.BLK,0.9)+Dot(fx-18,455,C.BLU,1.6)+Dot(fx-18,372,C.BLK,1.6)+L(fx-18,372,fx+24,372,C.BLK,0.8)+L(fx+24,372,fx+24,385,C.BLK,0.8);
+    // Green RUN Pilot Lamp
     s += Cir(fx+24,395,10,C.GRN,'none',0.9)+L(fx+17,388,fx+31,402,C.GRN,0.7)+L(fx+31,388,fx+17,402,C.GRN,0.7);
-    s += Txt(fx+10,385,'X1',6.2,C.GRY)+Txt(fx+10,411,'X2',6.2,C.GRY)+Txt(fx+36,398,`HLR${fnum+4}`,7,C.GRN,true)+L(fx+24,405,fx+24,455,C.BLK,0.8);
-    if (fx+24 < lastHlrX) s += Dot(fx+24,455,C.BLU,1.6);
+    s += Txt(fx+10,385,'X1',5.6,C.GRY)+Txt(fx+10,411,'X2',5.6,C.GRY)+Txt(fx+36,398,`RUN${fnum}`,5.6,C.GRN,true)+L(fx+24,405,fx+24,455,C.BLK,0.8)+Dot(fx+24,455,C.BLU,1.6);
+    // Red OVL Pilot Lamp fed via QFR NC (21-22) from +24V/L1 bus
+    const ox = fx + 62;
+    if (ox < lastOvlX) s += Dot(ox,168,C.RED,1.5);
+    s += L(ox,168,ox,265,C.RED,0.8)+L(ox,265,ox+5,265,C.BLK,0.8)+L(ox+4,264,ox,285,C.BLK,0.9);
+    s += Txt(ox-11,268,'21',5.5,C.GRY)+Txt(ox-11,286,'22',5.5,C.GRY)+Txt(ox+7,278,`QFR${fnum}`,5.8,C.RED,true);
+    s += L(ox,285,ox,385,C.BLK,0.8)+Cir(ox,395,10,C.RED,'none',0.9)+L(ox-7,388,ox+7,402,C.RED,0.7)+L(ox+7,388,ox-7,402,C.RED,0.7);
+    s += Txt(ox-12,385,'X1',5.6,C.GRY)+Txt(ox-12,411,'X2',5.6,C.GRY)+Txt(ox+12,398,`OVL${fnum}`,5.6,C.RED,true)+L(ox,405,ox,455,C.BLK,0.8);
+    if (ox < lastOvlX) s += Dot(ox,455,C.BLU,1.6);
   });
   return s;
 }
@@ -1465,51 +1517,58 @@ function buildTerminals(sp, sheetNo) {
   s += drawTerminalStrip(65, 85, 'XR1', ['MCB1-1','MCB1-3','MCB1-5','N-BAR','PE-BAR'], ['PWR L1','PWR L2','PWR L3','NEUTRAL','GROUND (PE)'], 13);
 
   const xr2Top=[], xr2Bot=[];
-  for(let f=1;f<=sp.n;f++){ xr2Top.push(`KMR${f}-2`,`KMR${f}-4`,`KMR${f}-6`,'PE-BAR'); xr2Bot.push(`F${f}-U`,`F${f}-V`,`F${f}-W`,`F${f}-PE`); }
+  for(let f=1;f<=sp.n;f++){ xr2Top.push(`KMR${f}-2`,`KMR${f}-4`,`KMR${f}-6`,'PE'); xr2Bot.push(`F${f}-U`,`F${f}-V`,`F${f}-W`,`F${f}-PE`); }
+  const dense = sp.n > 20;
   let xr3Y0 = 265;
   if (xr2Top.length <= 32) {
     s += drawTerminalStrip(195, 75, 'XR2', xr2Top, xr2Bot, Math.min(12.0, 380.0 / xr2Top.length));
   } else {
     const mid2 = 4 * Math.ceil(sp.n / 2);
-    s += drawTerminalStrip(195, 68, 'XR2A', xr2Top.slice(0,mid2), xr2Bot.slice(0,mid2), Math.min(12.0, 380.0 / mid2));
-    s += drawTerminalStrip(195, 166, 'XR2B', xr2Top.slice(mid2), xr2Bot.slice(mid2), Math.min(12.0, 380.0 / (xr2Top.length - mid2)));
-    xr3Y0 = 264;
+    s += drawTerminalStrip(195, dense?58:68, 'XR2A', xr2Top.slice(0,mid2), xr2Bot.slice(0,mid2), Math.min(12.0, 380.0 / mid2));
+    s += drawTerminalStrip(195, dense?140:166, 'XR2B', xr2Top.slice(mid2), xr2Bot.slice(mid2), Math.min(12.0, 380.0 / (xr2Top.length - mid2)));
+    xr3Y0 = dense ? 226 : 264;
   }
 
   if (sp.nEc > 0 || sp.hasRs485) {
     const xr3Top=[], xr3Bot=[];
-    for(let i=1;i<=sp.nEc;i++){ xr3Top.push(`ISO-O${i}+`,`ISO-O${i}-`); xr3Bot.push(`EC${i}(+)`,`EC${i}(-)`); }
-    if (sp.nEc > 0) { xr3Top.push('CTRL1+','CTRL1-'); xr3Bot.push('EXT-0-10+','EXT-0-10-'); }
-    if (sp.hasRs485) { xr3Top.push('PM1-A+','PM1-B-','PM1-SHLD'); xr3Bot.push('RS485-A+','RS485-B-','RS485-SHLD'); }
+    for(let i=1;i<=sp.nEc;i++){ xr3Top.push(`ISO${i}+`,`ISO${i}-`); xr3Bot.push(`EC${i}+`,`EC${i}-`); }
+    if (sp.nEc > 0) { xr3Top.push('CTL1+','CTL1-'); xr3Bot.push('EXT+','EXT-'); }
+    if (sp.hasRs485) { xr3Top.push('PM1+','PM1-','PM1-S'); xr3Bot.push('485A+','485B-','485-S'); }
     if (xr3Top.length <= 30) {
       s += drawTerminalStrip(195, xr3Y0, 'XR3', xr3Top, xr3Bot, Math.min(12.0, 380.0 / xr3Top.length));
     } else {
       const mid3 = Math.floor(xr3Top.length / 2);
-      s += drawTerminalStrip(195, 260, 'XR3A', xr3Top.slice(0,mid3), xr3Bot.slice(0,mid3), Math.min(11.5, 380.0 / mid3));
-      s += drawTerminalStrip(195, 352, 'XR3B', xr3Top.slice(mid3), xr3Bot.slice(mid3), Math.min(11.5, 380.0 / (xr3Top.length - mid3)));
+      s += drawTerminalStrip(195, dense?224:260, 'XR3A', xr3Top.slice(0,mid3), xr3Bot.slice(0,mid3), Math.min(11.5, 380.0 / mid3));
+      s += drawTerminalStrip(195, dense?310:352, 'XR3B', xr3Top.slice(mid3), xr3Bot.slice(mid3), Math.min(11.5, 380.0 / (xr3Top.length - mid3)));
     }
   }
 
   const xr4Top=[], xr4Bot=[];
-  for(let i=1;i<=sp.n;i++){ xr4Top.push(`SAR${i}-AUT`); xr4Bot.push(`KC${i}`); }
-  xr4Top.push('XR1-N','MCB1-L1','QFR-COM','QFR-NC'); xr4Bot.push('N-EXT','L1-EXT','OVL-01','OVL-02');
-  s += drawTerminalStrip(195, 444, 'XR4', xr4Top, xr4Bot, Math.min(12.0, 380.0 / xr4Top.length));
+  for(let i=1;i<=sp.n;i++){ xr4Top.push(`SAR${i}-A`); xr4Bot.push(`KC${i}`); }
+  xr4Top.push('XR1-N','MCB4-2','QFR-11','QFR-12'); xr4Bot.push('N-EXT','L1-6A','OVL-01','OVL-02');
+  if (xr4Top.length <= 26) {
+    s += drawTerminalStrip(195, 444, 'XR4', xr4Top, xr4Bot, Math.min(12.0, 380.0 / xr4Top.length));
+  } else {
+    const mid4 = Math.ceil(xr4Top.length / 2);
+    s += drawTerminalStrip(195, 396, 'XR4A', xr4Top.slice(0,mid4), xr4Bot.slice(0,mid4), Math.min(12.0, 380.0 / mid4));
+    s += drawTerminalStrip(195, 466, 'XR4B', xr4Top.slice(mid4), xr4Bot.slice(mid4), Math.min(12.0, 380.0 / (xr4Top.length - mid4)));
+  }
 
-  s += R(52,230,93,115,C.GRN,'#f2fcf5',0.8)+Txt(58,246,'BUSBARS (R07)',6.8,C.GRN,true)+Txt(58,264,'PE-BAR: Copper',6,C.GRN,true)+Txt(58,276,'Earth Ground Bar',5.6);
-  s += Txt(58,294,'N-BAR: Copper',6,C.BLU,true)+Txt(58,306,'Neutral Busbar',5.6)+Txt(58,326,'All F1..Fn VCT 4C',5.5,C.GRY)+Txt(58,336,'include PE wire!',5.5,C.GRN,true);
+  s += R(52,230,93,115,C.GRN,'#f2fcf5',0.8)+Txt(58,246,'BUSBARS (R07)',6.8,C.GRN,true)+Txt(58,264,`PE-BAR: ${sp.busSize}`,5.8,C.GRN,true)+Txt(58,276,`Earth (${sp.busAmp})`,5.6);
+  s += Txt(58,294,`N-BAR: ${sp.busSize}`,5.8,C.BLU,true)+Txt(58,306,'Neutral Busbar',5.6)+Txt(58,326,'All F1..Fn VCT 4C',5.5,C.GRY)+Txt(58,336,'include PE wire!',5.5,C.GRN,true);
 
   s += R(610,48,192,432,C.BLK,C.BG,0.8)+Txt(620,66,'LEGEND & PRODUCT SPECS',8,C.BLU,true);
   const legItems = [
-    `MCB = ${sp.bm.mcb} / ${sp.bm.mccb}`,`QFR_EC = ${sp.bm.mpcb_ec} (2.5-4.0A)`,`QFR_AC = ${sp.bm.mpcb_ac} (4.0-6.3A)`,`KMR = ${sp.contMod}`,
-    `PPR = ${sp.pprMod}`,`SPS = ${sp.bm.sps}`,'ISO = 4-Ch 0-10V Isolator','RY  = Control Relay 24V/220V','SAR = Selector MAN-0-AUT',
+    `${sp.mainType} = ${sp.mainMod}`,`QFR_EC = ${sp.bm.mpcb_ec} + Aux 1NO+2NC`,`QFR_AC = ${sp.bm.mpcb_ac} + Aux 1NO+2NC`,`KMR = ${sp.contMod}`,
+    `PPR = ${sp.pprMod}`,`SPS = ${sp.spsSpec}`,'ISO = 4-Ch 0-10V Isolator','RY  = Control Relay 24V/220V','SAR = Selector MAN-0-AUT',
     'SS1 = Master Selector','SIG = 0-10V Speed Volume','HLR = Pilot Light Dia 22mm','VF  = Ventilation Fan','TS  = Thermostat (35C)',
     'XR1 = Main VSF + PE (5P)','XR2 = Motor VCT 4x2.5 (4P/Fan)',
     sp.hasRs485 ? 'XR3 = LIY-CY + Belden 9841' : 'XR3 = LIY-CY 2x0.75 (0-10V)',
-    'XR4 = Ext Ctrl VSF 1x1.0',
+    'XR4 = Ext Ctrl VSF 1x1.0 (MCB4)',
     ...(sp.hasPm ? [`PM1 = ${sp.pmMod} (${sp.hasRs485 ? 'RS485' : 'Local'})`] : []),
     `CAB = ${sp.cabSz} mm (IP55)`,'CALC = See Sheet R08'
   ];
-  legItems.forEach((li,idx)=> s += Txt(620, 84+idx*17.5, li, 6.2));
+  legItems.forEach((li,idx)=> s += Txt(620, 84+idx*17.5, li, 6.0));
   return s;
 }
 
@@ -1523,7 +1582,7 @@ function renderAll() {
   let idx = 10;
   for (let g=0; g<sp.grpCnt; g++) sheets.push(buildPowerSheet(sp, g, idx++));
   sheets.push(buildProtection(sp, idx++));
-  if (sp.hasIso) sheets.push(build24vIso(sp, idx++));
+  for (let ip=0; ip<sp.isoPages; ip++) sheets.push(build24vIso(sp, idx++, ip));
   for (let g=0; g<sp.grpCnt; g++) sheets.push(buildLadderSheet(sp, g, idx++));
   sheets.push(buildTerminals(sp, idx));
 
@@ -1707,12 +1766,19 @@ function exportCsvBom() {
     ['MCB4', 'Control 2P Breaker', 1, `${sp.bm.mcb} 2P 6AT`],
     ['QFR_EC', 'EC MPCB + Link', sp.nEc, `${sp.bm.mpcb_ec} + ${sp.bm.link}`],
     ['QFR_AC', 'AC MPCB + Link', sp.nAc, `${sp.bm.mpcb_ac} + ${sp.bm.link}`],
-    ['KMR', 'Contactor + Aux', sp.n, sp.contMod],
+    ['AUX', 'MPCB Aux Contact (Fault+OVL)', sp.n, '1NO+2NC Aux (GVAN11+GVAE11)'],
+    ['KMR', 'Contactor', sp.n, sp.contMod],
     ['PPR1', 'Phase Relay', 1, sp.pprMod],
     ...(sp.hasPm ? [['PM1', `Digital Power Meter (${sp.hasRs485 ? 'Modbus RS485' : 'Local Panel Only'})`, 1, sp.pmMod], ['CT', `Current Transformer ${sp.ctRatio}`, 3, 'CT 5A']] : []),
     ...(sp.hasRs485 ? [['RS485', 'RS485 Surge + 3P Terminal (A+/B-/SHLD)', 1, 'XR3']] : []),
-    ['SPS1', '24VDC 5A Supply', sp.nEc>0?1:0, sp.bm.sps],
+    ['SPS1', '24VDC Supply', sp.nEc>0?1:0, sp.spsSpec],
     ['ISO', '0-10V 4-Ch Isolator', sp.isoCnt, '4-Ch Isolated'],
+    ['PE/N-BAR', 'Copper Ground & Neutral Busbars', 2, sp.busSize],
+    ['WIRE-MAIN', `Main Wire (${sp.mWire}) + PE (${sp.peWire}) [m]`, 15, sp.mWire],
+    ['WIRE-SUB', `Branch Wire (${sp.subW}) [m]`, sp.grpCnt*4, sp.subW],
+    ['WIRE-MOT', 'Internal Motor Wire VSF 1x2.5+PE [m]', Math.round(sp.n*7.5), 'VSF 1x2.5 sq.mm'],
+    ['WIRE-CTRL', 'Control Wire VSF 1x1.0 sq.mm [m]', Math.round(sp.n*18), 'VSF 1x1.0 sq.mm'],
+    ['WIRE-SIG', '0-10V Shielded Cable [m]', sp.nEc>0?Math.round(sp.nEc*3.5):0, 'LIY-CY 2x0.75'],
     ['XR1-4', 'Terminals (L1,L2,L3,N,PE / U,V,W,PE)', 1, `XR1(5P)+XR2(${sp.n*4}P)`],
     ['CABINET', 'IP55 Steel Enclosure', 1, `${sp.cabSz} mm`]
   ].map(r => r.map(x => `"${String(x).replace(/"/g,'""')}"`).join(',')).join('\r\n');
