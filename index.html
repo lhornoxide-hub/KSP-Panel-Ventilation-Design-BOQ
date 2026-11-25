@@ -314,7 +314,14 @@
           </div>
           <div id="rs485Note" style="font-size:10.5px;color:#93c5fd;line-height:1.35;margin-top:2px;"></div>
         </div>
-        <div id="bomImpactNote" style="font-size:10.5px;color:#94a3b8;background:#0f172a;border:1px solid #334155;border-radius:6px;padding:5px 7px;margin-bottom:4px;"></div>
+        <div id="bomImpactNote" style="font-size:10.5px;color:#94a3b8;background:#0f172a;border:1px solid #334155;border-radius:6px;padding:5px 7px;margin-bottom:6px;"></div>
+        <div style="margin-bottom:4px">
+          <label data-i18n="ui_opt3">Option 3: คู่มือฟังก์ชัน &amp; การแก้ไขปัญหา (+3 หน้า)</label>
+          <div class="seg-group">
+            <button class="seg-btn active" id="man_on" onclick="setManualOpt(true)" data-i18n="ui_man_on">เปิด: แนบคู่มือ (+3 หน้า)</button>
+            <button class="seg-btn" id="man_off" onclick="setManualOpt(false)" data-i18n="ui_man_off">ปิด: เฉพาะแบบวงจร</button>
+          </div>
+        </div>
         <div id="cabWarn" class="warn-box"></div>
       </div>
     </div>
@@ -384,6 +391,7 @@ let state = {
   nAc: 0,
   hasPm: false,
   useRs485: false,
+  includeManual: true,
   activeSheet: 0,
   showAll: false
 };
@@ -430,7 +438,9 @@ const I18N = {
     pr_loop:'วงจรป้องกันโอเวอร์โหลด (QFR1..QFR{n} NC 11-12 อนุกรม -> XR4 01/02)', pr_note:'01/02 -> XR4/AL OVERLOAD FAULT | สาย: VSF 1x1.0 sq.mm (ปกติ=NC ปิด | ทริป=NO เปิด)',
     iso_fn:'ฟังก์ชันการทำงาน (SS1 4-STEP)', iso_f1:'1. พัดลมทำงานเต็มรอบ 100% | 2. ปรับรอบ Manual', iso_f2:'3. รับสัญญาณ 0-10V ภายนอก | 4. หยุดพัดลม',
     ld_ext:'ชุดควบคุมภายนอก (PLC / Smart Pig Dry Contacts) | VSF 1x1.0 sq.mm', ld_ret:'สายกลับ: VSF 1x1.0 sq.mm ({v})',
-    tm_bus:'บัสบาร์กราวด์/นิวทรัล', tm_pe_note:'สายดิน PE ครบทุกตัว!', tm_leg:'คำอธิบายสัญลักษณ์ & สเปกอุปกรณ์'
+    tm_bus:'บัสบาร์กราวด์/นิวทรัล', tm_pe_note:'สายดิน PE ครบทุกตัว!', tm_leg:'คำอธิบายสัญลักษณ์ & สเปกอุปกรณ์',
+    ui_opt3:'Option 3: คู่มือฟังก์ชัน & การแก้ไขปัญหา (+3 หน้า)', ui_man_on:'เปิด: แนบคู่มือ (+3 หน้า)', ui_man_off:'ปิด: เฉพาะแบบวงจร',
+    sh_func:'ฟังก์ชันระบบ & หลักการต่อวงจร', sh_safe:'ความปลอดภัย & ระบบป้องกันไฟฟ้า', sh_tshoot:'คู่มือวิเคราะห์และแก้ไขปัญหา'
   },
   en: {
     ui_sub:'IEC 60617 Multi-Sheet Schematic & PDF Generator',
@@ -472,7 +482,9 @@ const I18N = {
     pr_loop:'OVERLOAD FAULT LOOP (QFR1 .. QFR{n} NC 11-12 IN SERIES -> XR4 01/02)', pr_note:'01/02 -> XR4/AL OVERLOAD FAULT | WIRE: VSF 1x1.0 sq.mm (NORMAL=NC CLOSED | TRIP=NO OPEN)',
     iso_fn:'FUNCTION (SS1 4-STEP)', iso_f1:'1. Motor Running 100% | 2. Manual Speed Volume', iso_f2:'3. External 0-10V Controller | 4. Motor Stopped',
     ld_ext:'EXTERNAL CONTROLLER (PLC / Smart Pig Dry Contacts) | VSF 1x1.0 sq.mm', ld_ret:'Return: VSF 1x1.0 sq.mm ({v})',
-    tm_bus:'BUSBARS (R07)', tm_pe_note:'include PE wire!', tm_leg:'LEGEND & PRODUCT SPECS'
+    tm_bus:'BUSBARS (R07)', tm_pe_note:'include PE wire!', tm_leg:'LEGEND & PRODUCT SPECS',
+    ui_opt3:'Option 3: System & Troubleshooting Guide (+3 Sheets)', ui_man_on:'ON: Include Guide (+3)', ui_man_off:'OFF: Schematic Only',
+    sh_func:'SYSTEM FUNCTIONS & CIRCUIT WIRING GUIDE', sh_safe:'ELECTRICAL SAFETY & PROTECTION SYSTEM', sh_tshoot:'TROUBLESHOOTING & FAULT DIAGNOSTIC GUIDE'
   },
   vi: {
     ui_sub:'Trình tạo sơ đồ IEC 60617 & Báo cáo PDF',
@@ -514,7 +526,9 @@ const I18N = {
     pr_loop:'MẠCH BÁO LỖI QUÁ TẢI (QFR1..QFR{n} NC 11-12 NỐI TIẾP -> XR4 01/02)', pr_note:'01/02 -> XR4/AL OVERLOAD FAULT | DÂY: VSF 1x1.0 sq.mm (BÌNH THƯỜNG=NC ĐÓNG | LỖI=NO MỞ)',
     iso_fn:'CHỨC NĂNG (SS1 4-STEP)', iso_f1:'1. Chạy 100% tốc độ | 2. Chỉnh tay Manual', iso_f2:'3. Điều khiển ngoài 0-10V | 4. Dừng quạt',
     ld_ext:'BỘ ĐIỀU KHIỂN NGOÀI (PLC / Smart Pig Dry Contacts) | VSF 1x1.0 sq.mm', ld_ret:'Dây hồi: VSF 1x1.0 sq.mm ({v})',
-    tm_bus:'THANH CÁI (R07)', tm_pe_note:'có dây tiếp địa PE!', tm_leg:'CHÚ THÍCH & THÔNG SỐ THIẾT BỊ'
+    tm_bus:'THANH CÁI (R07)', tm_pe_note:'có dây tiếp địa PE!', tm_leg:'CHÚ THÍCH & THÔNG SỐ THIẾT BỊ',
+    ui_opt3:'Option 3: Hướng dẫn vận hành & xử lý sự cố (+3 trang)', ui_man_on:'Bật: Kèm hướng dẫn (+3)', ui_man_off:'Tắt: Chỉ bản vẽ mạch',
+    sh_func:'CHỨC NĂNG HỆ THỐNG & NGUYÊN LÝ ĐẤU MẠCH', sh_safe:'AN TOÀN ĐIỆN & HỆ THỐNG BẢO VỆ', sh_tshoot:'HƯỚNG DẪN KIỂM TRA & XỬ LÝ SỰ CỐ'
   },
   zh: {
     ui_sub:'IEC 60617 多页电气原理图与 PDF 报告生成器',
@@ -556,7 +570,9 @@ const I18N = {
     pr_loop:'过载故障报警串联回路 (QFR1..QFR{n} NC 11-12 串联 -> XR4 01/02)', pr_note:'01/02 -> XR4/AL 过载报警 | 线径: VSF 1x1.0 sq.mm (正常=NC 闭合 | 跳闸=NO 断开)',
     iso_fn:'功能说明 (SS1 4-STEP)', iso_f1:'1. 风机 100% 全速 | 2. 手动电位器调速', iso_f2:'3. 外部 0-10V 控制 | 4. 风机停止',
     ld_ext:'外部控制器 (PLC / Smart Pig 无源干接点) | VSF 1x1.0 sq.mm', ld_ret:'回线: VSF 1x1.0 sq.mm ({v})',
-    tm_bus:'接地/零排 (R07)', tm_pe_note:'含 PE 保护地线!', tm_leg:'图例与元件规格'
+    tm_bus:'接地/零排 (R07)', tm_pe_note:'含 PE 保护地线!', tm_leg:'图例与元件规格',
+    ui_opt3:'Option 3: 系统功能与故障排查手册 (+3 页)', ui_man_on:'开启: 附带手册 (+3 页)', ui_man_off:'关闭: 仅电气原理图',
+    sh_func:'系统功能与电路接线说明', sh_safe:'电气安全与多级保护系统', sh_tshoot:'常见故障分析与排查指南'
   }
 };
 
@@ -887,7 +903,11 @@ function computeSpec() {
   if (warns.length) { warnEl.style.display = 'block'; warnEl.innerHTML = warns.join('<br>'); }
   else { warnEl.style.display = 'none'; }
 
-  const totalSheets = 8 + 1 + grpCnt + 1 + isoPages + grpCnt + 1;
+  const includeManual = state.includeManual !== false;
+  document.getElementById('man_on').classList.toggle('active', includeManual);
+  document.getElementById('man_off').classList.toggle('active', !includeManual);
+  const manualPages = includeManual ? 3 : 0;
+  const totalSheets = 8 + 1 + grpCnt + 1 + isoPages + grpCnt + 1 + manualPages;
   const customCode = document.getElementById('inCode').value.trim();
   const codeNo = customCode || `KSP-${bm.codeTag}-${mode.slice(0,3).toUpperCase()}-${String(n).padStart(2,'0')}`;
 
@@ -907,13 +927,18 @@ function computeSpec() {
   sheetList.push([`R${String(sCur++).padStart(2,'0')}`, t('sh_prot')]);
   for (let ip = 0; ip < isoPages; ip++) sheetList.push([`R${String(sCur++).padStart(2,'0')}`, t('sh_iso', {a: ip*4+1, b: Math.min((ip+1)*4,isoCnt)})]);
   for (let g = 0; g < grpCnt; g++) sheetList.push([`R${String(sCur++).padStart(2,'0')}`, t('sh_ladder', {a: g*4+1, b: Math.min((g+1)*4,n)})]);
-  sheetList.push([`R${String(sCur).padStart(2,'0')}`, t('sh_term')]);
+  sheetList.push([`R${String(sCur++).padStart(2,'0')}`, t('sh_term')]);
+  if (includeManual) {
+    sheetList.push([`R${String(sCur++).padStart(2,'0')}`, t('sh_func')]);
+    sheetList.push([`R${String(sCur++).padStart(2,'0')}`, t('sh_safe')]);
+    sheetList.push([`R${String(sCur).padStart(2,'0')}`, t('sh_tshoot')]);
+  }
 
   return {
     n, nEc, nAc, mode, ecFan, acFan, bm, totalKw, totalAmp, totalCfm, iDesign,
     mainBrk, mainType, mainIcu, grpCnt, isoCnt, isoPages, hasIso, ctrlV, contMod, mainMod, spsSpec, pprMod,
     mWire, mWireS, mIz, peWire, peS, subW, subWS, subIz, busSize, busAmp,
-    hasPm, hasRs485, pmMod, ctRatio, cabSz,
+    hasPm, hasRs485, pmMod, ctRatio, cabSz, includeManual,
     totalSheets, codeNo, sheetList,
     customer: document.getElementById('inCustomer').value.trim(),
     dateStr: document.getElementById('inDate').value.trim() || '2026-11',
@@ -1774,7 +1799,7 @@ function buildLadderSheet(sp, g, sheetNo) {
 }
 
 function buildTerminals(sp, sheetNo) {
-  let s = drawFrame(sp, t('sh_term'), sheetNo, 'END');
+  let s = drawFrame(sp, t('sh_term'), sheetNo, sp.includeManual ? `R${String(sheetNo+1).padStart(2,'0')}` : 'END');
   s += drawTerminalStrip(65, 85, 'XR1', ['MCB1-1','MCB1-3','MCB1-5','N-BAR','PE-BAR'], ['PWR L1','PWR L2','PWR L3','NEUTRAL','GROUND (PE)'], 13);
 
   const xr2Top=[], xr2Bot=[];
@@ -1833,6 +1858,462 @@ function buildTerminals(sp, sheetNo) {
   return s;
 }
 
+const MANUAL_I18N = {
+  th: {
+    fn_op_hdr: '1. โหมดการทำงาน & การใช้งานหน้าตู้ (OPERATION)',
+    fn_sar_t: 'SAR1..n (MAN-0-AUT) — สวิตช์เลือกโหมดรายพัดลม:',
+    fn_sar_1: '• MAN: เดินพัดลมตรงจากหน้าตู้ (ไม่ต้องรอ PLC/Smart Pig)',
+    fn_sar_2: '• 0 (OFF): หยุดพัดลมตัวนั้นเพื่อซ่อมบำรุงเฉพาะจุด',
+    fn_sar_3: '• AUT: รับคำสั่ง Dry Contact (KC) จาก Smart Pig ผ่าน XR4',
+    fn_ss_t: 'SS1 (4-STEP) + SIG1 — ควบคุมความเร็วรอบ (EC):',
+    fn_ss_1: '• Pos 1 (100%): เดินเต็มรอบ 100% (ใช้เมื่อฉุกเฉิน/ทดสอบ)',
+    fn_ss_2: '• Pos 2 (MAN): ปรับรอบด้วยปุ่มหมุน SIG1 (0-10VDC)',
+    fn_ss_3: '• Pos 3 (EXT): รับสัญญาณ 0-10VDC จาก Smart Pig (XR3)',
+    fn_ss_4: '• Pos 4 (STOP): หยุดระบบทั้งหมด (ตัดคอยล์ RY2..RYn)',
+    fn_ac_only: '• โหมด All-AC: พัดลมทำงาน ON/OFF เต็มรอบผ่าน SAR + KC (ไม่มี 0-10V)',
+    fn_lamp_t: 'ความหมายหลอดไฟสัญญาณหน้าตู้ (22mm LED):',
+    fn_lamp_1: '• RUN (เขียว): พัดลมทำงาน | OVL (แดง): โอเวอร์โหลดทริป',
+    fn_lamp_2: '• PH.FLT (เหลือง): เฟส/ไฟผิดปกติ | P24FLT (แดง): ไฟ 24VDC หาย',
+    fn_flow_hdr: '2. ผังลำดับการทำงานของวงจร (POWER, CONTROL & SIGNAL FLOW)',
+    fn_tbl_hdr: '3. คำอธิบายการต่อวงจร & หน้าที่แต่ละส่วน (CIRCUIT-BY-CIRCUIT GUIDE)',
+    fn_cols: ['วงจร / หน้า', 'วิธีการต่อวงจร (WIRING)', 'หน้าที่ & การทำงาน (FUNCTION)'],
+    fn_rows: [
+      ['Power (R10+)', 'XR1 (L1,L2,L3,N,PE) -> MCB1 -> MCB2.. -> QFR -> KMR -> XR2 (VCT 4C)', 'จ่ายไฟกำลัง 380V แยกกลุ่มละ 4 ตัว พร้อมสายดิน PE ครบทุกมอเตอร์'],
+      ['Protection (R12)', 'FUR1 (6A) -> PPR1 (11->14/12) | FUR2 (2A) -> TS1 -> VF1 | QFR NC (11-12) อนุกรม', 'ตัดไฟเมื่อไฟตก/เกิน/เฟสสลับ, ระบายความร้อน 35C, ส่ง Alarm XR4 01/02'],
+      ['24V & ISO (R13+)', 'MCB4 (6AT) -> SPS1 (24VDC) -> SS1 -> ISO1..n (4-Ch) -> XR3 (LIY-CY)', 'แยกกราวด์สัญญาณ 0-10V รายตัวป้องกันสัญญาณกวน + RY1 เตือนไฟ 24V หาย'],
+      ['24V & ISO (AC)', 'โหมด All-AC: ไม่ใช้ SPS1/ISO (ควบคุมคอยล์ KMR ด้วย 220VAC ผ่าน MCB4)', 'ลดอุปกรณ์ที่ไม่จำเป็น พัดลม AC ทำงานเต็มรอบเมื่อ SAR/KC สั่ง ON'],
+      ['Ladder (R14+)', 'L1/24V -> FUR3.. -> KC/SAR -> QFR(13-14) -> RY -> KMR + RUN/OVL แยก', 'แยกฟิวส์คุมรายกลุ่ม 4 ตัว, ตัดคอยล์ทันทีเมื่อ QFR ทริป พร้อมติดไฟ OVL'],
+      ['Terminals (XR1-4)', 'XR1: เมน | XR2: มอเตอร์ (4P/ตัว) | XR3: 0-10V/RS485 | XR4: KC & Alarm', 'แยกโซนสายกำลัง (Power) ออกจากสายสัญญาณ (Signal) ลดการรบกวน'],
+      ['PM1 (None)', 'ไม่ได้ติดตั้ง Power Meter (PM1) และ CT ในชุดตู้ควบคุมนี้', 'สามารถเพิ่มชุด PM1 + CT 3 ตัว และ RS485 ภายหลังได้ที่หน้า R06/R09'],
+      ['PM1 (Local)', 'CT 3x ต่อคล้องเฟส L1,L2,L3 -> PM1 (อ่านค่าแรงดัน/กระแส/kW หน้าตู้)', 'มอนิเตอร์โหลดและพลังงานไฟฟ้าหน้าตู้ได้ทันที (ไม่เดินสาย RS485)'],
+      ['PM1 + RS485', 'PM1 + CT 3x -> RS485 Surge -> XR3 (A+/B-/SHLD) สาย Belden 9841', 'ส่งค่าพลังงาน kW/A/V เข้า Smart Pig (Modbus RTU) พร้อมกันไฟกระชาก']
+    ],
+    sf_hdr1: '1. ระบบป้องกันทางไฟฟ้า 6 ชั้น (6-LAYER PROTECTION ARCHITECTURE)',
+    sf_layers: [
+      ['ชั้นที่ 1: ป้องกันลัดวงจรเมน & กลุ่มย่อย (MCB1 / MCB2..)', 'MCB1 {brk}AT ({icu}) ป้องกันสายเมน | MCB2.. แยกกลุ่มละ 4 ตัว (ซ่อมบำรุงแยกกลุ่มได้)'],
+      ['ชั้นที่ 2: ป้องกันมอเตอร์ไหม้ & เฟสหาย (QFR MPCB)', 'ตั้งพิกัดตรงมอเตอร์ (EC {ecA}A / AC {acA}A) ทริป 3 ทาง: ตัดไฟ + ติดไฟ OVL + ส่ง XR4 01/02'],
+      ['ชั้นที่ 3: ป้องกันไฟตก / ไฟเกิน / สลับเฟส (PPR1)', 'ตรวจ L1-L2-L3 ตลอดเวลา (<200V / >450V / Phase Loss) ตัดวงจรควบคุม + ติดไฟ PH.FLT'],
+      ['ชั้นที่ 4: ตรวจสอบไฟเลี้ยงระบบควบคุม (MCB4 + SPS1 + RY1)', 'MCB4 6AT คุมไฟวงจรคอนโทรล | หากไฟ 24VDC หาย RY1 ปลดหน้าสัมผัสแจ้งไฟแดง HLR4 ทันที'],
+      ['ชั้นที่ 5: ระบบกราวด์ป้องกันไฟดูด (TN-S + PE-BAR + IP55)', 'PE-BAR {bus} ต่อถึง XR1, ประตูตู้ (Door Strap) และสาย VCT 4C (PE) ถึงโครงพัดลมทุกตัว'],
+      ['ชั้นที่ 6: ป้องกันความร้อน & ฝุ่นละออง (IP55 + TS1 + VF1)', 'ตู้ปิดผนึกกันน้ำกันฝุ่น IP55 + เทอร์โมสตัท TS1 สั่งพัดลม VF1 ดูดลมร้อนออกเมื่อ >35C']
+    ],
+    sf_hdr2: '2. ขั้นตอนตรวจเช็คก่อนจ่ายไฟครั้งแรก (PRE-COMMISSIONING)',
+    sf_pre: [
+      '1. ตรวจสอบความแน่นขั้วต่อสายเมน XR1, MCB1, XR2 และบัสบาร์ PE-BAR / N-BAR',
+      '2. ตรวจวัดค่าความเป็นฉนวน (Insulation Test) ระหว่างเฟสกับ PE ก่อนจ่ายไฟ',
+      '3. ตรวจสอบค่ากระแสที่ตั้งบน QFR1..n ให้ตรงกับ Nameplate พัดลมจริง',
+      '4. เปิดไฟเมน ตรวจสอบไฟ 3 เฟส HLR1-3 และดูว่า PPR1 ไม่มีไฟเตือน PH.FLT',
+      '5. ทดสอบปุ่ม Test Trip บน QFR และตรวจไฟแดง OVL + สัญญาณ XR4 01/02',
+      '6. ทดสอบบิด SAR -> MAN และปรับ SS1/SIG1 ตรวจทิศทางหมุนของพัดลมทุกตัว'
+    ],
+    sf_hdr3: '3. กฎความปลอดภัยงานซ่อมบำรุง (LOTO & SAFETY WARNINGS)',
+    sf_loto: [
+      '• ตัดเมนเบรกเกอร์ MCB1 + ล็อกกุญแจ (LOTO) และใช้มิเตอร์วัดไฟ 0V ก่อนสัมผัสสาย',
+      '• ห้ามบายพาสหรือถอดสาย PPR1 และ QFR ออกเด็ดขาด (เสี่ยงมอเตอร์ไหม้ทั้งชุด)',
+      '• ห้ามเปิดวงจรขั้ว CT (S1-S2) ขณะมีกระแสไหลผ่าน (อาจเกิดแรงดันสูงอันตราย)',
+      '• เปลี่ยนฟิวส์ให้ตรงพิกัดเดิมเท่านั้น: FUR1 = 6A | FUR2, FUR3.. = 2A',
+      '• ตรวจสภาพสายดิน PE-BAR และสายถักประตูตู้ (Door Earth Strap) ทุก 6 เดือน'
+    ],
+    ts_hdr: 'ตารางวิเคราะห์อาการเสีย & แนวทางการแก้ไขปัญหา (FAULT DIAGNOSTIC MATRIX)',
+    ts_cols: ['อาการ / ปัญหาที่พบ', 'ไฟสถานะ / จุดสังเกต', 'สาเหตุที่เป็นไปได้', 'วิธีตรวจเช็คและแก้ไข'],
+    ts_rows: [
+      ['1. พัดลมหยุดทั้งหมดทั้งตู้', 'ไฟเหลือง PH.FLT ติด (PPR1 ตัด)', 'ไฟตก/เกิน, เฟสหาย, เฟสสลับ หรือฟิวส์ FUR1 ขาด', 'วัดแรงดัน L1-L2-L3 ที่ XR1, เช็คฟิวส์ FUR1, สลับ 2 เฟสหากเฟสสลับ'],
+      ['2. พัดลมบางตัวหยุดทำงาน', 'ไฟแดง OVL ติด + XR4 01/02 เปิด', 'QFR ทริป (มอเตอร์กินกระแสเกิน, ใบพัดติด, สายหลวม)', 'วัดกระแสเทียบพิกัด, ตรวจใบพัด/สายที่ XR2, กด Reset QFR'],
+      ['3. พัดลม EC ไม่ทำงาน/ไม่มีไฟ 24V', 'ไฟแดง P24FLT (HLR4) ติด', 'MCB4 (6AT) ทริป, SPS1 24VDC เสีย หรือสาย 24V ช็อต', 'เช็ค MCB4, วัดไฟ +24V/0V ที่ SPS1, ปลดโหลดหาจุดลัดวงจร'],
+      ['4. โหมด AUT ไม่เดิน แต่ MAN เดิน', 'ไฟ RUN ดับในโหมด AUT', 'Smart Pig ไม่สั่ง KC, สาย XR4 หลุด หรือ RY ไม่ทำงาน', 'วัดสัญญาณที่ XR4 (KC), เช็คสายไฟ, ทดสอบคอยล์ RY'],
+      ['5. พัดลม EC ปรับรอบ 0-10V ไม่ได้', 'หมุนค้างความเร็วเดียว / ไม่หมุน', 'SS1 ผิดตำแหน่ง, ISO เสีย หรือสาย LIY-CY สลับขั้ว +/-', 'เช็ค SS1 (Pos 2=SIG1, Pos 3=EXT), วัด 0-10V ที่ XR3'],
+      ['6. ดับทั้งกลุ่ม 4 ตัว (RUN/OVL ดับ)', 'ไฟกลุ่มย่อยดับทั้งหมด', 'ฟิวส์คุม FUR3.. ขาด, MCB กลุ่มทริป หรือ SS1 อยู่ Pos 4', 'เช็คตำแหน่ง SS1, ตรวจฟิวส์ FUR3.. และ MCB กลุ่ม (4 ตัว)'],
+      ['7. ตู้ร้อนจัด / พัดลม VF1 ไม่หมุน', 'อุณหภูมิในตู้สูง >35C', 'ฟิวส์ FUR2 (2A) ขาด, TS1 เสีย หรือแผ่นกรองฝุ่นตัน', 'ตรวจฟิวส์ FUR2, ทดสอบบิด TS1 ต่ำกว่าอุณหภูมิห้อง, เป่าฝุ่น'],
+      ['8. PM1 ดับ หรือ RS485 ไม่อ่านค่า', 'หน้าจอ PM1 ดับ / Modbus Error', 'ฟิวส์/ไฟเลี้ยง PM1 หาย, สาย A+/B- สลับขั้ว หรือ Baud ผิด', 'เช็คไฟเลี้ยง PM1, สลับตรวจ A+/B- ที่ XR3, ตรวจ Surge/Baud']
+    ],
+    ts_emg_t: 'คำแนะนำกรณีฉุกเฉิน (EMERGENCY OVERRIDE):',
+    ts_emg_b: 'หาก Smart Pig หรือ PLC ภายนอกขัดข้อง สามารถบิด SS1 ไปตำแหน่ง 1 (100%) และบิด SAR ไป MAN เพื่อเดินพัดลมระบายอากาศได้ทันที โดยระบบป้องกัน QFR และ PPR1 ยังทำงานครบ'
+  },
+  en: {
+    fn_op_hdr: '1. OPERATION MODES & FRONT PANEL CONTROLS',
+    fn_sar_t: 'SAR1..n (MAN-0-AUT) — Per-Fan Selector Switch:',
+    fn_sar_1: '• MAN: Direct manual start from panel door (bypasses PLC/Smart Pig)',
+    fn_sar_2: '• 0 (OFF): Stops individual fan for isolated maintenance',
+    fn_sar_3: '• AUT: Controlled by external PLC/Smart Pig dry contact (KC via XR4)',
+    fn_ss_t: 'SS1 (4-STEP) + SIG1 — EC Speed Control Selector:',
+    fn_ss_1: '• Pos 1 (100%): Full-speed 100% emergency/test override',
+    fn_ss_2: '• Pos 2 (MAN): Manual 0-10VDC speed adjustment via SIG1 knob',
+    fn_ss_3: '• Pos 3 (EXT): External 0-10VDC auto control from Smart Pig (XR3)',
+    fn_ss_4: '• Pos 4 (STOP): Master stop (de-energizes RY2..RYn)',
+    fn_ac_only: '• All-AC Mode: Fans run ON/OFF at full speed via SAR + KC (no 0-10V)',
+    fn_lamp_t: 'Front Door Pilot Lamp Indicators (22mm LED):',
+    fn_lamp_1: '• RUN (Green): Fan running | OVL (Red): MPCB overload tripped',
+    fn_lamp_2: '• PH.FLT (Yellow): Phase/Voltage fault | P24FLT (Red): 24VDC lost',
+    fn_flow_hdr: '2. SYSTEM POWER, CONTROL & SIGNAL FLOW DIAGRAM',
+    fn_tbl_hdr: '3. CIRCUIT-BY-CIRCUIT WIRING & FUNCTION EXPLANATION',
+    fn_cols: ['CIRCUIT / SHEET', 'HOW IT CONNECTS (WIRING)', 'FUNCTION & OPERATION'],
+    fn_rows: [
+      ['Power (R10+)', 'XR1 (L1,L2,L3,N,PE) -> MCB1 -> MCB2.. -> QFR -> KMR -> XR2 (VCT 4C)', 'Feeds 380V 3PH in 4-fan groups with dedicated PE earth to every motor'],
+      ['Protection (R12)', 'FUR1 (6A) -> PPR1 (11->14/12) | FUR2 (2A) -> TS1 -> VF1 | QFR NC series', 'Trips on UV/OV/phase loss, cools cabinet >35C, sends XR4 01/02 alarm'],
+      ['24V & ISO (R13+)', 'MCB4 (6AT) -> SPS1 (24VDC) -> SS1 -> ISO1..n (4-Ch) -> XR3 (LIY-CY)', 'Galvanically isolates 0-10V per fan; RY1 drives HLR4 P24 fault lamp'],
+      ['24V & ISO (AC)', 'All-AC Mode: No SPS1/ISO (KMR coils fed by 220VAC via MCB4)', 'Streamlined AC starter circuit; full-speed ON/OFF via SAR or KC'],
+      ['Ladder (R14+)', 'L1/24V -> FUR3.. -> KC/SAR -> QFR(13-14) -> RY -> KMR + RUN/OVL', 'Group-fused control; QFR trip drops KMR & lights red OVL lamp via 21-22'],
+      ['Terminals (XR1-4)', 'XR1: Main | XR2: Motors (4P/fan) | XR3: 0-10V/RS485 | XR4: KC/Alarm', 'Separates high-voltage power from shielded analog/Modbus signals'],
+      ['PM1 (None)', 'Digital Power Meter (PM1) and CTs are not installed in this config', 'PM1 + 3x CT + RS485 can be enabled in Sidebar for metering & Modbus'],
+      ['PM1 (Local)', '3x CT on L1,L2,L3 -> PM1 (reads V, A, kW, kWh locally on panel door)', 'Local energy & current monitoring on door without external RS485 wiring'],
+      ['PM1 + RS485', 'PM1 + 3x CT -> RS485 Surge -> XR3 (A+/B-/SHLD) via Belden 9841', 'Transmits real-time power data to Smart Pig (Modbus RTU) with surge guard']
+    ],
+    sf_hdr1: '1. 6-LAYER ELECTRICAL SAFETY & PROTECTION ARCHITECTURE',
+    sf_layers: [
+      ['Layer 1: Main & Branch Short-Circuit (MCB1 / MCB2..)', 'MCB1 {brk}AT ({icu}) protects feeder | MCB2.. isolates 4-fan groups safely'],
+      ['Layer 2: Motor Overload & Phase Loss (QFR MPCB)', 'Set to motor FLC (EC {ecA}A / AC {acA}A); trips power + red OVL + XR4 01/02'],
+      ['Layer 3: Voltage & Phase Sequence Guard (PPR1)', 'Monitors L1-L3 (<200V / >450V / phase loss); cuts control & lights PH.FLT'],
+      ['Layer 4: Control Supply Supervision (MCB4 + SPS1 + RY1)', 'MCB4 6AT protects control | 24VDC loss drops RY1 and triggers red HLR4'],
+      ['Layer 5: Earth Grounding & Bonding (TN-S + PE-BAR)', 'PE-BAR {bus} bonds XR1, enclosure door strap, and VCT 4C PE to all motors'],
+      ['Layer 6: IP55 Ingress & Thermal Control (TS1 + VF1)', 'IP55 dust/water gasket + TS1 thermostat runs VF1 exhaust fan above 35C']
+    ],
+    sf_hdr2: '2. PRE-COMMISSIONING CHECKLIST (BEFORE POWER-ON)',
+    sf_pre: [
+      '1. Verify torque/tightness on XR1, MCB1, XR2, PE-BAR, and N-BAR terminals',
+      '2. Perform insulation resistance check between phases and PE before power-on',
+      '3. Confirm QFR1..n dial settings match actual fan motor nameplate FLC',
+      '4. Energize MCB1: verify HLR1-3 phase lamps and ensure PH.FLT is OFF',
+      '5. Press QFR Test button to verify OVL red lamp & XR4 01/02 alarm loop',
+      '6. Test SAR -> MAN and SS1/SIG1 to confirm correct fan rotation direction'
+    ],
+    sf_hdr3: '3. MAINTENANCE & LOTO SAFETY RULES',
+    sf_loto: [
+      '• Always switch OFF & Lockout/Tagout (LOTO) MCB1 and verify 0V before servicing',
+      '• NEVER bypass PPR1 or QFR interlocks (risk of motor burnout or fire)',
+      '• NEVER open-circuit CT secondary (S1-S2) while primary current is flowing',
+      '• Replace fuses with exact ratings only: FUR1 = 6A | FUR2, FUR3.. = 2A',
+      '• Inspect PE-BAR and door braided earth strap continuity every 6 months'
+    ],
+    ts_hdr: 'FAULT DIAGNOSTIC & TROUBLESHOOTING MATRIX',
+    ts_cols: ['SYMPTOM / FAULT', 'INDICATOR / LAMP', 'PROBABLE CAUSE', 'CHECK & CORRECTIVE ACTION'],
+    ts_rows: [
+      ['1. All fans stop running', 'Yellow PH.FLT ON (PPR1 trip)', 'Under/Over-voltage, phase loss/reversal, or FUR1 blown', 'Measure L1-L3 at XR1, check FUR1 (6A), swap 2 phases if reversed'],
+      ['2. Individual fan stops', 'Red OVL ON + XR4 01/02 open', 'QFR tripped (overcurrent, jammed blade, loose wire)', 'Check motor amps, inspect blade & XR2 wiring, reset QFR'],
+      ['3. EC fans off / No 24VDC', 'Red P24FLT (HLR4) ON', 'MCB4 (6AT) tripped, SPS1 failed, or 24V short circuit', 'Check MCB4, measure +24V/0V at SPS1, isolate 24V branch short'],
+      ['4. AUT fails, MAN works', 'RUN lamp OFF in AUT mode', 'No KC dry contact from Smart Pig, loose XR4, or bad RY', 'Check KC continuity at XR4, inspect RY coil & socket'],
+      ['5. EC speed won\'t vary (0-10V)', 'Stuck at one speed / 0 RPM', 'Wrong SS1 step, faulty ISO, or reversed LIY-CY +/-', 'Verify SS1 (Pos 2=SIG1, 3=EXT), measure 0-10V at XR3'],
+      ['6. 4-fan group dead (RUN/OVL OFF)', 'Entire 4-fan group dark', 'Group fuse FUR3.. blown, MCB2.. tripped, or SS1=4', 'Check SS1 position, test FUR3.. (2A) & group MCB2..'],
+      ['7. Panel overheating / VF1 off', 'Cabinet temp > 35C', 'FUR2 (2A) blown, faulty TS1, or clogged filter mesh', 'Check FUR2, test TS1 setpoint below ambient, clean mesh'],
+      ['8. PM1 off or RS485 error', 'PM1 dark / Modbus timeout', 'PM1 supply lost, A+/B- swapped, or Surge/Baud mismatch', 'Check PM1 L/N supply, swap A+/B- at XR3, verify Modbus ID']
+    ],
+    ts_emg_t: 'EMERGENCY MANUAL OVERRIDE:',
+    ts_emg_b: 'If Smart Pig / PLC fails, switch SS1 to Pos 1 (100%) and SAR to MAN for immediate barn ventilation. Full QFR overload and PPR1 phase protection remain active.'
+  },
+  vi: {
+    fn_op_hdr: '1. CHẾ ĐỘ VẬN HÀNH & ĐIỀU KHIỂN MẶT TỦ (OPERATION)',
+    fn_sar_t: 'SAR1..n (MAN-0-AUT) — Công tắc chọn chế độ từng quạt:',
+    fn_sar_1: '• MAN: Chạy trực tiếp tại mặt tủ (Không cần chờ PLC / Smart Pig)',
+    fn_sar_2: '• 0 (OFF): Dừng riêng quạt đó để kiểm tra hoặc bảo trì',
+    fn_sar_3: '• AUT: Nhận tiếp điểm khô (KC) từ Smart Pig qua cầu đấu XR4',
+    fn_ss_t: 'SS1 (4-STEP) + SIG1 — Điều chỉnh tốc độ quạt EC:',
+    fn_ss_1: '• Vị trí 1 (100%): Chạy 100% tốc độ (Dùng khi khẩn cấp / thử máy)',
+    fn_ss_2: '• Vị trí 2 (MAN): Chỉnh tốc độ bằng núm xoay SIG1 (0-10VDC)',
+    fn_ss_3: '• Vị trí 3 (EXT): Nhận tín hiệu 0-10VDC tự động từ Smart Pig (XR3)',
+    fn_ss_4: '• Vị trí 4 (STOP): Dừng toàn bộ hệ thống (Ngắt cuộn RY2..RYn)',
+    fn_ac_only: '• Chế độ All-AC: Quạt chạy ON/OFF 100% tốc độ qua SAR + KC (Không 0-10V)',
+    fn_lamp_t: 'Ý nghĩa đèn báo trên mặt tủ (LED 22mm):',
+    fn_lamp_1: '• RUN (Xanh): Quạt đang chạy | OVL (Đỏ): Quá tải (QFR nhảy)',
+    fn_lamp_2: '• PH.FLT (Vàng): Lỗi pha/điện áp | P24FLT (Đỏ): Mất nguồn 24VDC',
+    fn_flow_hdr: '2. SƠ ĐỒ KHỐI NGUYÊN LÝ ĐỘNG LỰC, ĐIỀU KHIỂN & TÍN HIỆU',
+    fn_tbl_hdr: '3. GIẢI THÍCH CÁCH ĐẤU NỐI & CHỨC NĂNG TỪNG MẠCH ĐIỆN',
+    fn_cols: ['MẠCH / TRANG', 'CÁCH ĐẤU NỐI (WIRING)', 'CHỨC NĂNG & HOẠT ĐỘNG'],
+    fn_rows: [
+      ['Động lực (R10+)', 'XR1 (L1,L2,L3,N,PE) -> MCB1 -> MCB2.. -> QFR -> KMR -> XR2 (VCT 4C)', 'Cấp nguồn 380V chia nhóm 4 quạt, có dây tiếp địa PE tới từng động cơ'],
+      ['Bảo vệ (R12)', 'FUR1 (6A) -> PPR1 (11->14/12) | FUR2 (2A) -> TS1 -> VF1 | QFR NC nối tiếp', 'Cắt mạch khi lỗi pha/áp, làm mát tủ >35C, báo lỗi XR4 01/02'],
+      ['24V & ISO (R13+)', 'MCB4 (6AT) -> SPS1 (24VDC) -> SS1 -> ISO1..n (4-Ch) -> XR3 (LIY-CY)', 'Cách ly chống nhiễu 0-10V từng quạt; RY1 báo mất nguồn 24V (HLR4)'],
+      ['24V & ISO (AC)', 'Chế độ All-AC: Không dùng SPS1/ISO (KMR dùng cuộn 220VAC qua MCB4)', 'Mạch khởi động đơn giản, quạt AC chạy hết công suất khi SAR/KC đóng'],
+      ['Điều khiển (R14+)', 'L1/24V -> FUR3.. -> KC/SAR -> QFR(13-14) -> RY -> KMR + Đèn RUN/OVL', 'Cầu chì riêng từng nhóm 4 quạt, QFR nhảy sẽ ngắt KMR & sáng đèn OVL'],
+      ['Cầu đấu (XR1-4)', 'XR1: Nguồn tổng | XR2: Quạt (4P) | XR3: 0-10V/RS485 | XR4: KC & Lỗi', 'Tách biệt vùng dây động lực và dây tín hiệu chống nhiễu điện từ'],
+      ['PM1 (Không lắp)', 'Cấu hình này không lắp đồng hồ Power Meter (PM1) và biến dòng CT', 'Có thể bật lại PM1 + 3x CT + RS485 ở thanh bên nếu cần giám sát điện'],
+      ['PM1 (Tại tủ)', '3x CT kẹp pha L1,L2,L3 -> PM1 (Đọc điện áp/dòng/kW ngay tại mặt tủ)', 'Theo dõi phụ tải và điện năng tại chỗ, không cần kéo dây RS485'],
+      ['PM1 + RS485', 'PM1 + 3x CT -> Chống sét RS485 -> XR3 (A+/B-/SHLD) cáp Belden 9841', 'Truyền dữ liệu điện năng về Smart Pig (Modbus RTU) có chống sét lan truyền']
+    ],
+    sf_hdr1: '1. HỆ THỐNG AN TOÀN & BẢO VỆ ĐIỆN 6 LỚP (6-LAYER PROTECTION)',
+    sf_layers: [
+      ['Lớp 1: Bảo vệ ngắn mạch tổng & nhánh (MCB1 / MCB2..)', 'MCB1 {brk}AT ({icu}) bảo vệ cáp tổng | MCB2.. cách ly từng nhóm 4 quạt'],
+      ['Lớp 2: Bảo vệ quá tải & mất pha động cơ (QFR MPCB)', 'Chỉnh đúng dòng quạt (EC {ecA}A / AC {acA}A): Ngắt điện + sáng OVL + báo XR4'],
+      ['Lớp 3: Bảo vệ thấp áp / quá áp / ngược pha (PPR1)', 'Giám sát L1-L3 (<200V / >450V / mất pha), ngắt điều khiển & sáng đèn PH.FLT'],
+      ['Lớp 4: Giám sát nguồn điều khiển (MCB4 + SPS1 + RY1)', 'MCB4 6AT bảo vệ mạch khiển | Mất nguồn 24VDC: RY1 nhả, sáng đèn đỏ HLR4'],
+      ['Lớp 5: Hệ thống tiếp địa chống giật (TN-S + PE-BAR)', 'Thanh PE-BAR {bus} nối XR1, dây tiếp địa cánh tủ & dây VCT 4C (PE) ra quạt'],
+      ['Lớp 6: Chống bụi nước IP55 & Giải nhiệt tủ (TS1 + VF1)', 'Vỏ tủ kín IP55 + cảm biến nhiệt TS1 tự chạy quạt hút VF1 khi tủ >35C']
+    ],
+    sf_hdr2: '2. KIỂM TRA AN TOÀN TRƯỚC KHI ĐÓNG ĐIỆN (PRE-COMMISSIONING)',
+    sf_pre: [
+      '1. Siết chặt lại toàn bộ đầu cốt tại XR1, MCB1, XR2, PE-BAR và N-BAR',
+      '2. Đo cách điện giữa các pha với nhau và với tiếp địa PE trước khi cấp nguồn',
+      '3. Kiểm tra núm chỉnh dòng trên QFR1..n đúng theo nhãn động cơ thực tế',
+      '4. Đóng MCB1: kiểm tra 3 đèn pha HLR1-3 sáng và đèn PH.FLT phải tắt',
+      '5. Nhấn nút Test trên QFR kiểm tra đèn đỏ OVL và mạch báo lỗi XR4 01/02',
+      '6. Thử vặn SAR -> MAN và chỉnh SS1/SIG1 để kiểm tra đúng chiều quay quạt'
+    ],
+    sf_hdr3: '3. QUY TẮC AN TOÀN KHI BẢO TRÌ (LOTO & WARNINGS)',
+    sf_loto: [
+      '• Luôn cắt MCB1, khóa tủ (LOTO) và đo kiểm 0V trước khi thao tác sửa chữa',
+      '• TUYỆT ĐỐI không đấu tắt (bypass) PPR1 hoặc QFR (gây cháy động cơ)',
+      '• KHÔNG hở mạch thứ cấp biến dòng CT (S1-S2) khi đang có dòng điện chạy qua',
+      '• Thay cầu chì đúng trị số quy định: FUR1 = 6A | FUR2, FUR3.. = 2A',
+      '• Kiểm tra định kỳ độ chặt thanh PE-BAR và dây tiếp địa cánh cửa mỗi 6 tháng'
+    ],
+    ts_hdr: 'BẢNG PHÂN TÍCH SỰ CỐ & CÁCH KHẮC PHỤC (TROUBLESHOOTING GUIDE)',
+    ts_cols: ['HIỆN TƯỢNG / SỰ CỐ', 'ĐÈN BÁO / DẤU HIỆU', 'NGUYÊN NHÂN CÓ THỂ', 'CÁCH KIỂM TRA & XỬ LÝ'],
+    ts_rows: [
+      ['1. Toàn bộ quạt đều không chạy', 'Đèn vàng PH.FLT sáng (PPR1)', 'Điện áp thấp/cao, mất pha, ngược pha hoặc đứt chì FUR1', 'Đo áp L1-L3 tại XR1, kiểm tra FUR1 (6A), đảo 2 pha nếu ngược'],
+      ['2. Một quạt bị dừng đột ngột', 'Đèn đỏ OVL sáng + XR4 01/02 mở', 'QFR nhảy (quá tải, kẹt cánh, lỏng dây động cơ)', 'Đo dòng quạt, kiểm tra cánh/dây tại XR2, nhấn Reset QFR'],
+      ['3. Quạt EC không chạy / Mất 24V', 'Đèn đỏ P24FLT (HLR4) sáng', 'MCB4 (6AT) nhảy, hỏng nguồn SPS1 hoặc chạm chập 24V', 'Kiểm tra MCB4, đo +24V/0V tại SPS1, tách nhánh tìm chạm'],
+      ['4. Chế độ AUT không chạy, MAN chạy', 'Đèn RUN tắt ở chế độ AUT', 'Smart Pig chưa đóng KC, tuột dây XR4 hoặc hỏng rơ-le RY', 'Đo thông mạch KC tại XR4, kiểm tra cuộn hút & đế RY'],
+      ['5. Quạt EC không đổi tốc độ 0-10V', 'Chạy 1 tốc độ hoặc đứng yên', 'Vặn sai nấc SS1, hỏng bộ cách ly ISO hoặc ngược cực +/-', 'Kiểm tra SS1 (2=SIG1, 3=EXT), đo áp 0-10V tại XR3'],
+      ['6. Mất cả nhóm 4 quạt (RUN/OVL tắt)', 'Cả nhóm 4 quạt không có đèn', 'Đứt chì FUR3.., nhảy MCB nhóm 4 quạt hoặc SS1 ở nấc 4', 'Kiểm tra vị trí SS1, thay chì FUR3.. (2A) & đóng lại MCB'],
+      ['7. Tủ quá nóng / Quạt VF1 không quay', 'Nhiệt độ trong tủ >35C', 'Đứt cầu chì FUR2 (2A), hỏng TS1 hoặc lưới lọc bám bụi', 'Kiểm tra FUR2, vặn thử TS1 xuống thấp, vệ sinh lưới lọc'],
+      ['8. PM1 tắt hoặc lỗi truyền RS485', 'Màn hình PM1 tắt / Lỗi Modbus', 'Mất nguồn PM1, đấu ngược dây A+/B- hoặc sai tốc độ Baud', 'Kiểm tra nguồn cấp PM1, đảo lại A+/B- tại XR3, check Surge']
+    ],
+    ts_emg_t: 'XỬ LÝ KHẨN CẤP (EMERGENCY OVERRIDE):',
+    ts_emg_b: 'Nếu Smart Pig / PLC bị lỗi, hãy vặn SS1 về vị trí 1 (100%) và vặn SAR sang MAN để chạy quạt thông gió ngay lập tức; mạch bảo vệ QFR và PPR1 vẫn hoạt động bình thường.'
+  },
+  zh: {
+    fn_op_hdr: '1. 运行模式与柜面操作说明 (OPERATION)',
+    fn_sar_t: 'SAR1..n (MAN-0-AUT) — 单台风机模式选择开关:',
+    fn_sar_1: '• MAN (手动): 柜面直接强制启动风机 (不依赖外部 PLC / Smart Pig)',
+    fn_sar_2: '• 0 (停止): 单独停止该台风机，便于局部检修维护',
+    fn_sar_3: '• AUT (自动): 接收 Smart Pig 外部无源干接点 (KC via XR4) 控制',
+    fn_ss_t: 'SS1 (4档) + SIG1 — EC 风机调速选择开关:',
+    fn_ss_1: '• 档位 1 (100%): 100% 全速运行 (应急通风或调试使用)',
+    fn_ss_2: '• 档位 2 (MAN): 通过柜面电位器 SIG1 手动调节 0-10VDC 转速',
+    fn_ss_3: '• 档位 3 (EXT): 接收 Smart Pig 外部 0-10VDC 自动调速信号 (XR3)',
+    fn_ss_4: '• 档位 4 (STOP): 总停机 (断开控制继电器 RY2..RYn)',
+    fn_ac_only: '• All-AC 模式: 风机通过 SAR + KC 直接全速启停 (无 0-10V 调速)',
+    fn_lamp_t: '柜面 LED 指示灯含义 (22mm):',
+    fn_lamp_1: '• RUN (绿灯): 风机运行 | OVL (红灯): 电机过载跳闸 (QFR)',
+    fn_lamp_2: '• PH.FLT (黄灯): 相序/电压故障 | P24FLT (红灯): 24VDC 失电',
+    fn_flow_hdr: '2. 系统主动力、二次控制与信号流向图 (SYSTEM FLOW)',
+    fn_tbl_hdr: '3. 各部分电路接线原理与功能说明 (CIRCUIT-BY-CIRCUIT GUIDE)',
+    fn_cols: ['电路 / 图号', '接线方式 (WIRING)', '功能与工作原理 (FUNCTION)'],
+    fn_rows: [
+      ['主动力 (R10+)', 'XR1 (L1,L2,L3,N,PE) -> MCB1 -> MCB2.. -> QFR -> KMR -> XR2 (VCT 4C)', '380V 三相供电按 4 台一组分配，每台电机均配置独立 PE 接地线'],
+      ['保护回路 (R12)', 'FUR1 (6A) -> PPR1 (11->14/12) | FUR2 (2A) -> TS1 -> VF1 | QFR NC 串联', '缺相/过欠压保护、柜内 >35C 自动散热、过载报警输出 XR4 01/02'],
+      ['24V/隔离 (R13+)', 'MCB4 (6AT) -> SPS1 (24VDC) -> SS1 -> ISO1..n (4-Ch) -> XR3 (LIY-CY)', '每台风机 0-10V 信号光电隔离防干扰；RY1 监测 24V 电源并报警'],
+      ['24V/隔离 (AC)', 'All-AC 模式: 不配 SPS1/ISO (KMR 线圈由 MCB4 提供 220VAC)', '简化控制回路，AC 风机在 SAR 或 KC 闭合时全速直接启停'],
+      ['控制图 (R14+)', 'L1/24V -> FUR3.. -> KC/SAR -> QFR(13-14) -> RY -> KMR + RUN/OVL', '每 4 台风机独立保险丝保护；QFR 跳闸立即断 KMR 并点亮红灯 OVL'],
+      ['端子排 (XR1-4)', 'XR1: 进线 | XR2: 电机(4P/台) | XR3: 0-10V/RS485 | XR4: KC 与报警', '强电动力端子与弱电模拟/通讯端子分区隔离，降低电磁干扰'],
+      ['PM1 (未配置)', '当前配置未选配数字多功能电表 (PM1) 及互感器 (CT)', '可在左侧边栏开启 PM1 + 3x CT + RS485 以实现能耗监测与通讯'],
+      ['PM1 (柜面显示)', '3x CT 套 L1,L2,L3 -> PM1 (在控制柜门直接显示电压/电流/kW)', '支持控制柜本地实时监测三相电参数，无需敷设 RS485 通讯线'],
+      ['PM1 + RS485', 'PM1 + 3x CT -> RS485 浪涌 -> XR3 (A+/B-/SHLD) Belden 9841', '通过 Modbus RTU 将电表数据传至 Smart Pig，并带通讯防雷保护']
+    ],
+    sf_hdr1: '1. 六级电气安全与多级保护架构 (6-LAYER PROTECTION)',
+    sf_layers: [
+      ['第 1 级: 总开关与分组短路保护 (MCB1 / MCB2..)', 'MCB1 {brk}AT ({icu}) 保护总进线 | MCB2.. 按 4 台分组，支持分组隔离检修'],
+      ['第 2 级: 电机过载与缺相保护 (QFR MPCB)', '按电机额定电流整定 (EC {ecA}A / AC {acA}A): 跳闸断电 + OVL 灯 + XR4'],
+      ['第 3 级: 过欠压与相序保护 (PPR1)', '实时监测 L1-L3 (<200V / >450V / 缺相/错相): 切断控制并点亮 PH.FLT'],
+      ['第 4 级: 控制电源失压监测 (MCB4 + SPS1 + RY1)', 'MCB4 6AT 保护控制电源 | 24VDC 失电时 RY1 释放并点亮红色报警灯 HLR4'],
+      ['第 5 级: TN-S 保护接地与防触电 (PE-BAR + IP55)', 'PE-BAR {bus} 连接 XR1、柜门跨接铜编织带及 VCT 4C (PE) 至每台风机外壳'],
+      ['第 6 级: IP55 防护与温控散热 (TS1 + VF1)', 'IP55 防尘防水密封柜体 + 温控开关 TS1 (>35C 自动启动 VF1 散热风扇)']
+    ],
+    sf_hdr2: '2. 首次送电前安全检查清单 (PRE-COMMISSIONING)',
+    sf_pre: [
+      '1. 复紧 XR1、MCB1、XR2 及 PE-BAR / N-BAR 铜排上的所有接线端子',
+      '2. 送电前使用兆欧表测量三相之间及相对 PE 接地之间的绝缘电阻',
+      '3. 核对 QFR1..n 的电流整定刻度是否与现场风机铭牌电流一致',
+      '4. 合上 MCB1: 确认三相指示灯 HLR1-3 亮起且黄灯 PH.FLT 熄灭',
+      '5. 按下 QFR 测试按钮，验证 OVL 红灯亮起及 XR4 01/02 故障回路动作',
+      '6. 切换 SAR -> MAN 并调节 SS1/SIG1，逐台核对风机转向是否正确'
+    ],
+    sf_hdr3: '3. 检修维护与挂牌上锁规范 (LOTO & SAFETY)',
+    sf_loto: [
+      '• 检修前必须断开 MCB1、执行上锁挂牌 (LOTO) 并用万用表验电确认 0V',
+      '• 严禁短接或拆除 PPR1 相序继电器及 QFR 保护开关 (极易烧毁电机)',
+      '• 严禁在主回路带负荷运行时将 CT 二次侧 (S1-S2) 开路 (存在高压危险)',
+      '• 更换熔断器必须使用原规格: FUR1 = 6A | FUR2, FUR3.. = 2A',
+      '• 每 6 个月定期检查 PE-BAR 接地紧固度及柜门接地编织带是否完好'
+    ],
+    ts_hdr: '常见故障分析与现场排查指南 (TROUBLESHOOTING GUIDE)',
+    ts_cols: ['故障现象 / 问题', '指示灯 / 观察点', '可能原因', '排查步骤与解决方法'],
+    ts_rows: [
+      ['1. 整柜所有风机均不转', '黄灯 PH.FLT 亮 (PPR1 动作)', '欠压/过压、缺相、相序错误或 FUR1 熔断', '测量 XR1 三相电压，检查 FUR1 (6A)，若相序错则对调两相'],
+      ['2. 单台风机停机不转', '红灯 OVL 亮 + XR4 01/02 断开', 'QFR 跳闸 (电机过载、扇叶卡阻或接线松动)', '测电机电流，检查扇叶及 XR2 接线，排除后按 QFR 复位'],
+      ['3. EC 风机不转 / 无 24V', '红灯 P24FLT (HLR4) 亮', 'MCB4 (6AT) 跳闸、SPS1 损坏或 24V 线路短路', '检查 MCB4，测 SPS1 输出 +24V/0V，分段排查 24V 短路'],
+      ['4. AUT 不转但 MAN 正常', 'AUT 模式下 RUN 灯不亮', 'Smart Pig 未输出 KC、XR4 断线或 RY 故障', '测量 XR4 端子 KC 通断，检查 RY 继电器线圈及底座'],
+      ['5. EC 风机无法 0-10V 调速', '转速固定不变或停转', 'SS1 档位错误、ISO 损坏或 LIY-CY 正负极接反', '核对 SS1 档位 (2=SIG1, 3=EXT)，测量 XR3 0-10V 电压'],
+      ['6. 整组 4 台停转 (灯全灭)', '该组 RUN/OVL 均不亮', '分组保险 FUR3.. 熔断、MCB 跳闸或 SS1=4', '检查 SS1 位置，更换 FUR3.. (2A) 并合上对应分组 MCB'],
+      ['7. 柜内过热 / VF1 不转', '柜内温度 >35C', 'FUR2 (2A) 熔断、TS1 温控故障或防尘网堵塞', '检查 FUR2，调低 TS1 测试风扇，清理进风口防尘网灰尘'],
+      ['8. PM1 黑屏或 RS485 失败', 'PM1 无显示 / Modbus 超时', 'PM1 电源丢失、A+/B- 接反、浪涌损坏或波特率错误', '检查 PM1 供电，对调 XR3 A+/B- 线序，核对地址与波特率']
+    ],
+    ts_emg_t: '紧急旁路运行说明 (EMERGENCY OVERRIDE):',
+    ts_emg_b: '若外部 Smart Pig / PLC 发生故障，可将 SS1 旋至档位 1 (100%) 并将 SAR 旋至 MAN 立即强制通风；此时 QFR 过载保护与 PPR1 相序保护依然全程有效。'
+  }
+};
+
+const mt = (k, vars={}) => {
+  const d = MANUAL_I18N[state.lang] || MANUAL_I18N.en;
+  let str = d[k] !== undefined ? d[k] : (MANUAL_I18N.en[k] || k);
+  for (const [vk, vv] of Object.entries(vars)) str = str.replaceAll(`{${vk}}`, vv);
+  return str;
+};
+
+const wrapLines = (str, maxLen) => {
+  if (!str || str.length <= maxLen) return [str || ''];
+  const cutChars = new Set([' ', '|', '/', ',', '、', '，', '。', ' ']);
+  let split = -1;
+  for (let i = Math.min(maxLen, str.length - 1); i >= Math.floor(maxLen * 0.45); i--) {
+    if (cutChars.has(str[i])) { split = i + (str[i] === ' ' ? 0 : 1); break; }
+  }
+  if (split <= 0) {
+    split = maxLen;
+    while (split < str.length && /[\u0E31\u0E34-\u0E3A\u0E47-\u0E4E\u0300-\u036F]/.test(str[split])) split++;
+  }
+  const l1 = str.slice(0, split).trimEnd();
+  const l2 = str.slice(split).trimStart();
+  return l2 ? [l1, l2] : [l1];
+};
+
+function buildSystemFunctions(sp, sheetNo) {
+  let s = drawFrame(sp, t('sh_func'), sheetNo, `R${String(sheetNo+1).padStart(2,'0')}`);
+  s += Txt(421, 46, t('sh_func'), 10.5, C.BLK, true, 'middle');
+
+  // 1. Operation & Front Panel Controls (Left Top)
+  s += R(42, 54, 404, 190, C.BLK, 'none', 0.85) + R(42, 54, 404, 18, C.BLK, C.BG, 0.7) + Txt(50, 66, mt('fn_op_hdr'), 7.4, C.BLU, true);
+  let y = 84;
+  s += Txt(50, y, mt('fn_sar_t'), 6.6, C.BLK, true); y += 13;
+  [mt('fn_sar_1'), mt('fn_sar_2'), mt('fn_sar_3')].forEach(ln => { s += Txt(54, y, ln, 6.2, C.BLK); y += 12; });
+  y += 4;
+  if (sp.nEc > 0) {
+    s += Txt(50, y, mt('fn_ss_t'), 6.6, C.BLU, true); y += 13;
+    [mt('fn_ss_1'), mt('fn_ss_2'), mt('fn_ss_3'), mt('fn_ss_4')].forEach(ln => { s += Txt(54, y, ln, 6.2, C.BLK); y += 12; });
+  } else {
+    s += Txt(50, y, mt('fn_ac_only'), 6.4, C.RED, true); y += 16;
+  }
+  y += 4;
+  s += Txt(50, y, mt('fn_lamp_t'), 6.5, C.BLK, true); y += 12.5;
+  s += Txt(54, y, mt('fn_lamp_1'), 6.1, C.GRN, true); y += 12;
+  s += Txt(54, y, mt('fn_lamp_2'), 6.1, C.RED, true);
+
+  // 2. Signal & Power Flow Diagram (Right Top)
+  s += R(454, 54, 346, 190, C.BLK, 'none', 0.85) + R(454, 54, 346, 18, C.BLK, C.BG, 0.7) + Txt(462, 66, mt('fn_flow_hdr'), 7.2, C.BLU, true);
+  const flowBox = (bx, by, bw, bh, lbl, sub, col, bg) =>
+    R(bx, by, bw, bh, col, bg, 0.8) + Txt(bx+bw/2, by+11, lbl, 6.3, col, true, 'middle') + (sub?Txt(bx+bw/2, by+20, sub, 5.2, C.GRY, false, 'middle'):'');
+  const flowArr = (x1, y1, x2, y2, col) =>
+    L(x1, y1, x2, y2, col, 1.1) + Poly([[x2,y2],[x2-4,y2-2.5],[x2-4,y2+2.5]], col, col, 0.5);
+
+  // Row A: Power Flow
+  s += Txt(462, 86, 'POWER (380V 3PH):', 6.0, C.BLK, true);
+  s += flowBox(462, 91, 56, 25, 'XR1 380V', 'L1-L3,N,PE', C.BLK, '#f8fafc') + flowArr(518, 103.5, 532, 103.5, C.BLK);
+  s += flowBox(532, 91, 62, 25, `MCB1 ${sp.mainBrk}A`, 'MCB2..', C.RED, '#fef2f2') + flowArr(594, 103.5, 608, 103.5, C.BLK);
+  s += flowBox(608, 91, 56, 25, 'QFR+KMR', 'Starter', C.BLK, '#f8fafc') + flowArr(664, 103.5, 678, 103.5, C.BLK);
+  s += flowBox(678, 91, 56, 25, 'XR2 VCT', '4x2.5 + PE', C.GRN, '#f0fdf4') + flowArr(734, 103.5, 746, 103.5, C.BLK);
+  s += flowBox(746, 91, 46, 25, `M 3~`, `${sp.n} Fans`, C.BLU, '#eff6ff');
+
+  // Row B: Control Flow
+  s += Txt(462, 134, `CONTROL (${sp.ctrlV}):`, 6.0, C.RED, true);
+  s += flowBox(462, 139, 66, 25, 'MCB4 6AT', sp.nEc>0?'SPS1 24V':'220VAC', C.BLU, '#eff6ff') + flowArr(528, 151.5, 542, 151.5, C.RED);
+  s += flowBox(542, 139, 58, 25, 'FUR3..', '2A / Grp', C.BLK, '#f8fafc') + flowArr(600, 151.5, 614, 151.5, C.RED);
+  s += flowBox(614, 139, 68, 25, 'SAR / KC', 'XR4 (MAN/AUT)', C.BLK, '#f8fafc') + flowArr(682, 151.5, 696, 151.5, C.RED);
+  s += flowBox(696, 139, 96, 25, 'QFR(13-14)->KMR', '+ RUN / OVL', C.RED, '#fef2f2');
+
+  // Row C: Signal / Metering Flow
+  s += Txt(462, 182, 'ANALOG 0-10V & METERING:', 6.0, C.GRN, true);
+  if (sp.nEc > 0) {
+    s += flowBox(462, 187, 68, 25, 'SIG1 / EXT', 'XR3 CTRL1', C.GRN, '#f0fdf4') + flowArr(530, 199.5, 544, 199.5, C.GRN);
+    s += flowBox(544, 187, 52, 25, 'SS1', '4-Step', C.BLK, '#f8fafc') + flowArr(596, 199.5, 610, 199.5, C.GRN);
+    s += flowBox(610, 187, 64, 25, `ISO1..${sp.isoCnt}`, '4-Ch Isolator', C.GRN, '#f0fdf4') + flowArr(674, 199.5, 688, 199.5, C.GRN);
+    s += flowBox(688, 187, 104, 25, sp.hasRs485?'XR3 + PM1 RS485':'XR3 LIY-CY 0-10V', sp.hasRs485?'Belden 9841':'-> EC1..'+sp.nEc, C.BLU, '#eff6ff');
+  } else {
+    s += flowBox(462, 187, 330, 25, sp.hasPm ? `PM1 (${sp.pmMod}) + 3x CT ${sp.ctRatio} LOCAL METERING` : 'ALL-AC SYSTEM: ON/OFF DIRECT STARTER (NO 0-10VDC ANALOG)', sp.hasPm?'Door Display Only (No RS485)':'Control via SAR / External KC Dry Contact', C.BLU, '#eff6ff');
+  }
+  s += Txt(462, 232, `PPR1 (${sp.pprMod}) + TS1 (35C) + VF1: Continuous Protection & Cooling`, 5.8, C.GRY, true);
+
+  // 3. Circuit-by-Circuit Table (Bottom)
+  s += R(42, 252, 758, 240, C.BLK, 'none', 0.9) + R(42, 252, 758, 18, C.BLK, C.BG, 0.8) + Txt(52, 264, mt('fn_tbl_hdr'), 7.4, C.BLU, true);
+  const fCols = [42, 162, 478, 800];
+  s += R(42, 270, 758, 16, C.BLK, C.BG, 0.6);
+  for (let i=1; i<fCols.length-1; i++) s += L(fCols[i], 270, fCols[i], 492, C.BLK, 0.5);
+  mt('fn_cols').forEach((h, i) => s += Txt(fCols[i]+6, 281, h, 6.4, C.BLK, true));
+  const rawRows = mt('fn_rows');
+  const activeRows = [
+    rawRows[0],
+    rawRows[1],
+    sp.nEc > 0 ? rawRows[2] : rawRows[3],
+    rawRows[4],
+    rawRows[5],
+    !sp.hasPm ? rawRows[6] : (sp.hasRs485 ? rawRows[8] : rawRows[7])
+  ];
+  activeRows.forEach((rw, idx) => {
+    const ry = 286 + idx * 34.3;
+    s += L(42, ry+34.3, 800, ry+34.3, C.GRY, 0.35);
+    s += Txt(fCols[0]+6, ry+20, rw[0], 6.4, C.BLU, true);
+    const c1 = wrapLines(rw[1], 56), c2 = wrapLines(rw[2], 58);
+    c1.slice(0,2).forEach((ln, li) => s += Txt(fCols[1]+6, ry+(c1.length>1?13+li*12:20), ln, 5.9, C.BLK, true));
+    c2.slice(0,2).forEach((ln, li) => s += Txt(fCols[2]+6, ry+(c2.length>1?13+li*12:20), ln, 5.9, idx===1?C.RED:(idx===2&&sp.nEc>0?C.GRN:C.BLK)));
+  });
+  return s;
+}
+
+function buildSafetyGuide(sp, sheetNo) {
+  let s = drawFrame(sp, t('sh_safe'), sheetNo, `R${String(sheetNo+1).padStart(2,'0')}`);
+  s += Txt(421, 46, t('sh_safe'), 10.5, C.BLK, true, 'middle');
+
+  // 1. 6-Layer Protection Architecture (Left)
+  s += R(42, 54, 434, 438, C.BLK, 'none', 0.9) + R(42, 54, 434, 18, C.BLK, C.BG, 0.8) + Txt(50, 66, mt('sf_hdr1'), 7.3, C.BLU, true);
+  const layers = mt('sf_layers');
+  layers.forEach(([title, desc], idx) => {
+    const ly = 72 + idx * 70;
+    const dFmt = desc
+      .replaceAll('{brk}', String(sp.mainBrk))
+      .replaceAll('{icu}', sp.mainIcu)
+      .replaceAll('{ecA}', String(sp.ecFan.amp))
+      .replaceAll('{acA}', String(sp.acFan.amp))
+      .replaceAll('{bus}', sp.busSize);
+    if (idx > 0) s += L(42, ly, 476, ly, C.GRY, 0.45);
+    s += R(50, ly+10, 18, 18, idx===1||idx===2?C.RED:(idx===4?C.GRN:C.BLU), idx===1||idx===2?'#fef2f2':(idx===4?'#f0fdf4':'#eff6ff'), 0.8);
+    s += Txt(59, ly+22.5, `L${idx+1}`, 7.0, idx===1||idx===2?C.RED:(idx===4?C.GRN:C.BLU), true, 'middle');
+    s += Txt(76, ly+22, title, 6.7, idx===1||idx===2?C.RED:(idx===4?C.GRN:C.BLU), true);
+    wrapLines(dFmt, 70).slice(0,2).forEach((ln, li) => s += Txt(50, ly+43+li*13, ln, 6.1, C.BLK, li===0));
+  });
+
+  // 2. Pre-Commissioning Checklist (Right Top)
+  s += R(484, 54, 316, 222, C.BLK, 'none', 0.9) + R(484, 54, 316, 18, C.BLK, '#eff6ff', 0.8) + Txt(492, 66, mt('sf_hdr2'), 7.1, C.BLU, true);
+  mt('sf_pre').forEach((ln, idx) => {
+    const py = 88 + idx * 31;
+    if (idx > 0) s += L(484, py-11, 800, py-11, C.GRY, 0.35);
+    wrapLines(ln, 54).slice(0,2).forEach((wln, li) => s += Txt(li===0?492:502, py+li*12, wln, 6.0, li===0?C.BLK:C.GRY, li===0&&(idx===0||idx===2)));
+  });
+
+  // 3. Maintenance & LOTO Safety Rules (Right Bottom)
+  s += R(484, 284, 316, 208, C.RED, '#fffbfb', 0.9) + R(484, 284, 316, 18, C.RED, '#fef2f2', 0.8) + Txt(492, 296, mt('sf_hdr3'), 7.1, C.RED, true);
+  mt('sf_loto').forEach((ln, idx) => {
+    const ry = 318 + idx * 34;
+    if (idx > 0) s += L(484, ry-11, 800, ry-11, '#fca5a5', 0.4);
+    wrapLines(ln, 54).slice(0,2).forEach((wln, li) => s += Txt(li===0?492:500, ry+li*12, wln, 6.0, idx<3?C.RED:C.BLK, true));
+  });
+  return s;
+}
+
+function buildTroubleshooting(sp, sheetNo) {
+  let s = drawFrame(sp, t('sh_tshoot'), sheetNo, 'END');
+  s += Txt(421, 46, t('sh_tshoot'), 10.5, C.BLK, true, 'middle');
+
+  // Main 8-Row Diagnostic Table
+  s += R(42, 54, 758, 386, C.BLK, 'none', 0.9) + R(42, 54, 758, 18, C.BLK, C.BG, 0.8) + Txt(52, 66, mt('ts_hdr'), 7.4, C.BLU, true);
+  const tCols = [42, 204, 354, 548, 800];
+  s += R(42, 72, 758, 16, C.BLK, C.BG, 0.6);
+  for (let i=1; i<tCols.length-1; i++) s += L(tCols[i], 72, tCols[i], 440, C.BLK, 0.5);
+  mt('ts_cols').forEach((h, i) => s += Txt(tCols[i]+5, 83, h, 6.4, C.BLK, true));
+
+  const tRows = mt('ts_rows');
+  tRows.forEach((rw, idx) => {
+    const ry = 88 + idx * 44.0;
+    s += L(42, ry+44, 800, ry+44, C.GRY, 0.35);
+    const colInd = idx===0?C.OYL:(idx===1||idx===2?C.RED:C.BLU);
+    wrapLines(rw[0], 26).slice(0,2).forEach((ln, li) => s += Txt(tCols[0]+5, ry+19+li*13, ln, 6.2, C.BLK, true));
+    wrapLines(rw[1], 24).slice(0,2).forEach((ln, li) => s += Txt(tCols[1]+5, ry+19+li*13, ln, 6.1, colInd, true));
+    wrapLines(rw[2], 32).slice(0,2).forEach((ln, li) => s += Txt(tCols[2]+5, ry+19+li*13, ln, 6.0, li===0?C.BLK:C.GRY));
+    wrapLines(rw[3], 40).slice(0,2).forEach((ln, li) => s += Txt(tCols[3]+5, ry+19+li*13, ln, 6.0, C.GRN, true));
+  });
+
+  // Emergency Override Banner
+  s += R(42, 446, 758, 46, C.RED, '#fff7ed', 1.0);
+  s += Txt(52, 460, mt('ts_emg_t'), 7.2, C.RED, true);
+  wrapLines(mt('ts_emg_b'), 112).slice(0,2).forEach((ln, li) => s += Txt(52, 474+li*12, ln, 6.4, C.BLK, true));
+  return s;
+}
+
 // --- MAIN ORCHESTRATION ---
 function renderAll() {
   const sp = computeSpec();
@@ -1845,7 +2326,12 @@ function renderAll() {
   sheets.push(buildProtection(sp, idx++));
   for (let ip=0; ip<sp.isoPages; ip++) sheets.push(build24vIso(sp, idx++, ip));
   for (let g=0; g<sp.grpCnt; g++) sheets.push(buildLadderSheet(sp, g, idx++));
-  sheets.push(buildTerminals(sp, idx));
+  sheets.push(buildTerminals(sp, idx++));
+  if (sp.includeManual) {
+    sheets.push(buildSystemFunctions(sp, idx++));
+    sheets.push(buildSafetyGuide(sp, idx++));
+    sheets.push(buildTroubleshooting(sp, idx++));
+  }
 
   if (state.activeSheet >= sheets.length) state.activeSheet = sheets.length - 1;
 
@@ -1940,6 +2426,11 @@ function setRs485Opt(on) {
   renderAll();
 }
 
+function setManualOpt(on) {
+  state.includeManual = !!on;
+  renderAll();
+}
+
 function onModelSelect(which) {
   if (which === 'EC') document.getElementById('customEcFields').style.display = document.getElementById('selEcModel').value==='custom_ec'?'grid':'none';
   else document.getElementById('customAcFields').style.display = document.getElementById('selAcModel').value==='custom_ac'?'grid':'none';
@@ -1960,7 +2451,7 @@ function savePreset() {
     ec: document.getElementById('inEcCount').value, ac: document.getElementById('inAcCount').value,
     bkey: state.bkey, cab: document.getElementById('selCab').value,
     ctrlV: document.getElementById('selCtrlV').value, ppr: document.getElementById('selPpr').value,
-    hasPm: state.hasPm, useRs485: state.useRs485,
+    hasPm: state.hasPm, useRs485: state.useRs485, includeManual: state.includeManual,
     ecMod: document.getElementById('selEcModel').value, acMod: document.getElementById('selAcModel').value,
     customer: document.getElementById('inCustomer').value, code: document.getElementById('inCode').value,
     draftman: document.getElementById('inDraftman').value, approved: document.getElementById('inApproved').value
@@ -1987,6 +2478,7 @@ function loadSavedPreset() {
       if (p.get('rs485') === 'pm_rs485' || p.get('rs485') === '1' || p.get('rs485') === 'true') { state.hasPm = true; state.useRs485 = true; }
       else if (p.get('rs485') === 'pm_only') { state.hasPm = true; state.useRs485 = false; }
       else if (p.get('rs485') === 'none' || p.get('rs485') === '0') { state.useRs485 = false; }
+      if (p.has('manual')) state.includeManual = p.get('manual') !== '0' && p.get('manual') !== 'false';
       onManualFanChange();
       return;
     }
@@ -1994,6 +2486,7 @@ function loadSavedPreset() {
     if (!raw) return;
     const d = JSON.parse(raw);
     if (d.lang && I18N[d.lang]) state.lang = d.lang;
+    if (d.includeManual !== undefined) state.includeManual = !!d.includeManual;
     if (d.ec !== undefined) document.getElementById('inEcCount').value = d.ec;
     if (d.ac !== undefined) document.getElementById('inAcCount').value = d.ac;
     if (d.cab) document.getElementById('selCab').value = d.cab;
